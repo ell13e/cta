@@ -275,6 +275,144 @@ function cta_import_courses() {
 }
 
 /**
+ * Populate a single course from JSON data by title
+ * 
+ * @param string $course_title The exact course title from JSON
+ * @return array ['success' => bool, 'message' => string, 'course_id' => int|null]
+ */
+function cta_populate_single_course_from_json($course_title) {
+    $courses_data = cta_get_courses_data();
+    
+    if (empty($courses_data)) {
+        return ['success' => false, 'message' => 'No course data found in JSON file.'];
+    }
+    
+    if (!isset($courses_data[$course_title])) {
+        return ['success' => false, 'message' => 'Course not found in JSON: "' . esc_html($course_title) . '"'];
+    }
+    
+    // Check if course post exists
+    $existing = get_posts([
+        'post_type' => 'course',
+        'title' => $course_title,
+        'posts_per_page' => 1,
+        'post_status' => 'any',
+    ]);
+    
+    $post_id = null;
+    
+    if (!empty($existing)) {
+        // Update existing course
+        $post_id = $existing[0]->ID;
+    } else {
+        // Create new course post
+        $post_data = [
+            'post_title' => sanitize_text_field($course_title),
+            'post_content' => '',
+            'post_status' => 'publish',
+            'post_type' => 'course',
+        ];
+        
+        $post_id = wp_insert_post($post_data);
+        
+        if (is_wp_error($post_id)) {
+            return ['success' => false, 'message' => 'Failed to create course post: ' . $post_id->get_error_message()];
+        }
+    }
+    
+    $course = $courses_data[$course_title];
+    
+    // Populate ACF fields (same logic as bulk import)
+    if (function_exists('update_field')) {
+        update_field('course_level', sanitize_text_field($course['level'] ?? ''), $post_id);
+        update_field('course_duration', sanitize_text_field($course['duration'] ?? ''), $post_id);
+        
+        // Parse hours
+        $hours = 0;
+        if (!empty($course['hours'])) {
+            preg_match('/(\d+(?:\.\d+)?)/', $course['hours'], $matches);
+            $hours = isset($matches[1]) ? floatval($matches[1]) : 0;
+        }
+        update_field('course_hours', $hours, $post_id);
+        
+        // Trainer
+        $trainer = '';
+        if (!empty($course['trainers']) && is_array($course['trainers'])) {
+            $trainer = $course['trainers'][0];
+        }
+        update_field('course_trainer', sanitize_text_field($trainer), $post_id);
+        
+        // Price
+        update_field('course_price', floatval($course['price'] ?? 0), $post_id);
+        
+        // Course Content
+        update_field('course_description', wp_kses_post($course['description'] ?? ''), $post_id);
+        update_field('course_suitable_for', sanitize_textarea_field($course['whoShouldAttend'] ?? ''), $post_id);
+        update_field('course_prerequisites', sanitize_textarea_field($course['requirements'] ?? ''), $post_id);
+        
+        // Learning Outcomes
+        if (!empty($course['learningOutcomes']) && is_array($course['learningOutcomes'])) {
+            $outcomes_text = implode("\n", array_map('sanitize_text_field', $course['learningOutcomes']));
+            update_field('course_outcomes', $outcomes_text, $post_id);
+        }
+        
+        // Accreditation
+        $accreditation = $course['accreditation'] ?? '';
+        if (strpos($accreditation, '|') !== false) {
+            $accreditation = explode('|', $accreditation)[0];
+        }
+        update_field('course_accreditation', sanitize_text_field($accreditation), $post_id);
+        update_field('course_certificate', 'CPD Certificate upon completion', $post_id);
+        
+        // Legacy ID
+        if (!empty($course['id'])) {
+            update_field('course_legacy_id', intval($course['id']), $post_id);
+        }
+        
+        // Generate course code
+        $words = explode(' ', $course_title);
+        $code_prefix = '';
+        foreach ($words as $word) {
+            if (strlen($word) > 0 && !in_array(strtolower($word), ['and', 'the', 'for', 'with', 'from', 'to', 'of', 'in', 'on', 'at', 'a', 'an'])) {
+                $code_prefix .= strtoupper(substr($word, 0, 1));
+                if (strlen($code_prefix) >= 3) {
+                    break;
+                }
+            }
+        }
+        if (strlen($code_prefix) < 2) {
+            $code_prefix = strtoupper(substr(preg_replace('/[^a-z]/i', '', $course_title), 0, 3));
+        }
+        $course_code = $code_prefix . '-' . str_pad($course['id'] ?? $post_id, 3, '0', STR_PAD_LEFT);
+        update_field('course_code', sanitize_text_field($course_code), $post_id);
+    }
+    
+    // Set category
+    if (!empty($course['category'])) {
+        $category_slug = sanitize_title($course['category']);
+        $term = get_term_by('slug', $category_slug, 'course_category');
+        
+        if (!$term) {
+            $term_result = wp_insert_term($course['category'], 'course_category', [
+                'slug' => $category_slug,
+            ]);
+            if (!is_wp_error($term_result)) {
+                wp_set_object_terms($post_id, $term_result['term_id'], 'course_category');
+            }
+        } else {
+            wp_set_object_terms($post_id, $term->term_id, 'course_category');
+        }
+    }
+    
+    $action = !empty($existing) ? 'updated' : 'created';
+    return [
+        'success' => true,
+        'message' => sprintf('Course "%s" %s successfully from JSON data!', esc_html($course_title), $action),
+        'course_id' => $post_id
+    ];
+}
+
+/**
  * Import scheduled events from JSON data
  */
 function cta_import_scheduled_events() {
@@ -972,6 +1110,18 @@ function cta_import_admin_page_content() {
         echo '<div class="notice notice-success"><p><strong>Matched ' . intval($matched) . ' images to courses!</strong></p></div>';
     }
     
+    // Handle single course population
+    $populate_result = null;
+    if (isset($_POST['cta_populate_single_course']) && check_admin_referer('cta_populate_single_course', 'cta_populate_single_course_nonce')) {
+        $course_title = isset($_POST['course_title']) ? sanitize_text_field($_POST['course_title']) : '';
+        
+        if (empty($course_title)) {
+            $populate_result = ['success' => false, 'message' => 'Please enter a course title.'];
+        } else {
+            $populate_result = cta_populate_single_course_from_json($course_title);
+        }
+    }
+    
     ?>
     <div class="wrap">
         <h1 class="wp-heading-inline">
@@ -1055,6 +1205,43 @@ function cta_import_admin_page_content() {
                     </button>
             </p>
         </form>
+            </div>
+        </div>
+        
+        <div class="postbox">
+            <h2 class="hndle">
+                <span class="dashicons dashicons-database-import" style="vertical-align: middle; margin-right: 5px;"></span>
+                Populate Individual Course
+            </h2>
+            <div class="inside">
+        <p>Populate a single course from JSON data by course title:</p>
+        <form method="post" id="cta-populate-single-course-form">
+            <?php wp_nonce_field('cta_populate_single_course', 'cta_populate_single_course_nonce'); ?>
+            <p>
+                <label for="cta-populate-course-title"><strong>Course Title:</strong></label><br>
+                <input type="text" id="cta-populate-course-title" name="course_title" class="regular-text" placeholder="Enter exact course title from JSON" style="width: 100%; max-width: 500px; margin-top: 5px;" required>
+                <p class="description" style="margin-top: 5px;">The title must match exactly with the course title in <code>courses-database.json</code></p>
+            </p>
+            <p>
+                <button type="submit" name="cta_populate_single_course" class="button button-primary" onclick="return confirm('This will populate all ACF fields for the course. Continue?');">
+                    <span class="dashicons dashicons-database-import" style="vertical-align: middle; margin-right: 5px;"></span>
+                    Populate Course from JSON
+                </button>
+            </p>
+        </form>
+        <?php
+        // Display populate result
+        if ($populate_result !== null) {
+            if ($populate_result['success']) {
+                echo '<div class="notice notice-success" style="margin-top: 15px;"><p><strong>' . esc_html($populate_result['message']) . '</strong></p></div>';
+                if (!empty($populate_result['course_id'])) {
+                    echo '<p><a href="' . admin_url('post.php?post=' . intval($populate_result['course_id']) . '&action=edit') . '" class="button">Edit Course</a></p>';
+                }
+            } else {
+                echo '<div class="notice notice-error" style="margin-top: 15px;"><p><strong>' . esc_html($populate_result['message']) . '</strong></p></div>';
+            }
+        }
+        ?>
             </div>
         </div>
         

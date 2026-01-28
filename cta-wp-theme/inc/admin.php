@@ -1218,4 +1218,3 @@ function cta_save_image_ajax() {
     }
 }
 add_action('wp_ajax_cta_save_image', 'cta_save_image_ajax');
-
