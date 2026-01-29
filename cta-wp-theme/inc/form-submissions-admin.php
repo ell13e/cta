@@ -1519,12 +1519,10 @@ function cta_form_submission_admin_columns($columns) {
     switch ($selected_tab) {
         case 'event-bookings':
             $new_columns['contact_info'] = 'Contact';
-            $new_columns['course_name'] = 'Course';
-            $new_columns['event_date'] = 'Event Date';
+            $new_columns['course_and_date'] = 'Event';
             $new_columns['delegates'] = 'Delegates';
             $new_columns['followup_status'] = 'Status';
             $new_columns['assigned_to'] = 'Assigned';
-            $new_columns['marketing_consent'] = 'Marketing Consent';
             $new_columns['email_status'] = 'Email Status';
             $new_columns['date'] = 'Submitted';
             break;
@@ -1812,6 +1810,67 @@ function cta_form_submission_admin_column_content($column, $post_id) {
                 } else {
                     echo esc_html($course_name);
                 }
+            } else {
+                echo '<span class="cta-admin-empty">-</span>';
+            }
+            break;
+            
+        case 'course_and_date':
+            // Combined course name and event date for Event Bookings tab
+            $course_name = get_post_meta($post_id, '_submission_course_name', true);
+            if (!$course_name) {
+                $form_data = get_post_meta($post_id, '_submission_form_data', true);
+                if (is_array($form_data) && isset($form_data['course_name'])) {
+                    $course_name = $form_data['course_name'];
+                }
+            }
+            
+            $event_date = get_post_meta($post_id, '_submission_event_date', true);
+            if (!$event_date) {
+                $form_data = get_post_meta($post_id, '_submission_form_data', true);
+                if (is_array($form_data) && isset($form_data['event_date'])) {
+                    $event_date = $form_data['event_date'];
+                }
+            }
+            
+            $output = [];
+            
+            // Course name
+            if ($course_name) {
+                $course_id = get_post_meta($post_id, '_submission_course_id', true);
+                if ($course_id) {
+                    $course_url = get_permalink($course_id);
+                    $output[] = '<a href="' . esc_url($course_url) . '" target="_blank" title="View course">' . esc_html($course_name) . '</a>';
+                } else {
+                    $output[] = esc_html($course_name);
+                }
+            }
+            
+            // Event date
+            if ($event_date) {
+                $date_obj = strtotime($event_date);
+                if ($date_obj) {
+                    $formatted_date = date('j M Y', $date_obj);
+                    $today = strtotime('today');
+                    $tomorrow = strtotime('tomorrow');
+                    
+                    // Highlight upcoming events
+                    if ($date_obj >= $today && $date_obj < $tomorrow) {
+                        $output[] = '<span style="color: #d63638; font-weight: 600;">Today</span>';
+                    } elseif ($date_obj >= $tomorrow && $date_obj <= strtotime('+7 days')) {
+                        $output[] = '<span style="color: #2271b1; font-weight: 500;">' . esc_html($formatted_date) . '</span>';
+                    } elseif ($date_obj < $today) {
+                        $output[] = '<span style="color: #646970;">' . esc_html($formatted_date) . '</span>';
+                    } else {
+                        $output[] = esc_html($formatted_date);
+                    }
+                } else {
+                    $output[] = esc_html($event_date);
+                }
+            }
+            
+            if (!empty($output)) {
+                echo implode('<br>', $output);
             } else {
                 echo '<span class="cta-admin-empty">-</span>';
             }
@@ -2130,6 +2189,7 @@ function cta_form_submission_sortable_columns($columns) {
     $columns['email_status'] = 'email_status';
     $columns['assigned_to'] = 'assigned_to';
     $columns['course_name'] = 'course_name';
+    $columns['course_and_date'] = 'course_and_date';
     $columns['event_date'] = 'event_date';
     $columns['delegates'] = 'delegates';
     $columns['newsletter_status'] = 'newsletter_status';
@@ -2157,6 +2217,12 @@ function cta_form_submission_custom_orderby($query) {
         case 'delegates':
         case 'newsletter_status':
             $query->set('meta_key', '_submission_' . $orderby);
+            $query->set('orderby', 'meta_value');
+            break;
+            
+        case 'course_and_date':
+            // Sort by event date for combined course & date column
+            $query->set('meta_key', '_submission_event_date');
             $query->set('orderby', 'meta_value');
             break;
     }
@@ -2229,7 +2295,7 @@ function cta_get_submission_count_by_tab($tab) {
         
         switch ($tab) {
             case 'course-enquiries':
-                // Course Enquiries: course-booking, book-course (individual course bookings)
+                // Course Enquiries: course-booking, book-course, meta-lead (individual course bookings)
                 // Exclude event bookings (course-booking where course_id is a course_event)
                 // Exclude group bookings (group-booking, group-training)
                 $course_events = get_posts([
@@ -2238,7 +2304,7 @@ function cta_get_submission_count_by_tab($tab) {
                     'fields' => 'ids',
                 ]);
                 
-                // Get all course-booking and book-course submissions
+                // Get all course-booking, book-course, and meta-lead submissions
                 $course_enquiry_ids = get_posts([
                     'post_type' => 'form_submission',
                     'posts_per_page' => -1,
@@ -2247,7 +2313,7 @@ function cta_get_submission_count_by_tab($tab) {
                         [
                             'taxonomy' => 'form_type',
                             'field' => 'slug',
-                            'terms' => ['course-booking', 'book-course'],
+                            'terms' => ['course-booking', 'book-course', 'meta-lead'],
                             'operator' => 'IN',
                         ],
                     ],
@@ -2505,7 +2571,7 @@ function cta_form_submission_add_filters() {
     $quick_filters = [
         ['label' => 'All types', 'param' => 'submission_tab', 'value' => 'all'],
         ['label' => 'Course Enquiries', 'param' => 'submission_tab', 'value' => 'course-enquiries', 'count' => $course_enquiries_count],
-        ['label' => 'Event type', 'param' => 'submission_tab', 'value' => 'event-bookings', 'count' => $event_bookings_count],
+        ['label' => 'Event Bookings', 'param' => 'submission_tab', 'value' => 'event-bookings', 'count' => $event_bookings_count],
         ['label' => 'Newsletter', 'param' => 'submission_tab', 'value' => 'newsletter', 'count' => $newsletter_count],
         ['label' => 'Group', 'param' => 'submission_tab', 'value' => 'group-enquiries', 'count' => $group_enquiries_count],
         ['label' => 'Other Listings (' . $other_count . ')', 'param' => 'submission_tab', 'value' => 'other'],
@@ -2861,7 +2927,7 @@ function cta_form_submission_filter_query($query) {
             
             switch ($selected_tab) {
                 case 'course-enquiries':
-                    // Course Enquiries: course-booking, book-course (individual course bookings)
+                    // Course Enquiries: course-booking, book-course, meta-lead (individual course bookings)
                     // Exclude event bookings (course-booking where course_id is a course_event)
                     // Exclude group bookings (group-booking, group-training)
                     $course_events = get_posts([
@@ -2870,7 +2936,7 @@ function cta_form_submission_filter_query($query) {
                         'fields' => 'ids',
                     ]);
                     
-                    // Get all course-booking and book-course submissions
+                    // Get all course-booking, book-course, and meta-lead submissions
                     $course_enquiry_ids = get_posts([
                         'post_type' => 'form_submission',
                         'posts_per_page' => -1,
@@ -2879,7 +2945,7 @@ function cta_form_submission_filter_query($query) {
                             [
                                 'taxonomy' => 'form_type',
                                 'field' => 'slug',
-                                'terms' => ['course-booking', 'book-course'],
+                                'terms' => ['course-booking', 'book-course', 'meta-lead'],
                                 'operator' => 'IN',
                             ],
                         ],

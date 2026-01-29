@@ -336,7 +336,7 @@ $hero_subtitle = get_field('hero_subtitle') ?: 'Train your entire team together.
                 id="group-booking-discount-code"
                 name="discount_code"
                 class="contact-form-input"
-                placeholder="DISCOUNT CODE"
+                placeholder="Enter code"
                 autocomplete="off"
                 aria-describedby="group-booking-discount-code-error"
                 aria-invalid="false"
@@ -466,21 +466,6 @@ $hero_subtitle = get_field('hero_subtitle') ?: 'Train your entire team together.
 <script>
 (function() {
   'use strict';
-  
-  // FAQ Accordion functionality
-  const faqButtons = document.querySelectorAll('.group-faq-question');
-  
-  faqButtons.forEach(button => {
-    button.addEventListener('click', function() {
-      const isExpanded = this.getAttribute('aria-expanded') === 'true';
-      const answerId = this.getAttribute('aria-controls');
-      const answer = document.getElementById(answerId);
-      
-      // Toggle this FAQ
-      this.setAttribute('aria-expanded', !isExpanded);
-      answer.setAttribute('aria-hidden', isExpanded);
-    });
-  });
   
   // FAQ Category filtering
   const categoryButtons = document.querySelectorAll('.faq-sidebar-btn');

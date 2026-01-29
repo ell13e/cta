@@ -402,6 +402,11 @@ function cta_preintegrate_form_types() {
             'description' => 'Submissions from course booking modals and enquiry forms (course detail pages, homepage, etc.)',
         ],
         [
+            'slug' => 'meta-lead',
+            'name' => 'Meta Lead',
+            'description' => 'Leads imported from Facebook Lead Ads (Meta)',
+        ],
+        [
             'slug' => 'group-booking',
             'name' => 'Group Booking',
             'description' => 'Submissions from group training booking forms (group training page, contact page, etc.)',

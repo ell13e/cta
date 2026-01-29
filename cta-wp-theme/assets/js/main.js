@@ -2213,7 +2213,8 @@
       if (button.dataset.accordionInit === 'true') return;
       button.dataset.accordionInit = 'true';
 
-      button.addEventListener('click', function () {
+      button.addEventListener('click', function (e) {
+        e.preventDefault();
         const isExpanded = this.getAttribute('aria-expanded') === 'true';
         const answerId = this.getAttribute('aria-controls');
         if (!answerId) return;
@@ -2221,8 +2222,33 @@
         const answer = document.getElementById(answerId);
         if (!answer) return;
 
-        this.setAttribute('aria-expanded', (!isExpanded).toString());
-        answer.setAttribute('aria-hidden', isExpanded ? 'true' : 'false');
+        // Close all other accordions
+        buttons.forEach(btn => {
+          if (btn !== button) {
+            const otherAnswerId = btn.getAttribute('aria-controls');
+            const otherAnswer = otherAnswerId ? document.getElementById(otherAnswerId) : null;
+            if (otherAnswer) {
+              btn.setAttribute('aria-expanded', 'false');
+              otherAnswer.setAttribute('aria-hidden', 'true');
+              // Clear any inline styles to let CSS handle the transition
+              otherAnswer.style.maxHeight = '';
+            }
+          }
+        });
+
+        // Toggle current accordion
+        if (isExpanded) {
+          // Closing
+          this.setAttribute('aria-expanded', 'false');
+          answer.setAttribute('aria-hidden', 'true');
+          // Clear inline max-height to let CSS handle the transition
+          answer.style.maxHeight = '';
+        } else {
+          // Opening - let CSS handle the transition via aria-hidden
+          this.setAttribute('aria-expanded', 'true');
+          answer.setAttribute('aria-hidden', 'false');
+          // CSS will handle max-height transition via the [aria-hidden="false"] selector
+        }
       });
 
       // Keyboard accessibility

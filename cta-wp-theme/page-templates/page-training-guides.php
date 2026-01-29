@@ -255,57 +255,6 @@ if (empty($hero_cta_url)) {
         </div>
       </div>
       
-      <!-- Medication Comparison -->
-      <div class="comparison-section">
-        <div class="comparison-intro">
-          <div class="comparison-intro-icon">
-            <i class="fas fa-pills" aria-hidden="true"></i>
-          </div>
-          <div class="comparison-intro-content">
-            <h3>Medication Training: Awareness vs Competency vs Management</h3>
-            <p>Three distinct levels with different legal requirements</p>
-          </div>
-        </div>
-        
-        <div class="comparison-progression">
-          <div class="comparison-progress-card">
-            <div class="comparison-progress-step">1</div>
-            <h4>Awareness</h4>
-            <p class="comparison-progress-who">All care staff</p>
-            <p class="comparison-progress-desc">Basic understanding of medication</p>
-          </div>
-          
-          <div class="comparison-progress-arrow">
-            <i class="fas fa-arrow-right" aria-hidden="true"></i>
-          </div>
-          
-          <div class="comparison-progress-card comparison-progress-highlight">
-            <div class="comparison-progress-step">2</div>
-            <h4>Competency</h4>
-            <p class="comparison-progress-who">Staff administering medication</p>
-            <p class="comparison-progress-desc">Competency assessment required</p>
-          </div>
-          
-          <div class="comparison-progress-arrow">
-            <i class="fas fa-arrow-right" aria-hidden="true"></i>
-          </div>
-          
-          <div class="comparison-progress-card">
-            <div class="comparison-progress-step">3</div>
-            <h4>Management</h4>
-            <p class="comparison-progress-who">Managers, senior staff</p>
-            <p class="comparison-progress-desc">Oversight and governance</p>
-          </div>
-        </div>
-        
-        <div class="comparison-cta">
-          <a href="<?php echo esc_url(add_query_arg('category', 'medication-management', get_post_type_archive_link('course'))); ?>" class="btn btn-primary">
-            View Medication Courses
-            <i class="fas fa-arrow-right" aria-hidden="true"></i>
-          </a>
-        </div>
-      </div>
-      
       <!-- Care Certificate Comparison -->
       <div class="comparison-section">
         <div class="comparison-intro">

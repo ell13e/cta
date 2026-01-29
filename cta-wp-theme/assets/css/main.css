@@ -12298,7 +12298,48 @@ textarea:focus-visible,
 }
 
 .contact-form-input-wrapper .contact-form-input-icon.fa-tag {
-  color: var(--gold-primary);
+  position: absolute;
+  left: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--brown-medium);
+  opacity: 0.6;
+  font-size: 16px;
+  pointer-events: none;
+  z-index: 1;
+  transition: opacity 0.2s ease, color 0.2s ease;
+}
+
+.contact-form-input-wrapper:focus-within .contact-form-input-icon.fa-tag,
+.contact-form-input-wrapper:hover .contact-form-input-icon.fa-tag {
+  opacity: 0.8;
+}
+
+/* Responsive styles for discount code field */
+@media (max-width: 639px) {
+  .contact-form-input-wrapper .contact-form-input {
+    padding-left: 44px;
+    padding-right: 16px; /* Match base mobile padding */
+    padding-top: 16px;
+    padding-bottom: 16px;
+    font-size: 16px; /* Prevent zoom on iOS */
+    min-height: 48px; /* Minimum touch target size (WCAG 2.5.5) */
+  }
+  
+  .contact-form-input-wrapper .contact-form-input-icon.fa-tag {
+    left: 14px;
+    font-size: 15px;
+  }
+}
+
+@media (min-width: 640px) and (max-width: 1023px) {
+  .contact-form-input-wrapper .contact-form-input {
+    padding-left: 46px;
+  }
+  
+  .contact-form-input-wrapper .contact-form-input-icon.fa-tag {
+    left: 15px;
+  }
 }
 
 /* Match homepage form styling - input box with icon */

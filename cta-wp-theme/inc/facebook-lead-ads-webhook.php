@@ -35,7 +35,7 @@ function cta_facebook_lead_ads_register_settings() {
     ]);
     register_setting('cta_api_keys_settings', 'cta_facebook_lead_ads_form_type', [
         'sanitize_callback' => 'sanitize_text_field',
-        'default' => 'facebook-lead',
+        'default' => 'meta-lead',
     ]);
 }
 add_action('admin_init', 'cta_facebook_lead_ads_register_settings');
@@ -279,6 +279,9 @@ function cta_fetch_facebook_adset_from_lead($lead_data, $lead_details) {
  * Parse ad set name to extract course name and date
  * Format: cta_COURSENAME_DATE (e.g., cta_EPFA_27.01.2026)
  * 
+ * Note: For upcoming courses ads (cta_upcoming-courses_DATE), returns empty
+ * as the event selection comes from the form field, not the ad set name.
+ * 
  * @param string $adset_name Ad set name
  * @return array Parsed data with 'course_name' and 'date'
  */
@@ -289,6 +292,11 @@ function cta_parse_adset_name($adset_name) {
     ];
     
     if (empty($adset_name)) {
+        return $parsed;
+    }
+    
+    // Skip parsing for upcoming courses ads - event comes from form field selection
+    if (preg_match('/^cta_upcoming-courses_/i', $adset_name)) {
         return $parsed;
     }
     
@@ -340,6 +348,76 @@ function cta_parse_booking_quantity($value) {
     }
     
     return 1;
+}
+
+/**
+ * Find course_event by course name and date
+ * First finds the course, then finds course_events linked to it that match the date
+ * 
+ * @param string $course_name Course name or acronym (e.g., "EPFA" or "Medication-Competency-Management")
+ * @param string $event_date Date in format DD.MM.YYYY (e.g., "27.01.2026")
+ * @return int|false Course event post ID or false if not found
+ */
+function cta_find_course_event_by_course_and_date($course_name, $event_date) {
+    if (empty($course_name) || empty($event_date)) {
+        return false;
+    }
+    
+    // First find the course
+    $course_id = cta_find_course_by_name($course_name);
+    if (!$course_id) {
+        return false;
+    }
+    
+    // Convert date from DD.MM.YYYY to YYYY-MM-DD (ACF format)
+    $date_parts = explode('.', $event_date);
+    if (count($date_parts) !== 3) {
+        return false;
+    }
+    
+    $acf_date = sprintf('%04d-%02d-%02d', $date_parts[2], $date_parts[1], $date_parts[0]);
+    
+    // Find course_events linked to this course with matching date
+    // Use ACF get_field() to properly handle relationship fields
+    $args = [
+        'post_type' => 'course_event',
+        'posts_per_page' => -1,
+        'post_status' => 'publish',
+        'meta_query' => [
+            [
+                'key' => 'event_date',
+                'value' => $acf_date,
+                'compare' => '=',
+            ],
+        ],
+    ];
+    
+    $query = new WP_Query($args);
+    
+    if ($query->have_posts()) {
+        foreach ($query->posts as $event_post) {
+            // Check if this event is linked to our course
+            $linked_course = function_exists('get_field') ? get_field('linked_course', $event_post->ID) : null;
+            
+            // Handle ACF relationship field (can be object, array, or ID)
+            $linked_course_id = null;
+            if (is_object($linked_course)) {
+                $linked_course_id = $linked_course->ID ?? null;
+            } elseif (is_array($linked_course) && !empty($linked_course)) {
+                $linked_course_id = is_object($linked_course[0]) ? $linked_course[0]->ID : $linked_course[0];
+            } elseif (is_numeric($linked_course)) {
+                $linked_course_id = (int) $linked_course;
+            }
+            
+            if ($linked_course_id === $course_id) {
+                wp_reset_postdata();
+                return $event_post->ID;
+            }
+        }
+    }
+    
+    wp_reset_postdata();
+    return false;
 }
 
 /**
@@ -436,6 +514,120 @@ function cta_find_course_by_name($course_name) {
 }
 
 /**
+ * Find course_event by title/text match
+ * Used when leads select an event from a multiple choice question
+ * 
+ * @param string $event_text Event text from form (e.g., "Emergency Paediatric First Aid - 27 Jan 2026")
+ * @return int|false Course event post ID or false if not found
+ */
+function cta_find_course_event_by_text($event_text) {
+    if (empty($event_text)) {
+        return false;
+    }
+    
+    // Normalize the search text (remove extra spaces, convert to lowercase)
+    $normalize = function($str) {
+        return strtolower(preg_replace('/\s+/', ' ', trim($str)));
+    };
+    
+    $normalized_search = $normalize($event_text);
+    
+    // Check if normalized search is empty (whitespace-only input)
+    if (empty($normalized_search)) {
+        return false;
+    }
+    
+    // Try to extract date from the text (common formats)
+    $date_patterns = [
+        '/(\d{1,2})[.\s]+(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*[.\s]+(\d{4})/i',
+        '/(\d{1,2})[.\s]+(\d{1,2})[.\s]+(\d{4})/',
+        '/(\d{1,2})\/(\d{1,2})\/(\d{4})/',
+    ];
+    
+    $extracted_date = null;
+    foreach ($date_patterns as $pattern) {
+        if (preg_match($pattern, $event_text, $matches)) {
+            // Try to parse the date
+            $date_str = $matches[0];
+            $date_obj = strtotime($date_str);
+            if ($date_obj) {
+                $extracted_date = date('Y-m-d', $date_obj);
+                break;
+            }
+        }
+    }
+    
+    // Search course_events by title
+    $args = [
+        'post_type' => 'course_event',
+        'posts_per_page' => 50,
+        'post_status' => 'publish',
+        's' => $event_text,
+    ];
+    
+    $query = new WP_Query($args);
+    
+    if ($query->have_posts()) {
+        $best_match = null;
+        $best_score = 0;
+        
+        while ($query->have_posts()) {
+            $query->the_post();
+            $event_id = get_the_ID();
+            $title = get_the_title($event_id);
+            $normalized_title = $normalize($title);
+            
+            // If we extracted a date, verify it matches
+            if ($extracted_date) {
+                $event_date = function_exists('get_field') ? get_field('event_date', $event_id) : null;
+                if (!$event_date) {
+                    $event_date = get_post_meta($event_id, 'event_date', true);
+                }
+                
+                if ($event_date) {
+                    $event_date_formatted = is_string($event_date) ? $event_date : date('Y-m-d', $event_date);
+                    if ($event_date_formatted !== $extracted_date) {
+                        continue; // Date doesn't match, skip
+                    }
+                }
+            }
+            
+            // Calculate match score
+            if ($normalized_title === $normalized_search) {
+                wp_reset_postdata();
+                return $event_id; // Exact match
+            }
+            
+            // Check if search text is contained in title
+            if (strpos($normalized_title, $normalized_search) !== false && !empty($normalized_title)) {
+                $score = strlen($normalized_search) / strlen($normalized_title);
+                if ($score > $best_score) {
+                    $best_score = $score;
+                    $best_match = $event_id;
+                }
+            }
+            
+            // Check if title is contained in search text
+            if (strpos($normalized_search, $normalized_title) !== false && !empty($normalized_search) && !empty($normalized_title)) {
+                $score = strlen($normalized_title) / strlen($normalized_search);
+                if ($score > $best_score) {
+                    $best_score = $score;
+                    $best_match = $event_id;
+                }
+            }
+        }
+        wp_reset_postdata();
+        
+        if ($best_match) {
+            return $best_match;
+        }
+    }
+    
+    wp_reset_postdata();
+    return false;
+}
+
+/**
  * Create form submission from Facebook lead data
  * 
  * @param array $lead_data Lead data from webhook
@@ -512,7 +704,52 @@ function cta_create_submission_from_facebook_lead($lead_data, $lead_details, $pa
                 break;
                 
             default:
-                if (stripos($field_name, 'how many') !== false || 
+                // Check if this is an event selection field (multiple choice question about which event)
+                if (stripos($field_name, 'event') !== false || 
+                    stripos($field_name, 'course') !== false ||
+                    stripos($field_name, 'which') !== false ||
+                    stripos($field_name, 'select') !== false) {
+                    
+                    // Try to find course_event by the selected text
+                    $course_event_id = cta_find_course_event_by_text($field_value);
+                    
+                    if ($course_event_id && empty($submission_data['course_id'])) {
+                        // Found a matching course_event - use it
+                        $submission_data['course_id'] = $course_event_id;
+                        $submission_data['course_name'] = get_the_title($course_event_id);
+                        
+                        // Get event date from the course_event
+                        $event_date = function_exists('get_field') ? get_field('event_date', $course_event_id) : null;
+                        if (!$event_date) {
+                            $event_date = get_post_meta($course_event_id, 'event_date', true);
+                        }
+                        if ($event_date) {
+                            // Convert from Y-m-d to DD.MM.YYYY format for consistency
+                            $date_obj = is_string($event_date) ? strtotime($event_date) : $event_date;
+                            if ($date_obj !== false && $date_obj > 0) {
+                                $submission_data['event_date'] = date('d.m.Y', $date_obj);
+                            } else {
+                                // Invalid date - log and use original format if it's already a string
+                                if (defined('WP_DEBUG') && WP_DEBUG) {
+                                    error_log('Facebook Lead Ads: Invalid event_date format: ' . print_r($event_date, true));
+                                }
+                                if (is_string($event_date)) {
+                                    $submission_data['event_date'] = $event_date;
+                                }
+                            }
+                        }
+                        
+                        if (defined('WP_DEBUG') && WP_DEBUG) {
+                            error_log('Facebook Lead Ads: Found course_event ' . $course_event_id . ' from event selection field: ' . $field_value);
+                        }
+                    }
+                    
+                    // Store in form_data
+                    if (!isset($submission_data['form_data'])) {
+                        $submission_data['form_data'] = [];
+                    }
+                    $submission_data['form_data'][$field_name] = $field_value;
+                } elseif (stripos($field_name, 'how many') !== false || 
                     stripos($field_name, 'booking') !== false || 
                     stripos($field_name, 'people') !== false ||
                     stripos($field_name, 'delegates') !== false) {
@@ -536,7 +773,59 @@ function cta_create_submission_from_facebook_lead($lead_data, $lead_details, $pa
         }
     }
     
-    if (!empty($parsed_data['course_name'])) {
+    // Try to find course_event first (if we have both course name and date)
+    if (!empty($parsed_data['course_name']) && !empty($parsed_data['date'])) {
+        $course_event_id = cta_find_course_event_by_course_and_date($parsed_data['course_name'], $parsed_data['date']);
+        
+        if ($course_event_id) {
+            // Found a matching course_event - use it
+            $submission_data['course_id'] = $course_event_id;
+            $submission_data['course_name'] = get_the_title($course_event_id);
+            
+            // Get event date from the course_event
+            $event_date = function_exists('get_field') ? get_field('event_date', $course_event_id) : null;
+            if (!$event_date) {
+                $event_date = get_post_meta($course_event_id, 'event_date', true);
+            }
+            if ($event_date) {
+                // Convert from Y-m-d to DD.MM.YYYY format for consistency
+                $date_obj = is_string($event_date) ? strtotime($event_date) : $event_date;
+                if ($date_obj !== false && $date_obj > 0) {
+                    $submission_data['event_date'] = date('d.m.Y', $date_obj);
+                } else {
+                    // Invalid date - log and use parsed date as fallback
+                    if (defined('WP_DEBUG') && WP_DEBUG) {
+                        error_log('Facebook Lead Ads: Invalid event_date format: ' . print_r($event_date, true));
+                    }
+                    $submission_data['event_date'] = $parsed_data['date'];
+                }
+            } else {
+                $submission_data['event_date'] = $parsed_data['date'];
+            }
+            
+            if (defined('WP_DEBUG') && WP_DEBUG) {
+                error_log('Facebook Lead Ads: Found course_event ' . $course_event_id . ' for course "' . $parsed_data['course_name'] . '" on date ' . $parsed_data['date']);
+            }
+        } else {
+            // No matching course_event found - fall back to course only
+            $course_id = cta_find_course_by_name($parsed_data['course_name']);
+            
+            if ($course_id) {
+                $submission_data['course_id'] = $course_id;
+                $submission_data['course_name'] = get_the_title($course_id);
+                $submission_data['event_date'] = $parsed_data['date'];
+                
+                if (defined('WP_DEBUG') && WP_DEBUG) {
+                    error_log('Facebook Lead Ads: Found course ' . $course_id . ' but no matching course_event for date ' . $parsed_data['date']);
+                }
+            } else {
+                if (defined('WP_DEBUG') && WP_DEBUG) {
+                    error_log('Facebook Lead Ads: Course not found for: ' . $parsed_data['course_name']);
+                }
+            }
+        }
+    } elseif (!empty($parsed_data['course_name'])) {
+        // Only course name provided, no date
         $course_id = cta_find_course_by_name($parsed_data['course_name']);
         
         if ($course_id) {
@@ -549,11 +838,12 @@ function cta_create_submission_from_facebook_lead($lead_data, $lead_details, $pa
         }
     }
     
-    if (!empty($parsed_data['date'])) {
+    // Set event_date if we have it but haven't set it yet
+    if (!empty($parsed_data['date']) && empty($submission_data['event_date'])) {
         $submission_data['event_date'] = $parsed_data['date'];
     }
     
-    $form_type = get_option('cta_facebook_lead_ads_form_type', 'facebook-lead');
+    $form_type = get_option('cta_facebook_lead_ads_form_type', 'meta-lead');
     
     if (class_exists('\\CTA\\Repositories\\FormSubmissionRepository')) {
         $repository = new \CTA\Repositories\FormSubmissionRepository();
@@ -599,7 +889,7 @@ function cta_facebook_lead_ads_webhook_settings_fields() {
         update_option('cta_facebook_lead_ads_verify_token', $verify_token);
     }
     
-    $form_type = get_option('cta_facebook_lead_ads_form_type', 'facebook-lead');
+    $form_type = get_option('cta_facebook_lead_ads_form_type', 'meta-lead');
     $webhook_url = rest_url('cta/v1/facebook-lead-ads');
     ?>
     <div class="cta-api-keys-section">
@@ -662,9 +952,9 @@ function cta_facebook_lead_ads_webhook_settings_fields() {
                            name="cta_facebook_lead_ads_form_type" 
                            value="<?php echo esc_attr($form_type); ?>" 
                            class="regular-text"
-                           placeholder="facebook-lead">
+                           placeholder="meta-lead">
                     <p class="description">
-                        Form type slug for imported leads (used for categorization in Form Submissions).
+                        Form type slug for imported leads (used for categorization in Form Submissions). Default: meta-lead
                     </p>
                 </td>
             </tr>
