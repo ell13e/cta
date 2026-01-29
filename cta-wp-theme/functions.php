@@ -77,7 +77,6 @@ require_once CTA_THEME_DIR . '/inc/theme-options.php';
 require_once CTA_THEME_DIR . '/inc/admin.php';
 // ARCHIVED: Custom admin styling files moved to `inc.backup/`.
 // These files were disabled in favor of vanilla WordPress admin.
-// See docs/ADMIN_DEAD_CODE_CLEANUP.md for details.
 require_once CTA_THEME_DIR . '/inc/api-keys-settings.php';
 require_once CTA_THEME_DIR . '/inc/ai-provider-fallback.php';
 require_once CTA_THEME_DIR . '/inc/ai-content-assistant.php';
@@ -87,6 +86,8 @@ require_once CTA_THEME_DIR . '/inc/ai-chat-widget.php';
 require_once CTA_THEME_DIR . '/inc/seo.php';
 require_once CTA_THEME_DIR . '/inc/seo-schema.php';
 require_once CTA_THEME_DIR . '/inc/seo-verification.php';
+require_once CTA_THEME_DIR . '/inc/facebook-conversions-api.php';
+require_once CTA_THEME_DIR . '/inc/facebook-lead-ads-webhook.php';
 require_once CTA_THEME_DIR . '/inc/location-pages.php';
 require_once CTA_THEME_DIR . '/inc/performance-helpers.php';
 require_once CTA_THEME_DIR . '/inc/content-templates.php';
@@ -424,8 +425,10 @@ function cta_enqueue_page_scripts() {
         );
     }
 
-    // Downloadable resources page: modal styles + JS
-    if (is_page_template('page-templates/page-downloadable-resources.php')) {
+    // Resource download modal: styles + JS (used on Downloadable Resources, CQC Hub, and Training Guides pages)
+    if (is_page_template('page-templates/page-downloadable-resources.php') ||
+        is_page_template('page-templates/page-cqc-hub.php') ||
+        is_page_template('page-templates/page-training-guides.php')) {
         wp_enqueue_style(
             'cta-resource-download-modal',
             CTA_THEME_URI . '/assets/css/resource-download-modal.css',
@@ -960,6 +963,26 @@ function cta_add_article_schema() {
         $schema['wordCount'] = $word_count;
     }
     
+    // Validate required fields before output
+    if (empty($schema['headline']) || empty($schema['datePublished'])) {
+        return; // Don't output incomplete schema
+    }
+    
+    // Validate date format (ISO 8601)
+    $timestamp = strtotime($schema['datePublished']);
+    if ($timestamp !== false) {
+        $schema['datePublished'] = date('c', $timestamp);
+    } else {
+        return; // Invalid date
+    }
+    
+    if (isset($schema['dateModified'])) {
+        $timestamp = strtotime($schema['dateModified']);
+        if ($timestamp !== false) {
+            $schema['dateModified'] = date('c', $timestamp);
+        }
+    }
+    
     // Output schema
     echo "\n<!-- Article Schema.org Structured Data -->\n";
     echo '<script type="application/ld+json">' . "\n";
@@ -967,6 +990,50 @@ function cta_add_article_schema() {
     echo "\n" . '</script>' . "\n";
 }
 add_action('wp_footer', 'cta_add_article_schema', 5);
+
+/**
+ * Validate schema data before output
+ * 
+ * @param string $type Schema type (Course, CourseInstance, Event)
+ * @param array $data Schema data array
+ * @return array|false Validated data or false if invalid
+ */
+function cta_validate_schema_data($type, $data) {
+    $required = [
+        'Course' => ['name', 'description', 'provider'],
+        'CourseInstance' => ['name', 'startDate', 'location'],
+        'Event' => ['name', 'startDate', 'location', 'offers']
+    ];
+    
+    // Check required fields
+    if (isset($required[$type])) {
+        foreach ($required[$type] as $field) {
+            if (empty($data[$field])) {
+                return false; // Don't output incomplete schema
+            }
+        }
+    }
+    
+    // Validate price format (must be numeric string, no £ symbol)
+    if (isset($data['offers']['price'])) {
+        $data['offers']['price'] = preg_replace('/[^0-9.]/', '', $data['offers']['price']);
+        if (empty($data['offers']['price'])) {
+            unset($data['offers']['price']); // Remove if invalid
+        }
+    }
+    
+    // Validate date format (ISO 8601)
+    if (isset($data['startDate'])) {
+        $timestamp = strtotime($data['startDate']);
+        if ($timestamp !== false) {
+            $data['startDate'] = date('c', $timestamp); // ISO 8601 format
+        } else {
+            return false; // Invalid date
+        }
+    }
+    
+    return $data;
+}
 
 /**
  * Add Course schema to course pages
@@ -981,7 +1048,14 @@ function cta_add_course_schema() {
     
     // Get course data
     $title = get_the_title();
+    if (empty($title)) {
+        return; // Must have title
+    }
+    
     $description = has_excerpt() ? get_the_excerpt() : wp_trim_words(get_the_content(), 50);
+    if (empty($description)) {
+        $description = 'CQC-compliant ' . $title . ' training for care workers. CPD-accredited course.';
+    }
     $url = get_permalink();
     
     // Get ACF fields (if available)
@@ -995,6 +1069,9 @@ function cta_add_course_schema() {
     $image = get_the_post_thumbnail_url($post->ID, 'large');
     if (!$image) {
         $image = get_site_icon_url(512);
+    }
+    if (!$image) {
+        $image = get_template_directory_uri() . '/assets/img/logo/long_logo-400w.webp'; // Fallback
     }
     
     // Build base schema
@@ -1053,19 +1130,37 @@ function cta_add_course_schema() {
         $schema['hasCourseInstance'] = $course_instance;
     }
     
-    // Add price if available
+    // Add price if available (validate format)
     if ($price) {
-        // Try to extract numeric price
+        // Extract numeric price (remove £ symbol and other non-numeric chars except decimal point)
         $price_numeric = preg_replace('/[^0-9.]/', '', $price);
-        if ($price_numeric) {
+        if ($price_numeric && is_numeric($price_numeric)) {
             $schema['offers'] = array(
                 '@type' => 'Offer',
-                'price' => $price_numeric,
+                'price' => $price_numeric, // Numeric string, no £ symbol
+                'priceCurrency' => 'GBP',
+                'availability' => 'https://schema.org/InStock',
+                'url' => esc_url($url)
+            );
+        } else {
+            // Fallback: POA (Price on Application)
+            $schema['offers'] = array(
+                '@type' => 'Offer',
+                'price' => '0', // Use 0 for POA
                 'priceCurrency' => 'GBP',
                 'availability' => 'https://schema.org/InStock',
                 'url' => esc_url($url)
             );
         }
+    } else {
+        // Default: POA if no price set
+        $schema['offers'] = array(
+            '@type' => 'Offer',
+            'price' => '0',
+            'priceCurrency' => 'GBP',
+            'availability' => 'https://schema.org/InStock',
+            'url' => esc_url($url)
+        );
     }
     
     // Add educational level if available
@@ -1100,6 +1195,13 @@ function cta_add_course_schema() {
     
     // Add in language
     $schema['inLanguage'] = 'en-GB';
+    
+    // Validate schema before output
+    $validated = cta_validate_schema_data('Course', $schema);
+    if ($validated === false) {
+        return; // Don't output invalid schema
+    }
+    $schema = $validated;
     
     // Output schema
     echo "\n<!-- Course Schema.org Structured Data -->\n";

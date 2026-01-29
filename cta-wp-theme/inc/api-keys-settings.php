@@ -98,6 +98,12 @@ function cta_api_keys_settings_page() {
         update_option('cta_recaptcha_secret_key', sanitize_text_field($_POST['cta_recaptcha_secret_key'] ?? ''));
         update_option('cta_google_analytics_id', sanitize_text_field($_POST['cta_google_analytics_id'] ?? ''));
         update_option('cta_facebook_pixel_id', sanitize_text_field($_POST['cta_facebook_pixel_id'] ?? ''));
+        update_option('cta_facebook_access_token', sanitize_text_field($_POST['cta_facebook_access_token'] ?? ''));
+        update_option('cta_facebook_test_event_code', sanitize_text_field($_POST['cta_facebook_test_event_code'] ?? ''));
+        update_option('cta_facebook_conversions_api_enabled', isset($_POST['cta_facebook_conversions_api_enabled']) ? 1 : 0);
+        update_option('cta_facebook_lead_ads_webhook_enabled', isset($_POST['cta_facebook_lead_ads_webhook_enabled']) ? 1 : 0);
+        update_option('cta_facebook_lead_ads_verify_token', sanitize_text_field($_POST['cta_facebook_lead_ads_verify_token'] ?? ''));
+        update_option('cta_facebook_lead_ads_form_type', sanitize_text_field($_POST['cta_facebook_lead_ads_form_type'] ?? 'facebook-lead'));
         update_option('cta_google_maps_api_key', sanitize_text_field($_POST['cta_google_maps_api_key'] ?? ''));
         
         // Eventbrite settings
@@ -117,6 +123,9 @@ function cta_api_keys_settings_page() {
     $recaptcha_secret_key = get_option('cta_recaptcha_secret_key', '');
     $ga_id = get_option('cta_google_analytics_id', '');
     $fb_pixel = get_option('cta_facebook_pixel_id', '');
+    $fb_access_token = get_option('cta_facebook_access_token', '');
+    $fb_test_code = get_option('cta_facebook_test_event_code', '');
+    $fb_enabled = get_option('cta_facebook_conversions_api_enabled', 1);
     $maps_key = get_option('cta_google_maps_api_key', '');
     
     // Eventbrite settings
@@ -366,7 +375,64 @@ function cta_api_keys_settings_page() {
                         <a href="https://business.facebook.com/events_manager" target="_blank">Get your Pixel ID →</a>
                     </p>
                 </div>
+                
+                <div class="cta-api-key-field">
+                    <label for="cta_facebook_access_token">
+                        Conversions API Access Token
+                        <?php if ($fb_access_token) : ?>
+                            <span class="cta-api-key-status configured">✓ Configured</span>
+                        <?php else : ?>
+                            <span class="cta-api-key-status not-configured">Not Set</span>
+                        <?php endif; ?>
+                    </label>
+                    <input 
+                        type="password" 
+                        id="cta_facebook_access_token" 
+                        name="cta_facebook_access_token" 
+                        value="<?php echo esc_attr($fb_access_token); ?>" 
+                        placeholder="Your Conversions API access token"
+                    />
+                    <p class="description">
+                        Server-side access token for Conversions API. 
+                        <a href="https://developers.facebook.com/docs/marketing-api/conversions-api/get-started" target="_blank">Get your Access Token →</a>
+                    </p>
+                </div>
+                
+                <div class="cta-api-key-field">
+                    <label for="cta_facebook_test_event_code">Test Event Code (Optional)</label>
+                    <input 
+                        type="text" 
+                        id="cta_facebook_test_event_code" 
+                        name="cta_facebook_test_event_code" 
+                        value="<?php echo esc_attr($fb_test_code); ?>" 
+                        placeholder="TEST12345"
+                    />
+                    <p class="description">
+                        Test event code from Events Manager → Test Events. Leave blank for production.
+                    </p>
+                </div>
+                
+                <div class="cta-api-key-field">
+                    <label>
+                        <input type="checkbox" 
+                               id="cta_facebook_conversions_api_enabled" 
+                               name="cta_facebook_conversions_api_enabled" 
+                               value="1" 
+                               <?php checked($fb_enabled, 1); ?>>
+                        Enable Conversions API (Server-Side Tracking)
+                    </label>
+                    <p class="description">
+                        When enabled, conversion events are sent directly from your server to Facebook, improving reliability and accuracy especially with iOS 14.5+ privacy changes.
+                    </p>
+                </div>
             </div>
+            
+            <?php
+            // Display Facebook Lead Ads Webhook settings
+            if (function_exists('cta_facebook_lead_ads_webhook_settings_fields')) {
+                cta_facebook_lead_ads_webhook_settings_fields();
+            }
+            ?>
             
             <!-- Maps & Location Services -->
             <div class="cta-api-keys-section">

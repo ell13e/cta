@@ -189,10 +189,20 @@ class FormSubmissionRepository {
             update_post_meta($post_id, '_submission_event_date', sanitize_text_field($data['event_date']));
         }
         
-        // Save any additional form data
+        // Save delegates count if provided
+        if (isset($data['delegates']) && is_numeric($data['delegates'])) {
+            update_post_meta($post_id, '_submission_delegates', absint($data['delegates']));
+        }
+        
+        // Save Meta Lead ID if provided (for Facebook Conversion Leads Integration)
+        if (isset($data['meta_lead_id']) && preg_match('/^\d{15,17}$/', $data['meta_lead_id'])) {
+            update_post_meta($post_id, '_submission_meta_lead_id', sanitize_text_field($data['meta_lead_id']));
+        }
+        
+        // Save any additional form data (exclude fields that are stored separately)
         $form_data = [];
         foreach ($data as $key => $value) {
-            if (!in_array($key, ['name', 'email', 'phone', 'message', 'consent', 'nonce', 'action', 'ip', 'user_agent', 'page_url'])) {
+            if (!in_array($key, ['name', 'email', 'phone', 'message', 'consent', 'nonce', 'action', 'ip', 'user_agent', 'page_url', 'course_id', 'course_name', 'event_date', 'delegates', 'meta_lead_id'])) {
                 $form_data[$key] = is_array($value) ? $value : sanitize_text_field($value);
             }
         }
