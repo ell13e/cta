@@ -40,7 +40,6 @@ function cta_require_login_for_admin_area() {
     }
 
     $uri = isset($_SERVER['REQUEST_URI']) ? (string) $_SERVER['REQUEST_URI'] : '';
-    // Only enforce for wp-admin paths; avoid interfering with front-end/admin bars.
     if (stripos($uri, '/wp-admin/') === false) {
         return;
     }
@@ -136,7 +135,6 @@ function cta_enqueue_assets() {
         CTA_THEME_VERSION
     );
     
-    // Add reCAPTCHA styling
     $recaptcha_site_key = function_exists('cta_get_recaptcha_site_key') ? cta_get_recaptcha_site_key() : get_theme_mod('cta_recaptcha_site_key', '');
     if (!empty($recaptcha_site_key)) {
         wp_add_inline_style('cta-main', '
@@ -189,11 +187,9 @@ function cta_enqueue_assets() {
         is_page_template('page-templates/locations/location-ashford.php') ||
         is_page_template('page-templates/locations/location-tunbridge-wells.php')) {
         
-        // Get Google Maps API key from admin settings
         $google_maps_key = get_option('cta_google_maps_api_key', '');
         
         if (!empty($google_maps_key)) {
-            // Enqueue Google Maps API
             wp_enqueue_script(
                 'google-maps',
                 'https://maps.googleapis.com/maps/api/js?key=' . esc_attr($google_maps_key),
@@ -202,7 +198,6 @@ function cta_enqueue_assets() {
                 true
             );
             
-            // Enqueue location maps script
             wp_enqueue_script(
                 'cta-location-maps',
                 CTA_THEME_URI . '/assets/js/locations/location-maps.js',
@@ -213,7 +208,6 @@ function cta_enqueue_assets() {
         }
     }
 
-    // Get site-wide discount info for JavaScript
     $site_wide_discount = cta_get_site_wide_discount();
     $site_wide_active = cta_is_site_wide_discount_active();
     
@@ -606,18 +600,14 @@ add_action('init', 'cta_ensure_permalinks', 1);
  * One-time migration from 'accessibility' to 'accessibility-statement'
  */
 function cta_fix_accessibility_page_slug() {
-    // Only run in admin
     if (!is_admin()) {
         return;
     }
     
-    // Check if page exists with old slug
     $old_page = get_page_by_path('accessibility');
     if ($old_page) {
-        // Check if new slug page doesn't exist
         $new_page = get_page_by_path('accessibility-statement');
         if (!$new_page) {
-            // Update the slug
             wp_update_post([
                 'ID' => $old_page->ID,
                 'post_name' => 'accessibility-statement',
@@ -634,42 +624,33 @@ add_action('admin_init', 'cta_fix_accessibility_page_slug');
  * Handles URLs with /news.html appended or .html extensions
  */
 function cta_fix_single_post_404s() {
-    // Only run on frontend, not admin
     if (is_admin() || wp_doing_ajax()) {
         return;
     }
     
-    // Check if we're on a 404 page and the URL looks like it should be a post
     if (is_404()) {
         $request_uri = $_SERVER['REQUEST_URI'] ?? '';
         
-        // Remove query string
         $path = strtok($request_uri, '?');
         $post_slug = null;
         
-        // Check if path ends with /news.html (common mistake)
         if (preg_match('#^/([^/]+)/news\.html$#', $path, $matches)) {
             $post_slug = $matches[1];
         }
-        // Check if path has .html extension when it shouldn't (for posts)
         elseif (preg_match('#^/([^/]+)\.html$#', $path, $matches)) {
             $post_slug = $matches[1];
         }
         
         if ($post_slug) {
-            // Try to find a post with this slug
             $post = get_page_by_path($post_slug, OBJECT, 'post');
             
             if ($post && $post->post_status === 'publish') {
-                // Set up the query to load this post directly
                 global $wp_query;
                 
-                // Clear the 404 status
                 $wp_query->is_404 = false;
                 $wp_query->is_single = true;
                 $wp_query->is_singular = true;
                 
-                // Set the post data
                 $wp_query->queried_object = $post;
                 $wp_query->queried_object_id = $post->ID;
                 $wp_query->posts = [$post];
@@ -677,11 +658,9 @@ function cta_fix_single_post_404s() {
                 $wp_query->found_posts = 1;
                 $wp_query->max_num_pages = 1;
                 
-                // Set the current post
                 $wp_query->post = $post;
                 $GLOBALS['post'] = $post;
                 
-                // Set post type
                 $wp_query->is_post_type_archive = false;
                 $wp_query->is_archive = false;
                 $wp_query->is_home = false;

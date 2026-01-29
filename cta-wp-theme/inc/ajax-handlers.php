@@ -1461,6 +1461,11 @@ function cta_save_form_submission($data, $form_type, $email_sent = false, $email
         update_post_meta($post_id, '_submission_event_date', sanitize_text_field($data['event_date']));
     }
     
+    // Save Meta Lead ID if provided (for Facebook Conversion Leads Integration)
+    if (isset($data['meta_lead_id']) && preg_match('/^\d{15,17}$/', $data['meta_lead_id'])) {
+        update_post_meta($post_id, '_submission_meta_lead_id', sanitize_text_field($data['meta_lead_id']));
+    }
+    
     // Save any additional form data
     $form_data = [];
     foreach ($data as $key => $value) {
@@ -1580,7 +1585,11 @@ function cta_validate_uk_phone($phone) {
     
     // Handle international format: +44 or 0044
     if (preg_match('/^(\+44|0044)/', $cleaned)) {
-        $cleaned = '0' . substr($cleaned, preg_match('/^\+44/', $cleaned) ? 3 : 4);
+        // Extract digits after country code
+        $digits_after_code = preg_replace('/\D/', '', substr($cleaned, preg_match('/^\+44/', $cleaned) ? 3 : 4));
+        // Convert to UK format (remove leading 0 if present, then add 0)
+        $digits_after_code = ltrim($digits_after_code, '0');
+        $cleaned = '0' . $digits_after_code;
     }
     
     // Extract only digits for validation
@@ -1593,7 +1602,7 @@ function cta_validate_uk_phone($phone) {
     }
     
     // Must start with 0 and be followed by a non-zero digit (UK format)
-    if (!preg_match('/^0[1-9]/', $cleaned)) {
+    if (!preg_match('/^0[1-9]/', $digits_only)) {
         // Check if it's all digits but missing leading 0
         if (preg_match('/^[1-9]\d{9,10}$/', $digits_only)) {
             return ['valid' => false, 'error' => 'UK phone numbers should start with 0 (e.g., 01622 587343)'];
@@ -1601,19 +1610,19 @@ function cta_validate_uk_phone($phone) {
         return ['valid' => false, 'error' => 'Please enter a valid UK phone number (e.g., 01622 587343 or 07123 456789)'];
     }
     
-    // More specific pattern matching for UK numbers
+    // More specific pattern matching for UK numbers (using digits_only to ensure clean validation)
     // Mobile: 07xxx xxxxxx (11 digits starting with 07)
     // Landline: 01xxx xxxxxx (10 digits) or 02x xxxx xxxx (10-11 digits)
     // Non-geographic: 03xx, 05xx, 08xx, 09xx (10-11 digits)
     $pattern = '/^0[1-9]\d{8,9}$/';
     
-    if (!preg_match($pattern, $cleaned)) {
+    if (!preg_match($pattern, $digits_only)) {
         return ['valid' => false, 'error' => 'Please enter a valid UK phone number format'];
     }
     
     // Additional validation: Check for suspicious patterns
     // Repeating digits (e.g., 0000000000, 1111111111)
-    if (preg_match('/^0(\d)\1{8,9}$/', $cleaned)) {
+    if (preg_match('/^0(\d)\1{8,9}$/', $digits_only)) {
         return ['valid' => false, 'error' => 'Please enter a valid phone number'];
     }
     

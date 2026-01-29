@@ -67,7 +67,11 @@
     
     // Handle international format: +44 or 0044
     if (cleaned.match(/^(\+44|0044)/)) {
-      cleaned = '0' + cleaned.substring(cleaned.match(/^\+44/) ? 3 : 4);
+      // Extract digits after country code
+      let digitsAfterCode = cleaned.substring(cleaned.match(/^\+44/) ? 3 : 4).replace(/\D/g, '');
+      // Convert to UK format (remove leading 0 if present, then add 0)
+      digitsAfterCode = digitsAfterCode.replace(/^0+/, '');
+      cleaned = '0' + digitsAfterCode;
     }
     
     // Extract only digits for validation
@@ -81,7 +85,7 @@
     }
     
     // Must start with 0 and be followed by a non-zero digit (UK format)
-    if (!cleaned.match(/^0[1-9]/)) {
+    if (!digitsOnly.match(/^0[1-9]/)) {
       if (digitsOnly.match(/^[1-9]\d{9,10}$/)) {
         showError(phoneInput, phoneError, 'UK phone numbers should start with 0 (e.g., 01622 587343)');
       } else {
@@ -90,15 +94,15 @@
       return false;
     }
     
-    // More specific pattern matching for UK numbers
+    // More specific pattern matching for UK numbers (using digitsOnly to ensure clean validation)
     const ukPhonePattern = /^0[1-9]\d{8,9}$/;
-    if (!ukPhonePattern.test(cleaned)) {
+    if (!ukPhonePattern.test(digitsOnly)) {
       showError(phoneInput, phoneError, 'Please enter a valid UK phone number format');
       return false;
     }
     
     // Check for suspicious patterns (repeating digits)
-    if (cleaned.match(/^0(\d)\1{8,9}$/)) {
+    if (digitsOnly.match(/^0(\d)\1{8,9}$/)) {
       showError(phoneInput, phoneError, 'Please enter a valid phone number');
       return false;
     }

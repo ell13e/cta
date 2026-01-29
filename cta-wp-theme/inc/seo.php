@@ -8,6 +8,140 @@
 defined('ABSPATH') || exit;
 
 /**
+ * Generate meta description from template based on post type
+ * 
+ * @param WP_Post $post Post object
+ * @return string Generated description
+ */
+function cta_generate_meta_description($post) {
+    if (!$post) {
+        return '';
+    }
+    
+    $post_type = $post->post_type;
+    
+    // Template-based auto-generation
+    switch ($post_type) {
+        case 'course':
+            $level = cta_safe_get_field('course_level', $post->ID, '');
+            $title = get_the_title($post->ID);
+            $excerpt = has_excerpt($post->ID) ? get_the_excerpt($post->ID) : wp_trim_words(strip_tags($post->post_content), 20);
+            
+            if ($excerpt) {
+                $description = ($level ? $level . ' ' : '') . $title . ' training in Kent. ' . $excerpt . '. CQC-compliant, CPD-accredited.';
+            } else {
+                $description = ($level ? $level . ' ' : '') . $title . ' training for care workers in Kent. CQC-compliant, CPD-accredited course.';
+            }
+            break;
+            
+        case 'course_event':
+            $course_title = get_the_title($post->ID);
+            $event_date = get_post_meta($post->ID, 'event_date', true);
+            $location = cta_safe_get_field('event_location', $post->ID, 'Maidstone');
+            
+            if ($event_date) {
+                $date_formatted = date('j F Y', strtotime($event_date));
+                $description = $course_title . ' - ' . $date_formatted . ' in ' . $location . '. Book your place on this essential course. Limited places available.';
+            } else {
+                $description = $course_title . ' in ' . $location . '. Book your place on this essential course. Limited places available.';
+            }
+            break;
+            
+        case 'post':
+            $excerpt = has_excerpt($post->ID) ? get_the_excerpt($post->ID) : wp_trim_words(strip_tags($post->post_content), 25);
+            if ($excerpt) {
+                $description = $excerpt . '. Expert guidance from Continuity Training Academy.';
+            } else {
+                $description = get_the_title($post->ID) . '. Expert care training guidance from CTA.';
+            }
+            break;
+            
+        case 'page':
+            $excerpt = has_excerpt($post->ID) ? get_the_excerpt($post->ID) : wp_trim_words(strip_tags($post->post_content), 25);
+            if ($excerpt) {
+                $description = $excerpt;
+            } else {
+                $description = get_the_title($post->ID) . '. Professional care training in Kent.';
+            }
+            break;
+            
+        default:
+            $excerpt = has_excerpt($post->ID) ? get_the_excerpt($post->ID) : wp_trim_words(strip_tags($post->post_content), 25);
+            $description = $excerpt ?: get_the_title($post->ID) . '.';
+    }
+    
+    // Ensure length is 120-160 characters
+    $description = wp_trim_words($description, 30, '');
+    if (strlen($description) < 120) {
+        $description .= ' CQC-compliant, CPD-accredited training in Kent.';
+    }
+    if (strlen($description) > 160) {
+        $description = wp_trim_words($description, 25, '');
+    }
+    
+    return $description;
+}
+
+/**
+ * Get meta description with smart fallback hierarchy
+ * Priority 1: ACF custom field
+ * Priority 2: Post excerpt
+ * Priority 3: Auto-generate from templates
+ * Priority 4: Generic fallback (never empty)
+ * 
+ * @param int|WP_Post $post Post ID or object
+ * @return string Meta description
+ */
+function cta_get_meta_description($post = null) {
+    if (!$post) {
+        global $post;
+    }
+    
+    if (is_numeric($post)) {
+        $post = get_post($post);
+    }
+    
+    if (!$post) {
+        return 'Professional care sector training in Maidstone, Kent. CQC-compliant, CPD-accredited courses.';
+    }
+    
+    $post_type = $post->post_type;
+    
+    // Priority 1: ACF custom field (check existing field names first)
+    $custom_description = '';
+    if ($post_type === 'course') {
+        $custom_description = cta_safe_get_field('course_seo_meta_description', $post->ID, '');
+    } elseif ($post_type === 'course_event') {
+        $custom_description = cta_safe_get_field('event_seo_meta_description', $post->ID, '');
+    } elseif ($post_type === 'post') {
+        $custom_description = cta_safe_get_field('news_meta_description', $post->ID, '');
+    } else {
+        $custom_description = cta_safe_get_field('seo_meta_description', $post->ID, '');
+    }
+    
+    if (!empty($custom_description)) {
+        return $custom_description;
+    }
+    
+    // Priority 2: Post excerpt
+    if (has_excerpt($post->ID)) {
+        $excerpt = get_the_excerpt($post->ID);
+        if (strlen($excerpt) >= 120 && strlen($excerpt) <= 160) {
+            return $excerpt;
+        }
+    }
+    
+    // Priority 3: Auto-generate from templates
+    $generated = cta_generate_meta_description($post);
+    if (!empty($generated)) {
+        return $generated;
+    }
+    
+    // Priority 4: Generic fallback (never empty)
+    return 'Professional care sector training in Maidstone, Kent. CQC-compliant, CPD-accredited courses.';
+}
+
+/**
  * Safe get_field wrapper - returns default if ACF not active
  * For 'option' post_id, uses Customizer settings instead
  */
@@ -21,6 +155,34 @@ function cta_safe_get_field($field, $post_id = false, $default = '') {
     }
     $value = get_field($field, $post_id);
     return ($value !== null && $value !== '' && $value !== false) ? $value : $default;
+}
+
+/**
+ * Safely update ACF field or fall back to postmeta
+ * 
+ * Uses ACF's update_field() when available (proper field mapping),
+ * otherwise falls back to update_post_meta() for compatibility
+ * 
+ * @param string $field Field name
+ * @param mixed $value Value to save
+ * @param int|string|false $post_id Post ID (defaults to current post)
+ * @return bool Success status
+ */
+function cta_safe_update_field($field, $value, $post_id = false) {
+    // Use ACF's update_field() if available (proper field mapping)
+    if (function_exists('update_field')) {
+        return update_field($field, $value, $post_id);
+    }
+    
+    // Fallback to direct postmeta if ACF not available
+    if (!$post_id) {
+        $post_id = get_the_ID();
+    }
+    if (!$post_id) {
+        return false;
+    }
+    
+    return update_post_meta($post_id, $field, $value);
 }
 
 /**
@@ -165,17 +327,13 @@ function cta_seo_meta_tags() {
     if (is_singular()) {
         // Check for custom SEO fields
         $custom_meta_title = '';
-        $custom_meta_description = '';
         
         if (get_post_type() === 'course') {
             $custom_meta_title = cta_safe_get_field('course_seo_meta_title', get_the_ID(), '');
-            $custom_meta_description = cta_safe_get_field('course_seo_meta_description', get_the_ID(), '');
         } elseif (get_post_type() === 'course_event') {
             $custom_meta_title = cta_safe_get_field('event_seo_meta_title', get_the_ID(), '');
-            $custom_meta_description = cta_safe_get_field('event_seo_meta_description', get_the_ID(), '');
         } elseif (get_post_type() === 'post') {
             $custom_meta_title = cta_safe_get_field('news_meta_title', get_the_ID(), '');
-            $custom_meta_description = cta_safe_get_field('news_meta_description', get_the_ID(), '');
         }
         
         // Use custom meta title if set, otherwise use pattern or default
@@ -190,18 +348,8 @@ function cta_seo_meta_tags() {
             }
         }
         
-        // Use custom meta description if set, otherwise use template or default
-        if (!empty($custom_meta_description)) {
-            $description = $custom_meta_description;
-        } else {
-            $desc_template = cta_safe_get_field('seo_default_meta_description_template', 'option', '');
-            if (!empty($desc_template)) {
-                $excerpt_text = has_excerpt() ? get_the_excerpt() : wp_trim_words(strip_tags($post->post_content), 30);
-                $description = str_replace(['{title}', '{excerpt}'], [get_the_title(), $excerpt_text], $desc_template);
-            } else {
-                $description = has_excerpt() ? get_the_excerpt() : wp_trim_words(strip_tags($post->post_content), 30);
-            }
-        }
+        // Use smart fallback hierarchy for meta description
+        $description = cta_get_meta_description($post);
         
         $custom_canonical = get_post_meta($post->ID, '_cta_canonical', true);
         $url = !empty($custom_canonical) ? $custom_canonical : get_permalink();
@@ -211,9 +359,32 @@ function cta_seo_meta_tags() {
         $published = get_the_date('c');
         $modified = get_the_modified_date('c');
     } elseif (is_post_type_archive('course')) {
-        $title = $courses_title;
-        $description = $courses_desc;
+        // Check for category filter
+        $category_slug = isset($_GET['category']) ? sanitize_key($_GET['category']) : '';
+        $category_names = [
+            'communication-workplace-culture' => 'Communication',
+            'core-care-skills' => 'Core Care Skills',
+            'emergency-first-aid' => 'First Aid',
+            'health-conditions-specialist-care' => 'Specialist Care',
+            'information-data-management' => 'GDPR & Data',
+            'leadership-professional-development' => 'Leadership',
+            'medication-management' => 'Medication',
+            'nutrition-hygiene' => 'Nutrition & Hygiene',
+            'safety-compliance' => 'Safety & Compliance'
+        ];
+        
+        if ($category_slug && isset($category_names[$category_slug])) {
+            $title = $category_names[$category_slug] . ' Courses';
+            $description = $category_names[$category_slug] . ' training for care workers. CQC-compliant courses in Kent.';
+        } else {
+            $title = $courses_title;
+            $description = $courses_desc;
+        }
+        
         $url = get_post_type_archive_link('course');
+        if ($category_slug) {
+            $url = add_query_arg('category', $category_slug, $url);
+        }
         $image = $default_image;
         $type = 'website';
     } elseif (is_post_type_archive('course_event')) {
@@ -224,7 +395,7 @@ function cta_seo_meta_tags() {
         $type = 'website';
     } elseif (is_home() || is_front_page()) {
         $title = $site_name;
-        $description = $site_description ?: 'Professional care sector training in Maidstone, Kent. CQC-compliant, CPD-accredited courses.';
+        $description = $site_description ?: 'CQC-compliant care training in Kent since 2020. CPD-accredited courses for care workers, first aid, medication management, safeguarding, and more.';
         $url = home_url('/');
         $image = $default_image;
         $type = 'website';
@@ -257,7 +428,20 @@ function cta_seo_meta_tags() {
     
     // Sanitize
     $title = esc_attr(strip_tags($title));
-    $description = esc_attr(wp_trim_words(strip_tags($description), 30));
+    
+    // Ensure description is 120-160 characters (optimal for Google)
+    $description = strip_tags($description);
+    if (strlen($description) > 160) {
+        $description = wp_trim_words($description, 25, '');
+    }
+    if (strlen($description) < 120 && strlen($description) > 0) {
+        // Only pad if we have some content
+        $description .= ' CQC-compliant, CPD-accredited training in Kent.';
+        if (strlen($description) > 160) {
+            $description = wp_trim_words($description, 22, '');
+        }
+    }
+    $description = esc_attr($description);
     
     // Clean canonical URL - remove query parameters and ensure trailing slash consistency
     $url = cta_clean_canonical_url($url);
@@ -337,16 +521,128 @@ function cta_seo_meta_tags() {
 add_action('wp_head', 'cta_seo_meta_tags', 1);
 
 /**
- * Optimise document title
+ * Optimise document title - Fix duplicates and shorten to <60 chars
  */
 function cta_document_title_parts($title_parts) {
-    // Add location for courses
-    if (is_singular('course')) {
-        $title_parts['title'] .= ' | Training Course';
+    global $post;
+    
+    // Pattern 1: Homepage
+    if (is_front_page()) {
+        $title_parts['title'] = 'Care Training in Kent | CQC-Compliant | CTA';
+        return $title_parts;
     }
     
+    // Pattern 2: Course Pages (remove redundant " | Training Course")
+    if (is_singular('course')) {
+        // Check for custom title override
+        $custom_title = cta_safe_get_field('course_seo_meta_title', get_the_ID(), '');
+        if (!empty($custom_title)) {
+            $title_parts['title'] = $custom_title;
+        } else {
+            // Just add " | CTA" - remove " | Training Course" redundancy
+            $title_parts['title'] = get_the_title() . ' | CTA';
+        }
+        
+        // Ensure max 60 chars
+        if (strlen($title_parts['title']) > 60) {
+            $title = get_the_title();
+            $max_title_length = 60 - 6; // Reserve space for " | CTA"
+            if (strlen($title) > $max_title_length) {
+                $title = wp_trim_words($title, 6, '');
+            }
+            $title_parts['title'] = $title . ' | CTA';
+        }
+        
+        return $title_parts;
+    }
+    
+    // Pattern 3: Course Events (auto-append date)
     if (is_singular('course_event')) {
-        $title_parts['title'] .= ' | Book Now';
+        $event_date = get_post_meta(get_the_ID(), 'event_date', true);
+        $base_title = get_the_title();
+        
+        if ($event_date) {
+            $date_formatted = date('j M', strtotime($event_date)); // "13 Feb"
+            $title_parts['title'] = $base_title . ' - ' . $date_formatted . ' | Book Now | CTA';
+        } else {
+            $title_parts['title'] = $base_title . ' | Book Now | CTA';
+        }
+        
+        // Ensure max 60 chars
+        if (strlen($title_parts['title']) > 60) {
+            $max_base_length = $event_date ? 60 - 20 : 60 - 18; // Reserve space for date + suffix
+            if (strlen($base_title) > $max_base_length) {
+                $base_title = wp_trim_words($base_title, 4, '');
+            }
+            if ($event_date) {
+                $date_formatted = date('j M', strtotime($event_date));
+                $title_parts['title'] = $base_title . ' - ' . $date_formatted . ' | CTA';
+            } else {
+                $title_parts['title'] = $base_title . ' | CTA';
+            }
+        }
+        
+        return $title_parts;
+    }
+    
+    // Pattern 4: Filtered Archives (auto-append category)
+    if (is_post_type_archive('course') && isset($_GET['category'])) {
+        $category_slug = sanitize_key($_GET['category']);
+        $category_names = [
+            'communication-workplace-culture' => 'Communication',
+            'core-care-skills' => 'Core Care Skills',
+            'emergency-first-aid' => 'First Aid',
+            'health-conditions-specialist-care' => 'Specialist Care',
+            'information-data-management' => 'GDPR & Data',
+            'leadership-professional-development' => 'Leadership',
+            'medication-management' => 'Medication',
+            'nutrition-hygiene' => 'Nutrition & Hygiene',
+            'safety-compliance' => 'Safety & Compliance'
+        ];
+        
+        if (isset($category_names[$category_slug])) {
+            $title_parts['title'] = $category_names[$category_slug] . ' Courses | CTA';
+        } else {
+            // Fallback to auto-generated name
+            $category_name = ucwords(str_replace('-', ' ', $category_slug));
+            $title_parts['title'] = $category_name . ' Courses | CTA';
+        }
+        
+        return $title_parts;
+    }
+    
+    // Pattern 5: Blog Posts
+    if (is_singular('post')) {
+        $title_parts['title'] = get_the_title() . ' | CTA';
+        
+        // Ensure max 60 chars
+        if (strlen($title_parts['title']) > 60) {
+            $title = get_the_title();
+            $max_title_length = 60 - 6; // Reserve space for " | CTA"
+            if (strlen($title) > $max_title_length) {
+                $title = wp_trim_words($title, 6, '');
+            }
+            $title_parts['title'] = $title . ' | CTA';
+        }
+        
+        return $title_parts;
+    }
+    
+    // Pattern 6: Pages
+    if (is_singular('page')) {
+        $title_parts['title'] = get_the_title() . ' | CTA';
+        
+        // Ensure max 60 chars
+        if (strlen($title_parts['title']) > 60) {
+            $title = get_the_title();
+            $max_title_length = 60 - 6;
+            if (strlen($title) > $max_title_length) {
+                $title = wp_trim_words($title, 6, '');
+            }
+            $title_parts['title'] = $title . ' | CTA';
+        }
+        
+        return $title_parts;
     }
     
     return $title_parts;
@@ -1004,12 +1300,57 @@ function cta_filter_sitemap_entry($entry, $post, $post_type) {
         return false; // Exclude utility and set-aside pages
     }
     
-    // For course events, exclude if explicitly marked inactive
-    if ($post_type === 'course_event') {
-        $active = get_post_meta($post->ID, 'event_active', true);
-        if ($active === '0' || $active === 0) {
-            return false; // Exclude inactive events
+    // Exclude posts with missing critical data
+    if ($post_type === 'course' || $post_type === 'course_event') {
+        // Must have content
+        if (empty($post->post_content) && empty($post->post_excerpt)) {
+            return false;
         }
+        
+        // Must have title
+        if (empty($post->post_title)) {
+            return false;
+        }
+        
+        // Must be published (not draft/pending)
+        if ($post->post_status !== 'publish') {
+            return false;
+        }
+        
+        // Events must have future date
+        if ($post_type === 'course_event') {
+            $active = get_post_meta($post->ID, 'event_active', true);
+            if ($active === '0' || $active === 0) {
+                return false; // Exclude inactive events
+            }
+            
+            $event_date = get_post_meta($post->ID, 'event_date', true);
+            if (empty($event_date)) {
+                return false; // No date = exclude
+            }
+            
+            // Exclude past events (events with dates in the past)
+            // Use WordPress timezone for consistent date comparison
+            $wp_timezone = wp_timezone();
+            try {
+                $event_datetime = new DateTime($event_date, $wp_timezone);
+                $today_datetime = new DateTime('today', $wp_timezone);
+                
+                // If event date is in the past, exclude from sitemap
+                if ($event_datetime < $today_datetime) {
+                    return false;
+                }
+            } catch (Exception $e) {
+                // Invalid date format - exclude from sitemap
+                return false;
+            }
+        }
+    }
+    
+    // Exclude pages marked as noindex
+    $robots_meta = get_post_meta($post->ID, '_seo_robots_noindex', true);
+    if ($robots_meta === '1') {
+        return false;
     }
     
     return $entry;
@@ -1049,17 +1390,38 @@ function cta_sitemap_entry($entry, $post, $post_type) {
             $entry['changefreq'] = 'monthly';
         }
     } elseif ($post_type === 'course') {
-        // Courses are high priority
-        $entry['priority'] = 0.8;
-        $entry['changefreq'] = 'weekly';
+        // Courses are high priority (core business content)
+        $entry['priority'] = 0.9;
+        $entry['changefreq'] = 'monthly'; // Course content relatively stable
     } elseif ($post_type === 'course_event') {
-        // Upcoming events are high priority
-        $entry['priority'] = 0.85;
-        $entry['changefreq'] = 'daily';
+        // Upcoming events - priority based on date proximity
+        $event_date = get_post_meta($post->ID, 'event_date', true);
+        if ($event_date) {
+            $days_until = (strtotime($event_date) - time()) / DAY_IN_SECONDS;
+            
+            // Higher priority for sooner events
+            if ($days_until <= 7) {
+                $entry['priority'] = 0.9; // This week
+            } elseif ($days_until <= 30) {
+                $entry['priority'] = 0.8; // This month
+            } else {
+                $entry['priority'] = 0.7; // Future
+            }
+        } else {
+            $entry['priority'] = 0.7; // Default if no date
+        }
+        $entry['changefreq'] = 'weekly'; // Booking availability changes
     } elseif ($post_type === 'post') {
-        // Blog posts
-        $entry['priority'] = 0.6;
-        $entry['changefreq'] = 'monthly';
+        // Blog posts - priority based on age
+        $post_age_days = (time() - strtotime($post->post_date)) / DAY_IN_SECONDS;
+        
+        if ($post_age_days <= 30) {
+            $entry['priority'] = 0.7; // Recent posts
+            $entry['changefreq'] = 'weekly';
+        } else {
+            $entry['priority'] = 0.6; // Older posts
+            $entry['changefreq'] = 'monthly';
+        }
     }
     
     // Set lastmod to post modified date for better crawling
@@ -1148,6 +1510,127 @@ function cta_ping_search_engines() {
 }
 
 /**
+ * Daily cleanup - flush sitemap cache to remove past events
+ */
+function cta_cleanup_sitemap() {
+    // Flush sitemap cache to force regeneration (removes past events)
+    wp_cache_delete('wp_sitemap', 'sitemaps');
+    wp_cache_delete('sitemap_index', 'sitemaps');
+    delete_transient('wp_sitemap_index');
+    delete_transient('wp_sitemap_posts_course_event');
+}
+add_action('cta_daily_cleanup', 'cta_cleanup_sitemap');
+
+/**
+ * Schedule daily cleanup on theme activation
+ * 
+ * Calculates next 3 AM in WordPress local timezone, then converts to GMT for cron scheduling
+ */
+function cta_schedule_daily_cleanup() {
+    if (!wp_next_scheduled('cta_daily_cleanup')) {
+        // Get WordPress timezone
+        $wp_timezone = wp_timezone();
+        
+        // Calculate next 3 AM in WordPress local timezone
+        $now_local = new DateTime('now', $wp_timezone);
+        $next_3am_local = new DateTime('today 03:00:00', $wp_timezone);
+        
+        // If 3 AM today has already passed, schedule for tomorrow
+        if ($next_3am_local < $now_local) {
+            $next_3am_local = new DateTime('tomorrow 03:00:00', $wp_timezone);
+        }
+        
+        // Convert to GMT timestamp for wp_schedule_event (which expects GMT)
+        // getTimestamp() already returns UTC/GMT timestamp, so no conversion needed
+        $next_3am_gmt = $next_3am_local->getTimestamp();
+        
+        wp_schedule_event($next_3am_gmt, 'daily', 'cta_daily_cleanup');
+    }
+}
+add_action('after_switch_theme', 'cta_schedule_daily_cleanup');
+
+/**
+ * Fix duplicate course URLs on theme activation
+ * Updates course slugs to correct format (with duration and level)
+ * Runs automatically when theme is activated/uploaded
+ */
+function cta_fix_duplicate_urls_on_activation() {
+    $fixes = [
+        'adult-social-care-certificate' => 'adult-social-care-certificate-3d-l2',
+        'emergency-first-aid-at-work' => 'emergency-first-aid-at-work-1d-l3',
+        'medication-competency-management' => 'medication-competency-management-1d-l3',
+        'moving-positioning-inc-hoist' => 'moving-positioning-inc-hoist-1d-l3',
+    ];
+    
+    foreach ($fixes as $old_slug => $new_slug) {
+        // Find course with old slug
+        $course = get_page_by_path($old_slug, OBJECT, 'course');
+        
+        if (!$course) {
+            continue; // Course not found or already correct
+        }
+        
+        // Check if new slug already exists (different course)
+        $existing = get_page_by_path($new_slug, OBJECT, 'course');
+        if ($existing && $existing->ID !== $course->ID) {
+            continue; // Conflict - skip
+        }
+        
+        // Update the slug
+        remove_action('acf/save_post', 'cta_auto_generate_course_slug_on_acf_save', 20);
+        wp_update_post([
+            'ID' => $course->ID,
+            'post_name' => $new_slug,
+        ], true);
+        add_action('acf/save_post', 'cta_auto_generate_course_slug_on_acf_save', 20);
+    }
+    
+    // Flush rewrite rules to ensure new URLs work
+    flush_rewrite_rules(false);
+}
+add_action('after_switch_theme', 'cta_fix_duplicate_urls_on_activation', 5);
+
+/**
+ * One-time fix for duplicate URLs on init (if not already fixed)
+ * This ensures existing sites get the fix even if theme wasn't just activated
+ */
+add_action('init', function() {
+    // Only run once (check option)
+    $fix_run = get_option('cta_duplicate_urls_fixed', false);
+    if ($fix_run) {
+        return; // Already fixed
+    }
+    
+    // Run the fix
+    cta_fix_duplicate_urls_on_activation();
+    
+    // Mark as done
+    update_option('cta_duplicate_urls_fixed', true);
+}, 1);
+
+add_action('init', function() {
+    if (!wp_next_scheduled('cta_daily_cleanup')) {
+        // Get WordPress timezone
+        $wp_timezone = wp_timezone();
+        
+        // Calculate next 3 AM in WordPress local timezone
+        $now_local = new DateTime('now', $wp_timezone);
+        $next_3am_local = new DateTime('today 03:00:00', $wp_timezone);
+        
+        // If 3 AM today has already passed, schedule for tomorrow
+        if ($next_3am_local < $now_local) {
+            $next_3am_local = new DateTime('tomorrow 03:00:00', $wp_timezone);
+        }
+        
+        // Convert to GMT timestamp for wp_schedule_event (which expects GMT)
+        // getTimestamp() already returns UTC/GMT timestamp, so no conversion needed
+        $next_3am_gmt = $next_3am_local->getTimestamp();
+        
+        wp_schedule_event($next_3am_gmt, 'daily', 'cta_daily_cleanup');
+    }
+});
+
+/**
  * Add admin menu for sitemap viewer
  */
 function cta_add_sitemap_admin_menu() {
@@ -1158,6 +1641,15 @@ function cta_add_sitemap_admin_menu() {
         'manage_options',
         'cta-sitemap',
         'cta_sitemap_admin_page'
+    );
+    
+    add_submenu_page(
+        'tools.php',
+        'SEO Tools',
+        'SEO Tools',
+        'manage_options',
+        'cta-seo-tools',
+        'cta_seo_tools_admin_page'
     );
 }
 add_action('admin_menu', 'cta_add_sitemap_admin_menu', 20);
@@ -1721,6 +2213,8 @@ function cta_robots_txt($output, $public) {
     
     $output = "# robots.txt for Continuity Training Academy\n";
     $output .= "# Generated by WordPress\n\n";
+    
+    // Default rules for all bots
     $output .= "User-agent: *\n";
     $output .= "Allow: /\n\n";
     $output .= "# Disallow admin and private areas\n";
@@ -1732,6 +2226,39 @@ function cta_robots_txt($output, $public) {
     $output .= "Disallow: /wp-json/\n";
     $output .= "Disallow: /?s=\n";
     $output .= "Disallow: /search/\n\n";
+    
+    // Block AI training crawlers (protect proprietary content)
+    $output .= "# AI Training Bots - Blocked\n";
+    $training_bots = [
+        'GPTBot',           // OpenAI training
+        'CCBot',            // Common Crawl (trains many AI models)
+        'Google-Extended',  // Google Bard training
+        'anthropic-ai',     // Claude training
+        'ClaudeBot',        // Anthropic crawler
+        'Omgilibot',        // Omgili training
+        'FacebookBot',      // Meta AI training
+        'Diffbot',          // AI training dataset
+    ];
+    
+    foreach ($training_bots as $bot) {
+        $output .= "User-agent: {$bot}\n";
+        $output .= "Disallow: /\n\n";
+    }
+    
+    // Allow AI search engines (good for discovery)
+    $output .= "# AI Search Bots - Allowed\n";
+    $search_bots = [
+        'PerplexityBot',    // Perplexity AI search
+        'YouBot',           // You.com search
+        'ChatGPT-User',     // OpenAI search (not training)
+    ];
+    
+    foreach ($search_bots as $bot) {
+        $output .= "User-agent: {$bot}\n";
+        $output .= "Allow: /\n\n";
+    }
+    
+    // Allow sitemap
     $output .= "# Allow sitemap\n";
     $output .= "Allow: /wp-sitemap.xml\n";
     $output .= "Allow: /sitemap.xml\n\n";
@@ -1741,6 +2268,543 @@ function cta_robots_txt($output, $public) {
     return $output;
 }
 add_filter('robots_txt', 'cta_robots_txt', 10, 2);
+
+/**
+ * SEO Tools admin page
+ */
+function cta_seo_tools_admin_page() {
+    // Handle CSV import
+    $import_result = null;
+    if (isset($_POST['import_csv']) && check_admin_referer('cta_import_seo_csv')) {
+        $import_result = cta_import_meta_descriptions_from_csv();
+    }
+    
+    // Get stats
+    $pages_with_meta = 0;
+    $pages_without_meta = 0;
+    
+    $post_types = ['course', 'course_event', 'post', 'page'];
+    foreach ($post_types as $post_type) {
+        $posts = get_posts([
+            'post_type' => $post_type,
+            'posts_per_page' => -1,
+            'post_status' => 'publish',
+            'fields' => 'ids'
+        ]);
+        
+        foreach ($posts as $post_id) {
+            $has_meta = false;
+            if ($post_type === 'course') {
+                $has_meta = !empty(cta_safe_get_field('course_seo_meta_description', $post_id, ''));
+            } elseif ($post_type === 'course_event') {
+                $has_meta = !empty(cta_safe_get_field('event_seo_meta_description', $post_id, ''));
+            } elseif ($post_type === 'post') {
+                $has_meta = !empty(cta_safe_get_field('news_meta_description', $post_id, ''));
+            } else {
+                $has_meta = !empty(cta_safe_get_field('seo_meta_description', $post_id, ''));
+            }
+            
+            if ($has_meta) {
+                $pages_with_meta++;
+            } else {
+                $pages_without_meta++;
+            }
+        }
+    }
+    
+    $csv_path = get_template_directory() . '/data/seo_meta_descriptions.csv';
+    $csv_exists = file_exists($csv_path);
+    
+    ?>
+    <div class="wrap">
+        <h1>SEO Tools</h1>
+        
+        <?php if ($import_result) : ?>
+            <div class="notice notice-<?php echo $import_result['success'] ? 'success' : 'error'; ?> is-dismissible">
+                <p><strong><?php echo esc_html($import_result['message']); ?></strong></p>
+                <?php if (!empty($import_result['errors']) && count($import_result['errors']) <= 10) : ?>
+                    <ul>
+                        <?php foreach ($import_result['errors'] as $error) : ?>
+                            <li><?php echo esc_html($error); ?></li>
+                        <?php endforeach; ?>
+                    </ul>
+                <?php endif; ?>
+            </div>
+        <?php endif; ?>
+        
+        <div class="card" style="max-width: 1200px; margin-top: 20px;">
+            <h2>Meta Descriptions</h2>
+            
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin: 20px 0;">
+                <div style="padding: 15px; background: #f0f0f1; border-radius: 4px;">
+                    <h3 style="margin: 0 0 10px 0;">Pages with Meta Descriptions</h3>
+                    <p style="font-size: 32px; font-weight: bold; margin: 0; color: #00a32a;"><?php echo $pages_with_meta; ?></p>
+                </div>
+                <div style="padding: 15px; background: #f0f0f1; border-radius: 4px;">
+                    <h3 style="margin: 0 0 10px 0;">Pages Missing Meta Descriptions</h3>
+                    <p style="font-size: 32px; font-weight: bold; margin: 0; color: #d63638;"><?php echo $pages_without_meta; ?></p>
+                </div>
+            </div>
+            
+            <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #ddd;">
+                <h3>Import Meta Descriptions from CSV</h3>
+                
+                <?php if ($csv_exists) : ?>
+                    <p>CSV file found at: <code><?php echo esc_html($csv_path); ?></code></p>
+                    <p class="description">
+                        This will import meta descriptions from the CSV file. Only pages without existing descriptions will be updated (merge mode).
+                    </p>
+                    <form method="post" style="margin-top: 15px;">
+                        <?php wp_nonce_field('cta_import_seo_csv'); ?>
+                        <button type="submit" name="import_csv" class="button button-primary" onclick="return confirm('This will import meta descriptions for all pages in the CSV. Continue?');">
+                            Import Meta Descriptions from CSV
+                        </button>
+                    </form>
+                <?php else : ?>
+                    <div class="notice notice-warning">
+                        <p><strong>CSV file not found.</strong></p>
+                        <p>Expected location: <code><?php echo esc_html($csv_path); ?></code></p>
+                        <p>Please ensure the CSV file is placed in the theme's <code>data/</code> directory.</p>
+                    </div>
+                <?php endif; ?>
+            </div>
+            
+            <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #ddd;">
+                <h3>Auto-Generation</h3>
+                <p>Meta descriptions are automatically generated for new posts when saved if no custom description is set.</p>
+                <p class="description">
+                    <strong>Fallback hierarchy:</strong><br>
+                    1. ACF custom field (if set)<br>
+                    2. Post excerpt (if exists and 120-160 chars)<br>
+                    3. Auto-generated from template (based on post type)<br>
+                    4. Generic fallback (never empty)
+                </p>
+            </div>
+        </div>
+        
+        <div class="card" style="max-width: 1200px; margin-top: 20px;">
+            <h2>Broken Link Detection</h2>
+            
+            <?php
+            // Check for known broken links
+            $broken_links = [];
+            
+            // Check award post
+            $award_post = get_page_by_path('maidstone-national-award-first-dec21', OBJECT, 'post');
+            if ($award_post) {
+                $content = $award_post->post_content;
+                // Look for links
+                preg_match_all('/<a[^>]+href=["\']([^"\']+)["\'][^>]*>/i', $content, $matches);
+                if (!empty($matches[1])) {
+                    foreach ($matches[1] as $url) {
+                        $parsed = wp_parse_url($url);
+                        if ($parsed && isset($parsed['host'])) {
+                            // External link - would need to check if it's broken
+                            $broken_links[] = [
+                                'post' => $award_post->post_title,
+                                'url' => $url,
+                                'type' => 'external',
+                                'edit_link' => get_edit_post_link($award_post->ID)
+                            ];
+                        } else {
+                            // Internal link
+                            $post_id = url_to_postid($url);
+                            if (!$post_id) {
+                                $broken_links[] = [
+                                    'post' => $award_post->post_title,
+                                    'url' => $url,
+                                    'type' => 'internal',
+                                    'edit_link' => get_edit_post_link($award_post->ID)
+                                ];
+                            }
+                        }
+                    }
+                }
+            }
+            
+            // Check moving & handling post
+            $moving_post = get_page_by_path('moving-handling-reducing-workplace-jan25', OBJECT, 'post');
+            if ($moving_post) {
+                $content = $moving_post->post_content;
+                preg_match_all('/<a[^>]+href=["\']([^"\']+)["\'][^>]*>/i', $content, $matches);
+                if (!empty($matches[1])) {
+                    foreach ($matches[1] as $url) {
+                        $parsed = wp_parse_url($url);
+                        if ($parsed && isset($parsed['host']) && $parsed['host'] !== $_SERVER['HTTP_HOST']) {
+                            // External link - mark as potentially broken (needs manual verification)
+                            $broken_links[] = [
+                                'post' => $moving_post->post_title,
+                                'url' => $url,
+                                'type' => 'external',
+                                'edit_link' => get_edit_post_link($moving_post->ID)
+                            ];
+                        }
+                    }
+                }
+            }
+            ?>
+            
+            <?php if (!empty($broken_links)) : ?>
+                <div class="notice notice-warning" style="margin-top: 15px;">
+                    <p><strong>Potential broken links found:</strong></p>
+                    <ul>
+                        <?php foreach ($broken_links as $link) : ?>
+                            <li>
+                                <strong><?php echo esc_html($link['post']); ?></strong>: 
+                                <a href="<?php echo esc_url($link['url']); ?>" target="_blank"><?php echo esc_html($link['url']); ?></a>
+                                (<?php echo esc_html($link['type']); ?>)
+                                <a href="<?php echo esc_url($link['edit_link']); ?>" class="button button-small" style="margin-left: 10px;">Edit Post</a>
+                            </li>
+                        <?php endforeach; ?>
+                    </ul>
+                    <p class="description">Please verify these links manually and update or remove them if they are broken.</p>
+                </div>
+            <?php else : ?>
+                <p>No broken links detected in the specified posts. Note: This is a basic check. External links should be verified manually.</p>
+            <?php endif; ?>
+            
+            <p class="description" style="margin-top: 15px;">
+                <strong>Known issues to check:</strong><br>
+                - <code>maidstone-national-award-first-dec21</code>: Check for broken internal links<br>
+                - <code>moving-handling-reducing-workplace-jan25</code>: Check for broken external links
+            </p>
+        </div>
+        
+        <div class="card" style="max-width: 1200px; margin-top: 20px;">
+            <h2>Orphan Pages Detection</h2>
+            
+            <?php
+            // Find orphan pages (pages with only 1 internal link)
+            $orphan_pages = [];
+            $all_pages = get_posts([
+                'post_type' => ['page', 'course', 'course_event', 'post'],
+                'posts_per_page' => -1,
+                'post_status' => 'publish',
+                'fields' => 'ids'
+            ]);
+            
+            foreach ($all_pages as $page_id) {
+                // Count internal links to this page
+                $link_count = 0;
+                
+                // Search for links to this page in post content
+                $posts = get_posts([
+                    'post_type' => ['page', 'course', 'course_event', 'post'],
+                    'posts_per_page' => -1,
+                    'post_status' => 'publish',
+                    'exclude' => [$page_id]
+                ]);
+                
+                $page_url = get_permalink($page_id);
+                $page_slug = get_post_field('post_name', $page_id);
+                
+                foreach ($posts as $post) {
+                    $content = $post->post_content;
+                    // Count occurrences of this page's URL or slug
+                    if (strpos($content, $page_url) !== false || strpos($content, $page_slug) !== false) {
+                        $link_count++;
+                    }
+                }
+                
+                // Check menu items
+                $menu_items = wp_get_nav_menu_items('primary');
+                if ($menu_items) {
+                    foreach ($menu_items as $item) {
+                        if ($item->object_id == $page_id) {
+                            $link_count++;
+                        }
+                    }
+                }
+                
+                if ($link_count <= 1) {
+                    $orphan_pages[] = [
+                        'id' => $page_id,
+                        'title' => get_the_title($page_id),
+                        'url' => $page_url,
+                        'type' => get_post_type($page_id),
+                        'link_count' => $link_count,
+                        'edit_link' => get_edit_post_link($page_id)
+                    ];
+                }
+            }
+            ?>
+            
+            <?php if (!empty($orphan_pages)) : ?>
+                <div class="notice notice-warning" style="margin-top: 15px;">
+                    <p><strong>Found <?php echo count($orphan_pages); ?> orphan pages (with 1 or fewer internal links):</strong></p>
+                    <ul style="margin-top: 10px;">
+                        <?php foreach (array_slice($orphan_pages, 0, 20) as $orphan) : ?>
+                            <li>
+                                <strong><?php echo esc_html($orphan['title']); ?></strong> 
+                                (<?php echo esc_html($orphan['type']); ?>) - 
+                                <?php echo $orphan['link_count']; ?> link(s)
+                                <a href="<?php echo esc_url($orphan['edit_link']); ?>" class="button button-small" style="margin-left: 10px;">Edit</a>
+                                <a href="<?php echo esc_url($orphan['url']); ?>" target="_blank" class="button button-small">View</a>
+                            </li>
+                        <?php endforeach; ?>
+                    </ul>
+                    <?php if (count($orphan_pages) > 20) : ?>
+                        <p class="description">... and <?php echo count($orphan_pages) - 20; ?> more. Add internal links to these pages from relevant content.</p>
+                    <?php endif; ?>
+                </div>
+            <?php else : ?>
+                <p>No orphan pages detected. All pages have sufficient internal linking.</p>
+            <?php endif; ?>
+        </div>
+        
+        <div class="card" style="max-width: 1200px; margin-top: 20px;">
+            <h2>Content Audit - Thin Content Detection</h2>
+            
+            <?php
+            // Find pages with low text-to-HTML ratio
+            $thin_pages = [];
+            $all_content = get_posts([
+                'post_type' => ['page', 'course', 'post'],
+                'posts_per_page' => -1,
+                'post_status' => 'publish'
+            ]);
+            
+            foreach ($all_content as $post) {
+                $content = $post->post_content;
+                $text_content = wp_strip_all_tags($content);
+                $text_length = strlen($text_content);
+                $html_length = strlen($content);
+                
+                if ($html_length > 0) {
+                    $text_ratio = ($text_length / $html_length) * 100;
+                    
+                    // Flag pages with less than 20% text content or less than 300 words
+                    if ($text_ratio < 20 || str_word_count($text_content) < 300) {
+                        $thin_pages[] = [
+                            'id' => $post->ID,
+                            'title' => get_the_title($post->ID),
+                            'url' => get_permalink($post->ID),
+                            'type' => $post->post_type,
+                            'text_ratio' => round($text_ratio, 1),
+                            'word_count' => str_word_count($text_content),
+                            'edit_link' => get_edit_post_link($post->ID)
+                        ];
+                    }
+                }
+            }
+            
+            // Sort by word count (lowest first)
+            usort($thin_pages, function($a, $b) {
+                return $a['word_count'] - $b['word_count'];
+            });
+            ?>
+            
+            <?php if (!empty($thin_pages)) : ?>
+                <div class="notice notice-warning" style="margin-top: 15px;">
+                    <p><strong>Found <?php echo count($thin_pages); ?> pages with thin content (low text-to-HTML ratio or <300 words):</strong></p>
+                    <table class="widefat" style="margin-top: 15px;">
+                        <thead>
+                            <tr>
+                                <th>Page</th>
+                                <th>Type</th>
+                                <th>Word Count</th>
+                                <th>Text Ratio</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php foreach (array_slice($thin_pages, 0, 30) as $thin) : ?>
+                                <tr>
+                                    <td><strong><?php echo esc_html($thin['title']); ?></strong></td>
+                                    <td><?php echo esc_html($thin['type']); ?></td>
+                                    <td><?php echo $thin['word_count']; ?> words</td>
+                                    <td><?php echo $thin['text_ratio']; ?>%</td>
+                                    <td>
+                                        <a href="<?php echo esc_url($thin['edit_link']); ?>" class="button button-small">Edit</a>
+                                        <a href="<?php echo esc_url($thin['url']); ?>" target="_blank" class="button button-small">View</a>
+                                    </td>
+                                </tr>
+                            <?php endforeach; ?>
+                        </tbody>
+                    </table>
+                    <?php if (count($thin_pages) > 30) : ?>
+                        <p class="description" style="margin-top: 10px;">... and <?php echo count($thin_pages) - 30; ?> more pages. Consider adding more content to improve SEO.</p>
+                    <?php endif; ?>
+                </div>
+            <?php else : ?>
+                <p>No thin content pages detected. All pages have sufficient text content.</p>
+            <?php endif; ?>
+            
+            <p class="description" style="margin-top: 15px;">
+                <strong>Recommendations:</strong><br>
+                - Add 300+ words of unique content per page<br>
+                - Aim for text-to-HTML ratio above 20%<br>
+                - Add course descriptions, FAQs, or relevant information
+            </p>
+        </div>
+        
+        <div class="card" style="max-width: 1200px; margin-top: 20px;">
+            <h2>Fix Duplicate Course URLs</h2>
+            
+            <?php
+            // Handle URL fix action
+            $fix_result = null;
+            if (isset($_POST['fix_duplicate_urls']) && check_admin_referer('cta_fix_duplicate_urls')) {
+                $fix_result = cta_fix_duplicate_course_urls();
+            }
+            
+            // Check current status
+            $duplicate_urls = [
+                'adult-social-care-certificate' => 'adult-social-care-certificate-3d-l2',
+                'emergency-first-aid-at-work' => 'emergency-first-aid-at-work-1d-l3',
+                'medication-competency-management' => 'medication-competency-management-1d-l3',
+                'moving-positioning-inc-hoist' => 'moving-positioning-inc-hoist-1d-l3',
+            ];
+            
+            $status = [];
+            foreach ($duplicate_urls as $old_slug => $new_slug) {
+                $old_course = get_page_by_path($old_slug, OBJECT, 'course');
+                $new_course = get_page_by_path($new_slug, OBJECT, 'course');
+                
+                if ($old_course && $new_course && $old_course->ID === $new_course->ID) {
+                    $status[$old_slug] = ['status' => 'fixed', 'message' => 'Already correct'];
+                } elseif ($old_course && !$new_course) {
+                    $status[$old_slug] = ['status' => 'needs_fix', 'course_id' => $old_course->ID, 'current' => $old_slug, 'target' => $new_slug];
+                } elseif (!$old_course && $new_course) {
+                    $status[$old_slug] = ['status' => 'fixed', 'message' => 'Already correct'];
+                } else {
+                    $status[$old_slug] = ['status' => 'not_found', 'message' => 'Course not found'];
+                }
+            }
+            ?>
+            
+            <?php if ($fix_result) : ?>
+                <div class="notice notice-<?php echo !empty($fix_result['errors']) ? 'warning' : 'success'; ?> is-dismissible" style="margin-top: 15px;">
+                    <?php if (!empty($fix_result['updated'])) : ?>
+                        <p><strong>Updated:</strong></p>
+                        <ul>
+                            <?php foreach ($fix_result['updated'] as $msg) : ?>
+                                <li><?php echo esc_html($msg); ?></li>
+                            <?php endforeach; ?>
+                        </ul>
+                    <?php endif; ?>
+                    <?php if (!empty($fix_result['errors'])) : ?>
+                        <p><strong>Errors:</strong></p>
+                        <ul>
+                            <?php foreach ($fix_result['errors'] as $msg) : ?>
+                                <li><?php echo esc_html($msg); ?></li>
+                            <?php endforeach; ?>
+                        </ul>
+                    <?php endif; ?>
+                </div>
+            <?php endif; ?>
+            
+            <p>Some courses have duplicate URLs without duration/level suffixes. This tool updates them to the correct format.</p>
+            
+            <table class="widefat" style="margin-top: 15px;">
+                <thead>
+                    <tr>
+                        <th>Current Slug</th>
+                        <th>Target Slug</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php foreach ($status as $old_slug => $info) : ?>
+                        <tr>
+                            <td><code><?php echo esc_html($old_slug); ?></code></td>
+                            <td><code><?php echo esc_html($duplicate_urls[$old_slug]); ?></code></td>
+                            <td>
+                                <?php if ($info['status'] === 'fixed') : ?>
+                                    <span style="color: #00a32a;">✓ <?php echo esc_html($info['message']); ?></span>
+                                <?php elseif ($info['status'] === 'needs_fix') : ?>
+                                    <span style="color: #d63638;">⚠ Needs Fix</span>
+                                <?php else : ?>
+                                    <span style="color: #d63638;">✗ <?php echo esc_html($info['message']); ?></span>
+                                <?php endif; ?>
+                            </td>
+                            <td>
+                                <?php if ($info['status'] === 'needs_fix') : ?>
+                                    <a href="<?php echo esc_url(get_edit_post_link($info['course_id'])); ?>" class="button button-small">Edit Course</a>
+                                <?php endif; ?>
+                            </td>
+                        </tr>
+                    <?php endforeach; ?>
+                </tbody>
+            </table>
+            
+            <?php if (array_filter($status, function($s) { return $s['status'] === 'needs_fix'; })) : ?>
+                <form method="post" style="margin-top: 20px;">
+                    <?php wp_nonce_field('cta_fix_duplicate_urls'); ?>
+                    <button type="submit" name="fix_duplicate_urls" class="button button-primary" onclick="return confirm('This will update course slugs to the correct format. Continue?');">
+                        Fix Duplicate URLs
+                    </button>
+                </form>
+            <?php else : ?>
+                <p class="description" style="margin-top: 15px; color: #00a32a;">
+                    <strong>✓ All course URLs are correct!</strong>
+                </p>
+            <?php endif; ?>
+        </div>
+    </div>
+    <?php
+}
+
+/**
+ * Fix duplicate course URLs
+ * Updates course slugs to match the correct format (with duration and level)
+ */
+function cta_fix_duplicate_course_urls() {
+    $fixes = [
+        'adult-social-care-certificate' => 'adult-social-care-certificate-3d-l2',
+        'emergency-first-aid-at-work' => 'emergency-first-aid-at-work-1d-l3',
+        'medication-competency-management' => 'medication-competency-management-1d-l3',
+        'moving-positioning-inc-hoist' => 'moving-positioning-inc-hoist-1d-l3',
+    ];
+    
+    $updated = [];
+    $errors = [];
+    
+    foreach ($fixes as $old_slug => $new_slug) {
+        // Find course with old slug
+        $course = get_page_by_path($old_slug, OBJECT, 'course');
+        
+        if (!$course) {
+            // Check if it's already correct
+            $check_course = get_page_by_path($new_slug, OBJECT, 'course');
+            if ($check_course) {
+                $updated[] = "✓ {$old_slug} → Already correct ({$new_slug})";
+                continue;
+            }
+            $errors[] = "✗ {$old_slug} → Course not found";
+            continue;
+        }
+        
+        // Check if new slug already exists (different course)
+        $existing = get_page_by_path($new_slug, OBJECT, 'course');
+        if ($existing && $existing->ID !== $course->ID) {
+            $errors[] = "✗ {$old_slug} → New slug {$new_slug} already exists (ID: {$existing->ID})";
+            continue;
+        }
+        
+        // Update the slug
+        remove_action('acf/save_post', 'cta_auto_generate_course_slug_on_acf_save', 20);
+        $result = wp_update_post([
+            'ID' => $course->ID,
+            'post_name' => $new_slug,
+        ], true);
+        add_action('acf/save_post', 'cta_auto_generate_course_slug_on_acf_save', 20);
+        
+        if (is_wp_error($result)) {
+            $errors[] = "✗ {$old_slug} → Error: " . $result->get_error_message();
+        } else {
+            $updated[] = "✓ {$old_slug} → {$new_slug} (ID: {$course->ID})";
+            // Flush rewrite rules
+            flush_rewrite_rules(false);
+        }
+    }
+    
+    return [
+        'updated' => $updated,
+        'errors' => $errors,
+    ];
+}
 
 /**
  * =========================================
@@ -1931,6 +2995,45 @@ function cta_enforce_canonical_redirect() {
     }
 }
 add_action('template_redirect', 'cta_enforce_canonical_redirect', 5);
+
+/**
+ * Handle specific URL redirects (404 fixes, old URLs, etc.)
+ */
+function cta_handle_specific_redirects() {
+    // Don't redirect in admin, AJAX, or for logged-in users editing
+    if (is_admin() || wp_doing_ajax() || is_preview()) {
+        return;
+    }
+    
+    // Don't redirect POST requests
+    if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
+        return;
+    }
+    
+    $request_uri = $_SERVER['REQUEST_URI'] ?? '';
+    $path = untrailingslashit(strtok($request_uri, '?'));
+    
+    // Specific redirects
+    $redirects = [
+        '/contact-us' => '/contact',
+        '/contact-us/' => '/contact/',
+    ];
+    
+    if (isset($redirects[$path])) {
+        $redirect_url = home_url($redirects[$path]);
+        // Preserve query string if present
+        if (isset($_SERVER['QUERY_STRING']) && !empty($_SERVER['QUERY_STRING'])) {
+            // Parse query string into array for add_query_arg()
+            parse_str($_SERVER['QUERY_STRING'], $query_params);
+            if (!empty($query_params)) {
+                $redirect_url = add_query_arg($query_params, $redirect_url);
+            }
+        }
+        wp_redirect($redirect_url, 301);
+        exit;
+    }
+}
+add_action('template_redirect', 'cta_handle_specific_redirects', 1);
 
 /**
  * =========================================
@@ -2201,4 +3304,224 @@ function cta_seo_dashboard_widget_content() {
         <?php endif; ?>
     </div>
     <?php
+}
+
+/**
+ * =========================================
+ * EMPTY ANCHOR TEXT DETECTION
+ * =========================================
+ */
+
+/**
+ * Check for empty anchor text in content and show admin warning
+ */
+function cta_check_empty_anchors($content) {
+    // Only check in admin when editing
+    if (!is_admin() || !current_user_can('edit_posts')) {
+        return $content;
+    }
+    
+    // Detect empty links: <a href="..."></a> or <a href="..."> </a>
+    if (preg_match('/<a[^>]+href=["\'][^"\']+["\'][^>]*>\s*<\/a>/i', $content)) {
+        add_action('admin_notices', function() {
+            echo '<div class="notice notice-warning is-dismissible"><p><strong>Warning:</strong> This content contains links with no anchor text. Please add descriptive text to all links for accessibility and SEO.</p></div>';
+        });
+    }
+    
+    return $content;
+}
+add_filter('content_save_pre', 'cta_check_empty_anchors');
+
+/**
+ * =========================================
+ * META DESCRIPTION AUTO-GENERATION & CSV IMPORT
+ * =========================================
+ */
+
+/**
+ * Auto-generate meta description on post save if empty
+ */
+function cta_auto_generate_seo_meta($post_id, $post, $update) {
+    // Skip autosaves and revisions
+    if (defined('DOING_AUTOSAVE') && DOING_AUTOSAVE) {
+        return;
+    }
+    
+    if (wp_is_post_revision($post_id) || wp_is_post_autosave($post_id)) {
+        return;
+    }
+    
+    // Only for relevant post types
+    $allowed_types = ['course', 'course_event', 'post', 'page'];
+    if (!in_array($post->post_type, $allowed_types)) {
+        return;
+    }
+    
+    // Skip if custom meta already set (don't overwrite manual edits)
+    $existing = '';
+    if ($post->post_type === 'course') {
+        $existing = cta_safe_get_field('course_seo_meta_description', $post_id, '');
+    } elseif ($post->post_type === 'course_event') {
+        $existing = cta_safe_get_field('event_seo_meta_description', $post_id, '');
+    } elseif ($post->post_type === 'post') {
+        $existing = cta_safe_get_field('news_meta_description', $post_id, '');
+    } else {
+        $existing = cta_safe_get_field('seo_meta_description', $post_id, '');
+    }
+    
+    if (!empty($existing)) {
+        return; // Don't overwrite manually set descriptions
+    }
+    
+    // Auto-generate based on post type
+    $description = cta_generate_meta_description($post);
+    
+    if (!empty($description)) {
+        // Save to appropriate field using ACF-aware update function
+        if ($post->post_type === 'course') {
+            cta_safe_update_field('course_seo_meta_description', $description, $post_id);
+        } elseif ($post->post_type === 'course_event') {
+            cta_safe_update_field('event_seo_meta_description', $description, $post_id);
+        } elseif ($post->post_type === 'post') {
+            cta_safe_update_field('news_meta_description', $description, $post_id);
+        } else {
+            cta_safe_update_field('seo_meta_description', $description, $post_id);
+        }
+    }
+}
+add_action('save_post', 'cta_auto_generate_seo_meta', 10, 3);
+
+/**
+ * Import meta descriptions from CSV (merge mode - only fills empty fields)
+ * 
+ * @return array Results with imported/skipped/failed counts
+ */
+function cta_import_meta_descriptions_from_csv() {
+    $csv_path = get_template_directory() . '/data/seo_meta_descriptions.csv';
+    
+    if (!file_exists($csv_path)) {
+        return [
+            'success' => false,
+            'message' => 'CSV file not found at: ' . $csv_path,
+            'imported' => 0,
+            'skipped' => 0,
+            'failed' => 0
+        ];
+    }
+    
+    $rows = array_map('str_getcsv', file($csv_path));
+    if (empty($rows)) {
+        return [
+            'success' => false,
+            'message' => 'CSV file is empty',
+            'imported' => 0,
+            'skipped' => 0,
+            'failed' => 0
+        ];
+    }
+    
+    $header = array_shift($rows); // Remove header row
+    
+    $imported = 0;
+    $skipped = 0;
+    $failed = 0;
+    $errors = [];
+    
+    foreach ($rows as $row_num => $row) {
+        if (count($row) < 4) {
+            $failed++;
+            continue;
+        }
+        
+        list($url, $page_title, $description, $char_count) = $row;
+        
+        // Clean URL - remove domain, get path
+        $url = trim($url);
+        $parsed = wp_parse_url($url);
+        if (!$parsed || !isset($parsed['path'])) {
+            $failed++;
+            continue;
+        }
+        
+        $path = rtrim($parsed['path'], '/');
+        if (empty($path)) {
+            $path = '/';
+        }
+        
+        // Find post by URL
+        $post_id = url_to_postid(home_url($path));
+        
+        // Handle homepage variants
+        if (!$post_id && ($path === '/' || $path === '')) {
+            $post_id = get_option('page_on_front') ?: 0;
+            if (!$post_id) {
+                // Homepage is posts page
+                $post_id = 0;
+            }
+        }
+        
+        if (!$post_id) {
+            $failed++;
+            $errors[] = "Row " . ($row_num + 2) . ": Could not find post for URL: " . $url;
+            continue;
+        }
+        
+        // Skip homepage (handled separately)
+        if ($post_id === 0) {
+            $skipped++;
+            continue;
+        }
+        
+        $post = get_post($post_id);
+        if (!$post) {
+            $failed++;
+            continue;
+        }
+        
+        // Check if description already exists (merge mode)
+        $existing = '';
+        if ($post->post_type === 'course') {
+            $existing = cta_safe_get_field('course_seo_meta_description', $post_id, '');
+        } elseif ($post->post_type === 'course_event') {
+            $existing = cta_safe_get_field('event_seo_meta_description', $post_id, '');
+        } elseif ($post->post_type === 'post') {
+            $existing = cta_safe_get_field('news_meta_description', $post_id, '');
+        } else {
+            $existing = cta_safe_get_field('seo_meta_description', $post_id, '');
+        }
+        
+        if (!empty($existing)) {
+            $skipped++;
+            continue; // Don't overwrite existing descriptions
+        }
+        
+        // Import description
+        $description = trim($description);
+        if (empty($description)) {
+            $skipped++;
+            continue;
+        }
+        
+        // Save to appropriate field using ACF-aware update function
+        if ($post->post_type === 'course') {
+            cta_safe_update_field('course_seo_meta_description', $description, $post_id);
+        } elseif ($post->post_type === 'course_event') {
+            cta_safe_update_field('event_seo_meta_description', $description, $post_id);
+        } elseif ($post->post_type === 'post') {
+            cta_safe_update_field('news_meta_description', $description, $post_id);
+        } else {
+            cta_safe_update_field('seo_meta_description', $description, $post_id);
+        }
+        
+        $imported++;
+    }
+    
+    return [
+        'success' => $imported > 0,
+        'message' => sprintf('Imported %d descriptions, skipped %d (already set), failed %d', $imported, $skipped, $failed),
+        'imported' => $imported,
+        'skipped' => $skipped,
+        'failed' => $failed,
+        'errors' => $errors
+    ];
 }

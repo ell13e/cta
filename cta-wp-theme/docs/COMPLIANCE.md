@@ -269,7 +269,85 @@ Complete policy content (ready to paste into WordPress page editor) is available
 
 ---
 
+## Policy Checklist
+
+This section consolidates the policy checklist requirements for quick reference.
+
+### Privacy Policy Checklist
+
+**Required Sections:**
+1. ✅ Data Controller (company details, contact info)
+2. ✅ Information We Collect (all form types, technical data)
+3. ✅ Legal Basis for Processing (consent, legitimate interest, contract)
+4. ✅ How We Use Your Information (enquiries, bookings, marketing, analytics)
+5. ✅ Sharing Your Information (Mailchimp, Google Analytics, service providers)
+6. ✅ Data Retention (enquiries: 12 months, marketing: until unsubscribe, bookings: 7 years)
+7. ✅ Your Rights (GDPR - access, rectification, erasure, etc.)
+8. ✅ Cookies (link to Cookie Policy)
+9. ✅ Data Transfers (SCCs for international transfers)
+10. ✅ Contact Information (data protection enquiries)
+
+### Cookie Policy Checklist
+
+**Required Sections:**
+1. ✅ What Are Cookies? (explanation, session vs persistent, first-party vs third-party)
+2. ✅ Types of Cookies We Use:
+   - Essential Cookies (consent preference, WordPress session, reCAPTCHA)
+   - Analytics Cookies (Google Analytics 4 - if enabled)
+   - Marketing Cookies (Facebook Pixel - if enabled)
+3. ✅ Third-Party Cookies (list enabled services only)
+4. ✅ Managing Cookie Preferences (banner explanation, browser settings)
+5. ✅ Cookie Duration (session, 1 year, 2 years for analytics)
+6. ✅ Your Rights (right to know, refuse, delete)
+7. ✅ Contact Information (cookie-related enquiries)
+
+### Terms & Conditions Checklist
+
+**Required Sections:**
+1. ✅ About Us (company details)
+2. ✅ Eligibility (18+)
+3. ✅ Use of Website (acceptable use, prohibited activities)
+4. ✅ No User Accounts (no registration required)
+5. ✅ Enquiries and Bookings (enquiries only, offline bookings, no online payments)
+6. ✅ Prices and Payment (information only, offline payments)
+7. ✅ Intellectual Property (content ownership, permitted/prohibited uses)
+8. ✅ Limitation of Liability (standard limitations)
+9. ✅ Data Protection (link to Privacy Policy)
+10. ✅ Cookies (link to Cookie Policy)
+11. ✅ Governing Law (English law, English courts)
+12. ✅ Changes to Terms (how updates communicated)
+13. ✅ Contact Information (full contact details)
+
+### Quick Verification Steps
+
+1. **Check each policy page exists:**
+   - Go to WordPress Admin → Pages
+   - Look for pages with slugs: `privacy-policy`, `cookie-policy`, `terms-conditions`
+
+2. **Verify content includes:**
+   - All sections listed above
+   - Current contact information
+   - Accurate description of data collection
+   - Correct tracking services (only mention what's actually enabled)
+
+3. **Check tracking services:**
+   - WordPress Admin → Settings → API Keys
+   - See which services are configured:
+     - Google Analytics ID
+     - Facebook Pixel ID
+     - reCAPTCHA keys
+   - Only mention services that are actually configured
+
+4. **Update "Last updated" dates:**
+   - Each policy should have a "Last updated: [Date]" at the top
+
+5. **Test links:**
+   - Privacy Policy should link to Cookie Policy
+   - Cookie Policy should link to Privacy Policy
+   - Terms should link to both Privacy and Cookie policies
+
+---
+
 ## Related Documents
 
 - [POLICY_TEMPLATES.md](./POLICY_TEMPLATES.md) - Complete copy-paste policy content (ready to use)
-- [completed-features/POLICY_CHECKLIST.md](./completed-features/POLICY_CHECKLIST.md) - Original checklist document

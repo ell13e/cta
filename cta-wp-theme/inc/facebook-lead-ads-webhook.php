@@ -64,17 +64,14 @@ add_action('rest_api_init', 'cta_register_facebook_lead_ads_webhook');
 function cta_handle_facebook_lead_ads_webhook($request) {
     $enabled = get_option('cta_facebook_lead_ads_webhook_enabled', 0);
     
-    // Handle GET request (webhook verification)
     if ($request->get_method() === 'GET') {
         return cta_verify_facebook_webhook($request);
     }
     
-    // Skip if webhook is disabled
     if (!$enabled) {
         return new WP_Error('webhook_disabled', 'Facebook Lead Ads webhook is disabled', ['status' => 503]);
     }
     
-    // Handle POST request (lead data)
     return cta_process_facebook_lead($request);
 }
 
@@ -91,13 +88,10 @@ function cta_verify_facebook_webhook($request) {
     $challenge = $request->get_param('hub.challenge');
     $expected_token = get_option('cta_facebook_lead_ads_verify_token', '');
     
-    // Verify token matches
     if ($mode === 'subscribe' && $token === $expected_token) {
-        // Return challenge to verify webhook
         return new WP_REST_Response($challenge, 200);
     }
     
-    // Verification failed
     return new WP_Error('verification_failed', 'Webhook verification failed', ['status' => 403]);
 }
 
@@ -117,14 +111,12 @@ function cta_process_facebook_lead($request) {
     $processed = 0;
     $errors = [];
     
-    // Process each entry
     foreach ($body['entry'] as $entry) {
         if (empty($entry['changes'])) {
             continue;
         }
         
         foreach ($entry['changes'] as $change) {
-            // Only process leadgen events
             if ($change['field'] !== 'leadgen') {
                 continue;
             }
@@ -136,7 +128,6 @@ function cta_process_facebook_lead($request) {
                 continue;
             }
             
-            // Fetch full lead data from Facebook Graph API
             $lead_details = cta_fetch_facebook_lead_details($lead_data['leadgen_id']);
             
             if (is_wp_error($lead_details)) {
@@ -144,7 +135,6 @@ function cta_process_facebook_lead($request) {
                 continue;
             }
             
-            // Fetch ad set information to check if it contains 'cta' and parse course/date
             $adset_info = cta_fetch_facebook_adset_from_lead($lead_data, $lead_details);
             
             if (is_wp_error($adset_info)) {
@@ -152,20 +142,16 @@ function cta_process_facebook_lead($request) {
                 continue;
             }
             
-            // Skip if ad set name doesn't contain 'cta'
             $adset_name = $adset_info['name'] ?? '';
             if (stripos($adset_name, 'cta') === false) {
-                // Log skipped lead (not an error, just filtering)
                 if (defined('WP_DEBUG') && WP_DEBUG) {
                     error_log('Facebook Lead Ads: Skipped lead - ad set name does not contain "cta": ' . $adset_name);
                 }
                 continue;
             }
             
-            // Parse course name and date from ad set name (format: cta_COURSENAME_DATE)
             $parsed_data = cta_parse_adset_name($adset_name);
             
-            // Create form submission from lead data
             $submission_id = cta_create_submission_from_facebook_lead($lead_data, $lead_details, $parsed_data);
             
             if (is_wp_error($submission_id)) {
@@ -177,7 +163,6 @@ function cta_process_facebook_lead($request) {
         }
     }
     
-    // Return success response (Facebook expects 200 OK)
     $response_data = [
         'success' => true,
         'processed' => $processed,
@@ -186,7 +171,6 @@ function cta_process_facebook_lead($request) {
     if (!empty($errors)) {
         $response_data['errors'] = $errors;
         
-        // Log errors
         if (defined('WP_DEBUG') && WP_DEBUG) {
             error_log('Facebook Lead Ads Webhook Errors: ' . print_r($errors, true));
         }
@@ -208,7 +192,6 @@ function cta_fetch_facebook_lead_details($leadgen_id) {
         return new WP_Error('no_access_token', 'Facebook Access Token not configured');
     }
     
-    // Fetch lead data from Graph API (include ad_id field)
     $url = 'https://graph.facebook.com/v24.0/' . $leadgen_id . '?fields=id,created_time,field_data,ad_id&access_token=' . urlencode($access_token);
     
     $response = wp_remote_get($url, [
@@ -243,14 +226,12 @@ function cta_fetch_facebook_adset_from_lead($lead_data, $lead_details) {
         return new WP_Error('no_access_token', 'Facebook Access Token not configured');
     }
     
-    // Get ad_id from lead details
     $ad_id = $lead_details['ad_id'] ?? '';
     
     if (empty($ad_id)) {
         return new WP_Error('no_ad_id', 'Ad ID not found in lead data');
     }
     
-    // Fetch ad data to get adset_id
     $ad_url = 'https://graph.facebook.com/v24.0/' . $ad_id . '?fields=adset_id&access_token=' . urlencode($access_token);
     
     $ad_response = wp_remote_get($ad_url, [
@@ -274,7 +255,6 @@ function cta_fetch_facebook_adset_from_lead($lead_data, $lead_details) {
         return new WP_Error('no_adset_id', 'Ad Set ID not found in ad data');
     }
     
-    // Fetch ad set data to get name
     $adset_url = 'https://graph.facebook.com/v24.0/' . $adset_id . '?fields=name&access_token=' . urlencode($access_token);
     
     $adset_response = wp_remote_get($adset_url, [
@@ -312,20 +292,13 @@ function cta_parse_adset_name($adset_name) {
         return $parsed;
     }
     
-    // Remove 'cta_' prefix (case insensitive)
     $name = preg_replace('/^cta_/i', '', $adset_name);
-    
-    // Split by underscore
     $parts = explode('_', $name);
     
     if (count($parts) >= 2) {
-        // Last part is the date
         $parsed['date'] = array_pop($parts);
-        
-        // Remaining parts are the course name
         $parsed['course_name'] = implode('_', $parts);
     } elseif (count($parts) === 1) {
-        // Only one part - assume it's the course name (no date)
         $parsed['course_name'] = $parts[0];
     }
     
@@ -346,32 +319,26 @@ function cta_parse_booking_quantity($value) {
     
     $value_lower = strtolower(trim($value));
     
-    // "Just me" = 1
     if (stripos($value_lower, 'just me') !== false || stripos($value_lower, '1 person') !== false) {
         return 1;
     }
     
-    // "2 people" = 2
     if (preg_match('/\b2\b/', $value_lower)) {
         return 2;
     }
     
-    // "3-4 people" = 3 (take minimum, or could average to 3.5 and round)
     if (preg_match('/\b3[-\s]4\b/', $value_lower) || preg_match('/\b3\s+to\s+4\b/i', $value_lower)) {
-        return 3; // Or could return 4, depending on preference
+        return 3;
     }
     
-    // "5+ people" or "5 or more" = 5
     if (preg_match('/\b5\+/i', $value_lower) || preg_match('/\b5\s+or\s+more/i', $value_lower) || preg_match('/\b5\s+people/i', $value_lower)) {
         return 5;
     }
     
-    // Try to extract any number from the value
     if (preg_match('/\b(\d+)\b/', $value, $matches)) {
         return intval($matches[1]);
     }
     
-    // Default to 1 if we can't parse
     return 1;
 }
 
@@ -387,14 +354,12 @@ function cta_find_course_by_name($course_name) {
         return false;
     }
     
-    // Normalize course name for matching (remove hyphens, underscores, spaces, convert to uppercase)
     $normalize = function($str) {
         return strtoupper(preg_replace('/[-_\s]+/', '', $str));
     };
     
     $normalized_search = $normalize($course_name);
     
-    // Try WordPress search first
     $args = [
         'post_type' => 'course',
         'posts_per_page' => 10,
@@ -405,7 +370,6 @@ function cta_find_course_by_name($course_name) {
     $query = new WP_Query($args);
     
     if ($query->have_posts()) {
-        // Check each result for best match
         $best_match = null;
         $best_score = 0;
         
@@ -415,13 +379,11 @@ function cta_find_course_by_name($course_name) {
             $title = get_the_title($course_id);
             $normalized_title = $normalize($title);
             
-            // Exact match gets highest score
             if ($normalized_title === $normalized_search) {
                 wp_reset_postdata();
                 return $course_id;
             }
             
-            // Title starts with course name
             if (strpos($normalized_title, $normalized_search) === 0) {
                 $score = strlen($normalized_search) / strlen($normalized_title);
                 if ($score > $best_score) {
@@ -430,7 +392,6 @@ function cta_find_course_by_name($course_name) {
                 }
             }
             
-            // Course name appears in title
             if (strpos($normalized_title, $normalized_search) !== false) {
                 $score = strlen($normalized_search) / strlen($normalized_title);
                 if ($score > $best_score) {
@@ -446,7 +407,6 @@ function cta_find_course_by_name($course_name) {
         }
     }
     
-    // Fallback: search all courses if WordPress search didn't find it
     $args = [
         'post_type' => 'course',
         'posts_per_page' => -1,
@@ -459,17 +419,14 @@ function cta_find_course_by_name($course_name) {
         $title = $course->post_title;
         $normalized_title = $normalize($title);
         
-        // Exact match
         if ($normalized_title === $normalized_search) {
             return $course->ID;
         }
         
-        // Title starts with course name
         if (strpos($normalized_title, $normalized_search) === 0) {
             return $course->ID;
         }
         
-        // Course name appears in title
         if (strpos($normalized_title, $normalized_search) !== false) {
             return $course->ID;
         }
@@ -487,16 +444,13 @@ function cta_find_course_by_name($course_name) {
  * @return int|WP_Error Submission post ID or error
  */
 function cta_create_submission_from_facebook_lead($lead_data, $lead_details, $parsed_data = []) {
-    // Extract lead information
     $lead_id = $lead_data['leadgen_id'] ?? '';
     $page_id = $lead_data['page_id'] ?? '';
     $form_id = $lead_data['form_id'] ?? '';
     $created_time = $lead_data['created_time'] ?? time();
     
-    // Extract field data from lead details
     $field_data = $lead_details['field_data'] ?? [];
     
-    // Map Facebook fields to form submission fields
     $submission_data = [
         'name' => '',
         'email' => '',
@@ -508,7 +462,6 @@ function cta_create_submission_from_facebook_lead($lead_data, $lead_details, $pa
         'page_url' => !empty($page_id) ? 'https://facebook.com/' . $page_id : '',
     ];
     
-    // Parse field data
     foreach ($field_data as $field) {
         $field_name = strtolower($field['name'] ?? '');
         $field_value = $field['values'][0] ?? '';
@@ -517,7 +470,6 @@ function cta_create_submission_from_facebook_lead($lead_data, $lead_details, $pa
             continue;
         }
         
-        // Map common Facebook field names to our fields
         switch ($field_name) {
             case 'first_name':
             case 'full_name':
@@ -560,25 +512,21 @@ function cta_create_submission_from_facebook_lead($lead_data, $lead_details, $pa
                 break;
                 
             default:
-                // Handle booking quantity field
                 if (stripos($field_name, 'how many') !== false || 
                     stripos($field_name, 'booking') !== false || 
                     stripos($field_name, 'people') !== false ||
                     stripos($field_name, 'delegates') !== false) {
                     
-                    // Extract number of delegates from selection
                     $delegates = cta_parse_booking_quantity($field_value);
                     if ($delegates > 0) {
                         $submission_data['delegates'] = $delegates;
                     }
                     
-                    // Also store original value in form_data
                     if (!isset($submission_data['form_data'])) {
                         $submission_data['form_data'] = [];
                     }
                     $submission_data['form_data'][$field_name] = $field_value;
                 } else {
-                    // Store other fields in form_data
                     if (!isset($submission_data['form_data'])) {
                         $submission_data['form_data'] = [];
                     }
@@ -588,36 +536,29 @@ function cta_create_submission_from_facebook_lead($lead_data, $lead_details, $pa
         }
     }
     
-    // Parse course name and date from ad set name if provided
     if (!empty($parsed_data['course_name'])) {
-        // Find course by name/acronym
         $course_id = cta_find_course_by_name($parsed_data['course_name']);
         
         if ($course_id) {
             $submission_data['course_id'] = $course_id;
             $submission_data['course_name'] = get_the_title($course_id);
         } else {
-            // Log if course not found
             if (defined('WP_DEBUG') && WP_DEBUG) {
                 error_log('Facebook Lead Ads: Course not found for: ' . $parsed_data['course_name']);
             }
         }
     }
     
-    // Add date from ad set name if provided
     if (!empty($parsed_data['date'])) {
         $submission_data['event_date'] = $parsed_data['date'];
     }
     
-    // Get form type from settings
     $form_type = get_option('cta_facebook_lead_ads_form_type', 'facebook-lead');
     
-    // Use repository to create submission
     if (class_exists('\\CTA\\Repositories\\FormSubmissionRepository')) {
         $repository = new \CTA\Repositories\FormSubmissionRepository();
         $submission_id = $repository->create($submission_data, $form_type, false, '');
     } else {
-        // Fallback to legacy function
         $submission_id = cta_save_form_submission($submission_data, $form_type, false, '');
     }
     
@@ -625,12 +566,10 @@ function cta_create_submission_from_facebook_lead($lead_data, $lead_details, $pa
         return $submission_id;
     }
     
-    // Store delegates count if provided
     if (!empty($submission_data['delegates'])) {
         update_post_meta($submission_id, '_submission_delegates', absint($submission_data['delegates']));
     }
     
-    // Store additional Facebook metadata
     if (!empty($page_id)) {
         update_post_meta($submission_id, '_submission_facebook_page_id', $page_id);
     }
@@ -641,7 +580,6 @@ function cta_create_submission_from_facebook_lead($lead_data, $lead_details, $pa
         update_post_meta($submission_id, '_submission_facebook_created_time', $created_time);
     }
     
-    // Log successful import
     if (defined('WP_DEBUG') && WP_DEBUG) {
         error_log('Facebook Lead Ads: Created submission ' . $submission_id . ' from lead ' . $lead_id);
     }
@@ -655,6 +593,12 @@ function cta_create_submission_from_facebook_lead($lead_data, $lead_details, $pa
 function cta_facebook_lead_ads_webhook_settings_fields() {
     $enabled = get_option('cta_facebook_lead_ads_webhook_enabled', 0);
     $verify_token = get_option('cta_facebook_lead_ads_verify_token', '');
+    
+    if (empty($verify_token)) {
+        $verify_token = wp_generate_password(32, false);
+        update_option('cta_facebook_lead_ads_verify_token', $verify_token);
+    }
+    
     $form_type = get_option('cta_facebook_lead_ads_form_type', 'facebook-lead');
     $webhook_url = rest_url('cta/v1/facebook-lead-ads');
     ?>
@@ -699,7 +643,9 @@ function cta_facebook_lead_ads_webhook_settings_fields() {
                            value="<?php echo esc_attr($verify_token); ?>" 
                            class="regular-text"
                            readonly>
+                    <input type="hidden" name="cta_facebook_lead_ads_generate_token" id="cta_facebook_lead_ads_generate_token" value="0">
                     <button type="button" class="button" onclick="document.getElementById('cta_facebook_lead_ads_verify_token').select(); document.execCommand('copy'); this.textContent='Copied!'; setTimeout(() => this.textContent='Copy', 2000);">Copy</button>
+                    <button type="button" class="button" onclick="if(confirm('Generate a new verify token? The old token will no longer work with Facebook. You will need to update the webhook in Facebook with the new token.')) { document.getElementById('cta_facebook_lead_ads_generate_token').value = '1'; var form = this.closest('form'); if(form) { form.submit(); } }">Generate New Token</button>
                     <p class="description">
                         Use this token when setting up the webhook in Facebook. 
                         <strong>Webhook URL:</strong> <code><?php echo esc_html($webhook_url); ?></code>
@@ -760,4 +706,3 @@ function cta_facebook_lead_ads_webhook_settings_fields() {
     </div>
     <?php
 }
-// Note: Settings fields are integrated directly into api-keys-settings.php

@@ -43,10 +43,12 @@ The sitemap cache is cleared and search engines are notified when:
 4. ✅ A scheduled course/event is added or changed
 5. ✅ A course category is added, edited, or deleted
 
-### Search Engine Notifications
-- Automatically pings Google and Bing when content changes
-- Throttled to once per hour to prevent spam
-- Uses non-blocking HTTP requests (doesn't slow down publishing)
+### Search Engine Notifications ✅ IMPLEMENTED
+- ✅ Automatically pings Google and Bing when content changes
+- ✅ Throttled to once per hour to prevent spam
+- ✅ Uses non-blocking HTTP requests (doesn't slow down publishing)
+- ✅ Daily cleanup cron job (runs at 3 AM WordPress local time)
+- ✅ Timezone-aware scheduling (respects WordPress timezone settings)
 
 ## Sitemap URLs
 

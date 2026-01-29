@@ -92,7 +92,6 @@ function cta_api_keys_settings_page() {
         return;
     }
     
-    // Handle form submission
     if (isset($_POST['cta_api_keys_submit']) && check_admin_referer('cta_api_keys_settings')) {
         update_option('cta_recaptcha_site_key', sanitize_text_field($_POST['cta_recaptcha_site_key'] ?? ''));
         update_option('cta_recaptcha_secret_key', sanitize_text_field($_POST['cta_recaptcha_secret_key'] ?? ''));
@@ -101,12 +100,21 @@ function cta_api_keys_settings_page() {
         update_option('cta_facebook_access_token', sanitize_text_field($_POST['cta_facebook_access_token'] ?? ''));
         update_option('cta_facebook_test_event_code', sanitize_text_field($_POST['cta_facebook_test_event_code'] ?? ''));
         update_option('cta_facebook_conversions_api_enabled', isset($_POST['cta_facebook_conversions_api_enabled']) ? 1 : 0);
+        update_option('cta_facebook_crm_name', sanitize_text_field($_POST['cta_facebook_crm_name'] ?? 'WordPress'));
         update_option('cta_facebook_lead_ads_webhook_enabled', isset($_POST['cta_facebook_lead_ads_webhook_enabled']) ? 1 : 0);
-        update_option('cta_facebook_lead_ads_verify_token', sanitize_text_field($_POST['cta_facebook_lead_ads_verify_token'] ?? ''));
+        
+        if (isset($_POST['cta_facebook_lead_ads_generate_token']) && $_POST['cta_facebook_lead_ads_generate_token'] === '1') {
+            update_option('cta_facebook_lead_ads_verify_token', wp_generate_password(32, false));
+        } else {
+            $existing_token = get_option('cta_facebook_lead_ads_verify_token', '');
+            if (empty($existing_token)) {
+                update_option('cta_facebook_lead_ads_verify_token', wp_generate_password(32, false));
+            }
+        }
+        
         update_option('cta_facebook_lead_ads_form_type', sanitize_text_field($_POST['cta_facebook_lead_ads_form_type'] ?? 'facebook-lead'));
         update_option('cta_google_maps_api_key', sanitize_text_field($_POST['cta_google_maps_api_key'] ?? ''));
         
-        // Eventbrite settings
         update_option('cta_eventbrite_oauth_token', sanitize_text_field($_POST['cta_eventbrite_oauth_token'] ?? ''));
         update_option('cta_eventbrite_organization_id', sanitize_text_field($_POST['cta_eventbrite_organization_id'] ?? ''));
         update_option('cta_eventbrite_venue_id', sanitize_text_field($_POST['cta_eventbrite_venue_id'] ?? ''));
@@ -128,7 +136,6 @@ function cta_api_keys_settings_page() {
     $fb_enabled = get_option('cta_facebook_conversions_api_enabled', 1);
     $maps_key = get_option('cta_google_maps_api_key', '');
     
-    // Eventbrite settings
     $eventbrite_token = get_option('cta_eventbrite_oauth_token', '');
     $eventbrite_org_id = get_option('cta_eventbrite_organization_id', '');
     $eventbrite_venue_id = get_option('cta_eventbrite_venue_id', '');

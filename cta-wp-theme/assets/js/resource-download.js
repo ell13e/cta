@@ -93,9 +93,30 @@
       showFieldError('resource-email', 'resource-email-error', 'Please enter a valid email address.');
       hasErrors = true;
     }
-    if (phone && !/^\\+?\\d[\\d\\s()\\-]{7,}$/.test(phone)) {
-      showFieldError('resource-phone', 'resource-phone-error', 'Please enter a valid phone number.');
-      hasErrors = true;
+    // Validate UK phone number if provided
+    if (phone) {
+      const original = phone.trim();
+      // Remove all whitespace and common formatting characters
+      let cleaned = original.replace(/[\s\-\(\)\.]/g, '');
+      
+      // Handle international format: +44 or 0044
+      if (cleaned.match(/^(\+44|0044)/)) {
+        // Extract digits after country code
+        let digitsAfterCode = cleaned.substring(cleaned.match(/^\+44/) ? 3 : 4).replace(/\D/g, '');
+        // Convert to UK format (remove leading 0 if present, then add 0)
+        digitsAfterCode = digitsAfterCode.replace(/^0+/, '');
+        cleaned = '0' + digitsAfterCode;
+      }
+      
+      // Extract only digits for validation
+      const digitsOnly = cleaned.replace(/\D/g, '');
+      
+      // Must have 10-11 digits and start with 0[1-9]
+      const digitCount = digitsOnly.length;
+      if (digitCount < 10 || digitCount > 11 || !digitsOnly.match(/^0[1-9]\d{8,9}$/)) {
+        showFieldError('resource-phone', 'resource-phone-error', 'Please enter a valid UK phone number (e.g., 01622 587343 or 07123 456789)');
+        hasErrors = true;
+      }
     }
     if (dob) {
       const t = Date.parse(dob);

@@ -3481,7 +3481,40 @@ function cta_form_submission_followup_wp_callback($post) {
 
     echo '<p style="margin-top: 12px;"><label for="followup_notes"><strong>Notes</strong></label></p>';
     echo '<textarea name="followup_notes" id="followup_notes" class="widefat" rows="5">' . esc_textarea($followup_notes) . '</textarea>';
-    echo '<p class="description">Use the “Update” button to save changes.</p>';
+    echo '<p class="description">Use the "Update" button to save changes.</p>';
+    
+    // Facebook Conversion Leads Integration
+    $meta_lead_id = (string) get_post_meta($post->ID, '_submission_meta_lead_id', true);
+    $fb_pixel_id = get_option('cta_facebook_pixel_id', '');
+    $fb_enabled = get_option('cta_facebook_conversions_api_enabled', 1);
+    
+    if (!empty($fb_pixel_id) && $fb_enabled) :
+        echo '<hr style="margin: 20px 0;">';
+        echo '<h3 style="margin: 0 0 12px 0; font-size: 14px;">Facebook Conversion Leads</h3>';
+        
+        echo '<p><label for="meta_lead_id"><strong>Meta Lead ID</strong></label></p>';
+        echo '<input type="text" name="meta_lead_id" id="meta_lead_id" class="widefat" value="' . esc_attr($meta_lead_id) . '" placeholder="12345678901234567" pattern="[0-9]{15,17}">';
+        echo '<p class="description">15-17 digit Lead ID from Facebook Lead Ads. Required for offline conversion tracking.</p>';
+        
+        if (!empty($meta_lead_id)) :
+            echo '<div style="margin-top: 15px; padding: 12px; background: #f0f6fc; border-left: 4px solid #2271b1; border-radius: 4px;">';
+            echo '<p style="margin: 0 0 10px 0;"><strong>Send Conversion Event</strong></p>';
+            echo '<form method="post" style="margin: 0;">';
+            wp_nonce_field('cta_send_facebook_conversion_' . $post->ID, 'cta_send_facebook_conversion_nonce');
+            echo '<select name="conversion_event_name" style="width: 100%; margin-bottom: 8px;">';
+            echo '<option value="Lead">Lead (Qualified)</option>';
+            echo '<option value="Appointment Set">Appointment Set</option>';
+            echo '<option value="Sale Completed">Sale Completed</option>';
+            echo '<option value="Purchase">Purchase</option>';
+            echo '</select>';
+            echo '<button type="submit" name="send_facebook_conversion" class="button button-secondary" style="width: 100%;" onclick="return confirm(\'Send this conversion event to Facebook?\');">Send Conversion Event</button>';
+            echo '</form>';
+            echo '<p class="description" style="margin: 8px 0 0 0; font-size: 11px;">Conversion events are automatically sent when status changes to: Interested → Lead, Booked → Appointment Set, Paid/Completed → Sale Completed</p>';
+            echo '</div>';
+        else :
+            echo '<p class="description" style="margin-top: 8px; color: #d63638;">Enter Meta Lead ID to enable offline conversion tracking.</p>';
+        endif;
+    endif;
 }
 
 /**
@@ -3561,7 +3594,7 @@ function cta_form_submission_activity_log_callback($post) {
     echo '</ul>';
 }
 
-// Removed dead code: unused "Modern Lead Detail UI" callbacks (see docs/ADMIN_DEAD_CODE_CLEANUP.md).
+// Removed dead code: unused "Modern Lead Detail UI" callbacks.
 
 /**
  * Add activity log entry
@@ -3637,8 +3670,50 @@ function cta_form_submission_save_followup($post_id) {
                 $old_label = $old_status ? ($status_labels[$old_status] ?? $old_status) : 'None';
                 $new_label = $status_labels[$new_status] ?? $new_status;
                 cta_add_activity_log($post_id, 'status_changed', 'changed status', "From: {$old_label} → To: {$new_label}");
+                
+                // Trigger Facebook offline conversion tracking
+                do_action('cta_form_submission_status_changed', $post_id, $old_status, $new_status);
             } else {
                 delete_post_meta($post_id, '_submission_followup_status');
+            }
+        }
+    }
+    
+    // Save Meta Lead ID
+    if (isset($_POST['meta_lead_id'])) {
+        $lead_id = sanitize_text_field($_POST['meta_lead_id']);
+        // Validate Lead ID format (15-17 digits)
+        if (empty($lead_id) || preg_match('/^\d{15,17}$/', $lead_id)) {
+            if ($lead_id) {
+                update_post_meta($post_id, '_submission_meta_lead_id', $lead_id);
+            } else {
+                delete_post_meta($post_id, '_submission_meta_lead_id');
+            }
+        }
+    }
+    
+    // Handle manual offline conversion event
+    if (isset($_POST['send_facebook_conversion']) && isset($_POST['cta_send_facebook_conversion_nonce']) && check_admin_referer('cta_send_facebook_conversion_' . $post_id, 'cta_send_facebook_conversion_nonce')) {
+        $lead_id = get_post_meta($post_id, '_submission_meta_lead_id', true);
+        $event_name = sanitize_text_field($_POST['conversion_event_name'] ?? 'Lead');
+        
+        if (empty($lead_id)) {
+            add_action('admin_notices', function() {
+                echo '<div class="notice notice-error"><p>Meta Lead ID is required to send conversion events. Please enter the Lead ID first.</p></div>';
+            });
+        } else {
+            $result = cta_send_manual_offline_conversion($post_id, $event_name);
+            
+            if (is_wp_error($result)) {
+                add_action('admin_notices', function() use ($result) {
+                    echo '<div class="notice notice-error"><p>Failed to send conversion event: ' . esc_html($result->get_error_message()) . '</p></div>';
+                });
+            } else {
+                // Log the conversion event
+                cta_add_activity_log($post_id, 'facebook_conversion_sent', 'sent Facebook conversion', "Event: {$event_name}");
+                add_action('admin_notices', function() use ($event_name) {
+                    echo '<div class="notice notice-success is-dismissible"><p>Conversion event "' . esc_html($event_name) . '" sent successfully to Facebook.</p></div>';
+                });
             }
         }
     }

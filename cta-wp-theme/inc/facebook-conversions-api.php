@@ -58,12 +58,10 @@ function cta_send_facebook_event($event_name, $event_data = []) {
     $enabled = get_option('cta_facebook_conversions_api_enabled', 1);
     $test_event_code = get_option('cta_facebook_test_event_code', '');
     
-    // Skip if not configured or disabled
     if (empty($pixel_id) || empty($access_token) || !$enabled) {
         return new WP_Error('not_configured', 'Facebook Conversions API not configured');
     }
     
-    // Build event payload
     $event = [
         'event_name' => $event_name,
         'event_time' => time(),
@@ -72,30 +70,24 @@ function cta_send_facebook_event($event_name, $event_data = []) {
         'action_source' => 'website',
     ];
     
-    // Add user data (hashed for privacy)
     if (!empty($event_data['user_data'])) {
         $event['user_data'] = cta_hash_facebook_user_data($event_data['user_data']);
     } else {
-        // Auto-detect user data from current request
         $event['user_data'] = cta_get_facebook_user_data();
     }
     
-    // Add custom data
     if (!empty($event_data['custom_data'])) {
         $event['custom_data'] = $event_data['custom_data'];
     }
     
-    // Add test event code if in test mode
     if (!empty($test_event_code)) {
         $event['test_event_code'] = $test_event_code;
     }
     
-    // Build request payload
     $payload = [
         'data' => [$event],
     ];
     
-    // Send to Facebook Conversions API (using latest API version v24.0)
     $url = 'https://graph.facebook.com/v24.0/' . $pixel_id . '/events';
     $args = [
         'method' => 'POST',
@@ -144,7 +136,6 @@ function cta_hash_facebook_user_data($user_data) {
         
         $key_lower = strtolower($key);
         
-        // Hash sensitive fields
         if (in_array($key_lower, $fields_to_hash)) {
             $hashed[$key] = hash('sha256', strtolower(trim($value)));
         } else {
@@ -152,7 +143,6 @@ function cta_hash_facebook_user_data($user_data) {
         }
     }
     
-    // Add client IP and user agent (required for deduplication)
     if (isset($_SERVER['REMOTE_ADDR'])) {
         $hashed['client_ip_address'] = $_SERVER['REMOTE_ADDR'];
     }
@@ -172,7 +162,6 @@ function cta_hash_facebook_user_data($user_data) {
 function cta_get_facebook_user_data() {
     $user_data = [];
     
-    // Get from current user if logged in
     if (is_user_logged_in()) {
         $user = wp_get_current_user();
         if ($user->user_email) {
@@ -186,10 +175,6 @@ function cta_get_facebook_user_data() {
         }
     }
     
-    // Get from form submissions (if available in session/cookies)
-    // This would be set when user submits a form
-    
-    // Add IP and user agent
     if (isset($_SERVER['REMOTE_ADDR'])) {
         $user_data['client_ip_address'] = $_SERVER['REMOTE_ADDR'];
     }
@@ -220,19 +205,16 @@ add_action('wp', 'cta_track_facebook_pageview');
  * Track Lead event when form submission is saved
  */
 function cta_track_facebook_lead_on_save($post_id, $post, $update) {
-    // Only track new submissions, not updates
     if ($update || $post->post_type !== 'form_submission') {
         return;
     }
     
-    // Get form data
     $email = get_post_meta($post_id, '_submission_email', true);
     $name = get_post_meta($post_id, '_submission_name', true);
     $phone = get_post_meta($post_id, '_submission_phone', true);
     $form_type = wp_get_post_terms($post_id, 'form_type', ['fields' => 'slugs']);
     $form_type = !empty($form_type) ? $form_type[0] : 'general';
     
-    // Skip newsletter subscriptions (not leads)
     if (in_array($form_type, ['newsletter', 'newsletter-subscription'])) {
         return;
     }
@@ -281,16 +263,13 @@ function cta_track_facebook_purchase_on_booking($submission_id, $submission_data
         $price = 0;
     }
     
-    // Calculate total (price per delegate * number of delegates)
     $delegates = !empty($submission_data['delegates']) ? intval($submission_data['delegates']) : 1;
     $total = floatval($price) * $delegates;
     
-    // Apply discount if present
     if (!empty($submission_data['discount_percent']) && is_numeric($submission_data['discount_percent'])) {
         $total = $total * (1 - ($submission_data['discount_percent'] / 100));
     }
     
-    // Get user data
     $user_data = [];
     if (!empty($submission_data['email'])) $user_data['email'] = $submission_data['email'];
     if (!empty($submission_data['phone'])) $user_data['phone'] = $submission_data['phone'];
@@ -321,21 +300,17 @@ add_action('cta_course_booking_saved', 'cta_track_facebook_purchase_on_booking',
 function cta_hash_facebook_crm_user_data($user_data) {
     $hashed = [];
     
-    // Format email as array (em[]) - required format for Conversion Leads Integration
     if (!empty($user_data['email'])) {
         $hashed['em'] = [hash('sha256', strtolower(trim($user_data['email'])))];
     }
     
-    // Format phone as array (ph[]) - required format for Conversion Leads Integration
     if (!empty($user_data['phone'])) {
-        // Remove all non-numeric characters for phone hashing
         $phone_clean = preg_replace('/[^0-9]/', '', $user_data['phone']);
         if (!empty($phone_clean)) {
             $hashed['ph'] = [hash('sha256', $phone_clean)];
         }
     }
     
-    // Hash other contact information if provided
     $other_fields = ['first_name', 'last_name', 'city', 'state', 'zip', 'country', 'gender', 'date_of_birth'];
     foreach ($other_fields as $field) {
         if (!empty($user_data[$field])) {
@@ -370,56 +345,50 @@ function cta_send_facebook_offline_conversion($lead_id, $event_name, $event_data
     $enabled = get_option('cta_facebook_conversions_api_enabled', 1);
     $test_event_code = get_option('cta_facebook_test_event_code', '');
     
-    // Skip if not configured or disabled
     if (empty($pixel_id) || empty($access_token) || !$enabled) {
         return new WP_Error('not_configured', 'Facebook Conversions API not configured');
     }
     
-    // Validate Lead ID (15-17 digits)
     if (empty($lead_id) || !preg_match('/^\d{15,17}$/', $lead_id)) {
         return new WP_Error('invalid_lead_id', 'Meta Lead ID must be 15-17 digits');
     }
     
-    // Build event payload for Conversion Leads Integration
     $event = [
         'event_name' => $event_name,
         'event_time' => isset($event_data['event_time']) ? intval($event_data['event_time']) : time(),
-        'action_source' => 'system_generated', // Required for Conversion Leads Integration
+        'action_source' => 'system_generated',
     ];
     
-    // Add custom_data with CRM information (required for Conversion Leads Integration)
+    if (!empty($event_data['event_id'])) {
+        $event['event_id'] = sanitize_text_field($event_data['event_id']);
+    }
+    
     $event['custom_data'] = [
-        'event_source' => 'crm', // Required: must be "crm"
-        'lead_event_source' => $crm_name, // Required: CRM name (e.g., "WordPress", "HubSpot", "Salesforce")
+        'event_source' => 'crm',
+        'lead_event_source' => $crm_name,
     ];
     
-    // Merge any additional custom data (value, currency, etc.)
     if (!empty($event_data['custom_data'])) {
         $event['custom_data'] = array_merge($event['custom_data'], $event_data['custom_data']);
     }
     
-    // Build user_data with Lead ID (required for Conversion Leads Integration)
     $event['user_data'] = [
-        'lead_id' => $lead_id, // Required: 15-17 digit Meta Lead ID
+        'lead_id' => $lead_id,
     ];
     
-    // Add hashed user data (email, phone) in required format for CRM events
     if (!empty($event_data['user_data'])) {
         $crm_user_data = cta_hash_facebook_crm_user_data($event_data['user_data']);
         $event['user_data'] = array_merge($event['user_data'], $crm_user_data);
     }
     
-    // Add test event code if in test mode
     if (!empty($test_event_code)) {
         $event['test_event_code'] = $test_event_code;
     }
     
-    // Build request payload
     $payload = [
         'data' => [$event],
     ];
     
-    // Send to Facebook Conversions API (using latest API version v24.0)
     $url = 'https://graph.facebook.com/v24.0/' . $pixel_id . '/events';
     $args = [
         'method' => 'POST',
@@ -459,28 +428,24 @@ function cta_send_facebook_offline_conversion($lead_id, $event_name, $event_data
  * @param string $new_status New followup status
  */
 function cta_track_facebook_offline_conversion_on_status_change($post_id, $old_status, $new_status) {
-    // Get Meta Lead ID from submission
     $lead_id = get_post_meta($post_id, '_submission_meta_lead_id', true);
     if (empty($lead_id)) {
-        return; // No Lead ID, skip
+        return;
     }
     
-    // Map status to conversion event
     $status_to_event = [
         'in-progress' => 'Lead', // Lead is qualified/interested
         'booked' => 'Appointment Set', // Appointment/booking made
         'paid' => 'Sale Completed', // Payment received
-        'completed' => 'Sale Completed', // Course attended (completed sale)
+        'completed' => 'Sale Completed',
     ];
     
-    // Check if new status maps to a conversion event
     if (!isset($status_to_event[$new_status])) {
-        return; // Status doesn't map to conversion event
+        return;
     }
     
     $event_name = $status_to_event[$new_status];
     
-    // Get submission data for value calculation
     $course_id = get_post_meta($post_id, '_submission_course_id', true);
     $custom_data = [];
     
@@ -492,13 +457,11 @@ function cta_track_facebook_offline_conversion_on_status_change($post_id, $old_s
         }
     }
     
-    // Get CRM name from settings
     $crm_name = get_option('cta_facebook_crm_name', 'WordPress');
     
-    // Send offline conversion event
     cta_send_facebook_offline_conversion($lead_id, $event_name, [
         'custom_data' => $custom_data,
-        'event_id' => 'status_' . $post_id . '_' . $new_status . '_' . time(), // Unique event ID
+        'event_id' => 'status_' . $post_id . '_' . $new_status . '_' . time(),
     ], $crm_name);
 }
 add_action('cta_form_submission_status_changed', 'cta_track_facebook_offline_conversion_on_status_change', 10, 3);
@@ -533,7 +496,6 @@ function cta_send_manual_offline_conversion($submission_id, $event_name, $event_
         if (!empty($name_parts[1])) $user_data['last_name'] = $name_parts[1];
     }
     
-    // Get course price if available
     $course_id = get_post_meta($submission_id, '_submission_course_id', true);
     if ($course_id && empty($event_data['custom_data']['value'])) {
         $price = get_field('course_price', $course_id);
@@ -549,7 +511,6 @@ function cta_send_manual_offline_conversion($submission_id, $event_name, $event_
     $event_data['user_data'] = $user_data;
     $event_data['event_id'] = 'manual_' . $submission_id . '_' . $event_name . '_' . time();
     
-    // Get CRM name from settings
     $crm_name = get_option('cta_facebook_crm_name', 'WordPress');
     
     return cta_send_facebook_offline_conversion($lead_id, $event_name, $event_data, $crm_name);
@@ -564,7 +525,6 @@ function cta_send_manual_offline_conversion($submission_id, $event_name, $event_
 function cta_track_facebook_lead($form_id, $form_data) {
     $user_data = [];
     
-    // Extract user data from form
     if (!empty($form_data['email'])) {
         $user_data['email'] = $form_data['email'];
     }
@@ -764,4 +724,3 @@ function cta_facebook_conversions_api_settings_fields() {
     </div>
     <?php
 }
-// Note: Settings fields are integrated directly into api-keys-settings.php

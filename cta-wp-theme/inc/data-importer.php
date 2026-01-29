@@ -275,6 +275,48 @@ function cta_import_courses() {
 }
 
 /**
+ * Populate multiple courses from JSON data
+ * 
+ * @param array $course_titles Array of course titles from JSON
+ * @return array ['success' => bool, 'message' => string, 'results' => array]
+ */
+function cta_populate_courses_from_json($course_titles) {
+    $courses_data = cta_get_courses_data();
+    
+    if (empty($courses_data)) {
+        return ['success' => false, 'message' => 'No course data found in JSON file.', 'results' => []];
+    }
+    
+    $results = [];
+    $success_count = 0;
+    $error_count = 0;
+    
+    foreach ($course_titles as $course_title) {
+        $result = cta_populate_single_course_from_json($course_title);
+        $results[] = $result;
+        
+        if ($result['success']) {
+            $success_count++;
+        } else {
+            $error_count++;
+        }
+    }
+    
+    $message = sprintf(
+        'Processed %d course(s): %d successful, %d failed.',
+        count($course_titles),
+        $success_count,
+        $error_count
+    );
+    
+    return [
+        'success' => $success_count > 0,
+        'message' => $message,
+        'results' => $results
+    ];
+}
+
+/**
  * Populate a single course from JSON data by title
  * 
  * @param string $course_title The exact course title from JSON
@@ -1110,15 +1152,37 @@ function cta_import_admin_page_content() {
         echo '<div class="notice notice-success"><p><strong>Matched ' . intval($matched) . ' images to courses!</strong></p></div>';
     }
     
-    // Handle single course population
+    // Handle course population
     $populate_result = null;
-    if (isset($_POST['cta_populate_single_course']) && check_admin_referer('cta_populate_single_course', 'cta_populate_single_course_nonce')) {
-        $course_title = isset($_POST['course_title']) ? sanitize_text_field($_POST['course_title']) : '';
+    if (isset($_POST['cta_populate_courses']) && check_admin_referer('cta_populate_courses', 'cta_populate_courses_nonce')) {
+        $selected_courses = isset($_POST['selected_courses']) ? $_POST['selected_courses'] : [];
+        $course_title_fallback = isset($_POST['course_title']) ? sanitize_text_field($_POST['course_title']) : '';
         
-        if (empty($course_title)) {
-            $populate_result = ['success' => false, 'message' => 'Please enter a course title.'];
+        $courses_to_populate = [];
+        
+        // Get all available courses from JSON
+        $courses_data = cta_get_courses_data();
+        $all_course_titles = array_keys($courses_data);
+        
+        // Handle "all" option
+        if (in_array('all', $selected_courses)) {
+            $courses_to_populate = $all_course_titles;
+        } elseif (!empty($selected_courses)) {
+            // Use selected courses
+            foreach ($selected_courses as $selected) {
+                if ($selected !== 'all' && in_array($selected, $all_course_titles)) {
+                    $courses_to_populate[] = $selected;
+                }
+            }
+        } elseif (!empty($course_title_fallback)) {
+            // Fallback to text input
+            $courses_to_populate = [$course_title_fallback];
+        }
+        
+        if (empty($courses_to_populate)) {
+            $populate_result = ['success' => false, 'message' => 'Please select at least one course or enter a course title.'];
         } else {
-            $populate_result = cta_populate_single_course_from_json($course_title);
+            $populate_result = cta_populate_courses_from_json($courses_to_populate);
         }
     }
     
@@ -1211,21 +1275,76 @@ function cta_import_admin_page_content() {
         <div class="postbox">
             <h2 class="hndle">
                 <span class="dashicons dashicons-database-import" style="vertical-align: middle; margin-right: 5px;"></span>
-                Populate Individual Course
+                Populate Course Data from JSON
             </h2>
             <div class="inside">
-        <p>Populate a single course from JSON data by course title:</p>
-        <form method="post" id="cta-populate-single-course-form">
-            <?php wp_nonce_field('cta_populate_single_course', 'cta_populate_single_course_nonce'); ?>
+        <p>Select one or more courses to populate from JSON data, or populate all courses at once:</p>
+        <form method="post" id="cta-populate-courses-form">
+            <?php wp_nonce_field('cta_populate_courses', 'cta_populate_courses_nonce'); ?>
+            
+            <?php
+            $courses_data = cta_get_courses_data();
+            $all_course_titles = !empty($courses_data) ? array_keys($courses_data) : [];
+            ?>
+            
             <p>
-                <label for="cta-populate-course-title"><strong>Course Title:</strong></label><br>
-                <input type="text" id="cta-populate-course-title" name="course_title" class="regular-text" placeholder="Enter exact course title from JSON" style="width: 100%; max-width: 500px; margin-top: 5px;" required>
-                <p class="description" style="margin-top: 5px;">The title must match exactly with the course title in <code>courses-database.json</code></p>
+                <label for="cta-populate-selected-courses"><strong>Select Courses:</strong></label><br>
+                <select id="cta-populate-selected-courses" name="selected_courses[]" multiple size="10" style="width: 100%; max-width: 600px; margin-top: 5px;">
+                    <option value="all" style="font-weight: bold; background-color: #f0f0f0;">-- Select All Courses --</option>
+                    <?php if (!empty($all_course_titles)) : ?>
+                        <?php foreach ($all_course_titles as $title) : ?>
+                            <option value="<?php echo esc_attr($title); ?>"><?php echo esc_html($title); ?></option>
+                        <?php endforeach; ?>
+                    <?php else : ?>
+                        <option disabled>No courses found in JSON data</option>
+                    <?php endif; ?>
+                </select>
+                <p class="description" style="margin-top: 5px;">
+                    <strong>Tip:</strong> Hold Ctrl (Windows) or Cmd (Mac) to select multiple courses, or select "Select All Courses" to populate everything.
+                </p>
+                <script>
+                (function() {
+                    const select = document.getElementById('cta-populate-selected-courses');
+                    if (select) {
+                        select.addEventListener('change', function() {
+                            const options = Array.from(this.options);
+                            const allOption = options.find(opt => opt.value === 'all');
+                            const otherOptions = options.filter(opt => opt.value !== 'all');
+                            
+                            if (allOption && allOption.selected) {
+                                // If "all" is selected, select all other options
+                                otherOptions.forEach(opt => opt.selected = true);
+                            } else if (allOption && !allOption.selected) {
+                                // If "all" is deselected, deselect all others
+                                const allOthersSelected = otherOptions.every(opt => opt.selected);
+                                if (allOthersSelected) {
+                                    otherOptions.forEach(opt => opt.selected = false);
+                                }
+                            } else {
+                                // If individual options change, update "all" state
+                                const allOthersSelected = otherOptions.every(opt => opt.selected);
+                                if (allOthersSelected && otherOptions.length > 0) {
+                                    allOption.selected = true;
+                                } else if (!allOthersSelected && allOption.selected) {
+                                    allOption.selected = false;
+                                }
+                            }
+                        });
+                    }
+                })();
+                </script>
             </p>
-            <p>
-                <button type="submit" name="cta_populate_single_course" class="button button-primary" onclick="return confirm('This will populate all ACF fields for the course. Continue?');">
+            
+            <p style="margin-top: 20px; padding-top: 15px; border-top: 1px solid #ddd;">
+                <label for="cta-populate-course-title"><strong>Or enter course title manually:</strong></label><br>
+                <input type="text" id="cta-populate-course-title" name="course_title" class="regular-text" placeholder="Enter exact course title from JSON" style="width: 100%; max-width: 500px; margin-top: 5px;">
+                <p class="description" style="margin-top: 5px;">Use this if you can't find the course in the dropdown above</p>
+            </p>
+            
+            <p style="margin-top: 20px;">
+                <button type="submit" name="cta_populate_courses" class="button button-primary" onclick="return confirm('This will populate all ACF fields for the selected course(s). Continue?');">
                     <span class="dashicons dashicons-database-import" style="vertical-align: middle; margin-right: 5px;"></span>
-                    Populate Course from JSON
+                    Populate Selected Courses from JSON
                 </button>
             </p>
         </form>
@@ -1234,8 +1353,18 @@ function cta_import_admin_page_content() {
         if ($populate_result !== null) {
             if ($populate_result['success']) {
                 echo '<div class="notice notice-success" style="margin-top: 15px;"><p><strong>' . esc_html($populate_result['message']) . '</strong></p></div>';
-                if (!empty($populate_result['course_id'])) {
-                    echo '<p><a href="' . admin_url('post.php?post=' . intval($populate_result['course_id']) . '&action=edit') . '" class="button">Edit Course</a></p>';
+                
+                // Show individual results if multiple courses
+                if (!empty($populate_result['results']) && count($populate_result['results']) > 1) {
+                    echo '<details style="margin-top: 10px;"><summary style="cursor: pointer; font-weight: bold;">View individual results</summary><ul style="margin-top: 10px;">';
+                    foreach ($populate_result['results'] as $result) {
+                        $status = $result['success'] ? '✓' : '✗';
+                        $class = $result['success'] ? 'color: green;' : 'color: red;';
+                        echo '<li style="' . $class . '">' . esc_html($status . ' ' . $result['message']) . '</li>';
+                    }
+                    echo '</ul></details>';
+                } elseif (!empty($populate_result['results'][0]['course_id'])) {
+                    echo '<p><a href="' . admin_url('post.php?post=' . intval($populate_result['results'][0]['course_id']) . '&action=edit') . '" class="button">Edit Course</a></p>';
                 }
             } else {
                 echo '<div class="notice notice-error" style="margin-top: 15px;"><p><strong>' . esc_html($populate_result['message']) . '</strong></p></div>';

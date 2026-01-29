@@ -151,9 +151,13 @@ function cta_create_phase1_blog_posts() {
     $theme_dir = get_stylesheet_directory();
     $markdown_candidates = [
         // Theme-packaged location (included on theme upload)
+        trailingslashit($theme_dir) . 'docs/legacy-wordpress-md/CTA-Phase1-Blog-Articles.md',
+        // Original data/markdown location (restored for backward compatibility)
         trailingslashit($theme_dir) . 'data/markdown/CTA-Phase1-Blog-Articles.md',
         // Legacy/in-theme location
         trailingslashit($theme_dir) . 'CTA-Phase1-Blog-Articles.md',
+        // Legacy wordpress-md location (for backward compatibility)
+        trailingslashit($theme_dir) . 'wordpress-md/CTA-Phase1-Blog-Articles.md',
         // Sensible WordPress content location (e.g. wp-content/wordpress-md/)
         trailingslashit(WP_CONTENT_DIR) . 'wordpress-md/CTA-Phase1-Blog-Articles.md',
         // Repo root layout (this project has /wordpress-theme and /wordpress-md side-by-side)
@@ -174,7 +178,7 @@ function cta_create_phase1_blog_posts() {
             'skipped' => [],
             'errors' => [[
                 'title' => 'CTA-Phase1-Blog-Articles.md',
-                'error' => 'Markdown source file not found. Place it in the theme root, or in `wp-content/wordpress-md/`, or alongside the theme in `wordpress-md/`.',
+                'error' => 'Markdown source file not found. Place it in `docs/legacy-wordpress-md/`, theme root, or `wp-content/wordpress-md/`.',
             ]],
         ];
     }

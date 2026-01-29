@@ -174,6 +174,11 @@ class CourseBookingController {
                     cta_track_wordpress_booking($course_id, $delegates);
                 }
             }
+            
+            // Trigger Facebook Conversions API tracking
+            if (!is_wp_error($saved)) {
+                do_action('cta_course_booking_saved', $saved, $submission_data);
+            }
 
             // Send email
             $this->sendEmail($name, $email, $phone, $delegates, $course_title, $event_date, $course_url, $message, $discount_code, $discount_validation, $saved);

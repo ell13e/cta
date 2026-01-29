@@ -1,5 +1,8 @@
 # Complete Resource Download System
 
+**Last Updated:** 2025-01-27 (consolidated with upload improvements & downloads table enhancements)  
+**Status:** ✅ Complete
+
 ## 🎉 Everything You Need to Know
 
 Your resource download system is now complete with three powerful features:
@@ -458,3 +461,157 @@ You now have a complete, professional resource download system that:
 ✅ **Fully integrated** with your theme  
 
 **No coding required for day-to-day use!**
+
+---
+
+## Resource Upload System Improvements
+
+### Enhanced Admin Experience
+
+The "Add New Resource" admin page has been significantly improved to ensure all necessary information is captured with clear guidance and better UX.
+
+#### What Was Improved
+
+**1. Enhanced File Upload Section**
+- ✅ Clear visual feedback showing current attached file
+- ✅ File name display when file is attached
+- ✅ Warning indicator when no file is attached
+- ✅ Quick links to Media Library and file preview
+- ✅ Step-by-step instructions on how to attach a file
+- ✅ Required field indicator
+
+**2. Improved Email Template Section**
+- ✅ Better organized layout with clear labels
+- ✅ Comprehensive placeholder reference table showing:
+  - What each placeholder does
+  - Which placeholders are required ({{download_link}})
+- ✅ Required field indicators on subject and body
+- ✅ Helpful placeholder examples in input placeholders
+- ✅ Visual styling to make the section more readable
+
+**3. Enhanced Resource Settings**
+- ✅ Clear labels for Icon Class and Link Expiry
+- ✅ Common icon examples provided (PDF, Word, Excel)
+- ✅ Explanation of what each setting does
+- ✅ Required field indicators
+- ✅ Validation (1-30 days for expiry)
+
+**4. Admin Notices & Guidance**
+
+**For New Resources:**
+- ✅ Comprehensive checklist showing all required fields:
+  1. Resource Title
+  2. Resource Description
+  3. File Upload
+  4. Email Template
+  5. Icon & Expiry
+  6. Category
+  7. Featured Image (optional)
+- ✅ Helpful tip to upload file first
+
+**For Existing Resources:**
+- ✅ Warning if no file is attached
+- ✅ Warning if no category is assigned
+- ✅ Only shows warnings when actually needed
+
+**5. Visual Improvements**
+- ✅ Better title field with larger font and padding
+- ✅ Required fields have blue left border indicator
+- ✅ Improved spacing and visual hierarchy
+- ✅ Better styled code examples
+- ✅ Color-coded status boxes (green for success, yellow for warning)
+- ✅ Clearer meta box titles
+
+**6. Better Field Labels**
+- ✅ Title placeholder: "Enter resource title (e.g., 'CQC Inspection Checklist')"
+- ✅ Description label: "Resource Description (displays on your website)"
+- ✅ Clear explanation of what description is used for
+
+**Technical Implementation:**
+- Files modified: `inc/resource-downloads.php`
+- Functions added/enhanced for better UX
+- Visual indicators: Blue border = Required, Green box = Success, Yellow box = Warning
+
+---
+
+## Downloads Table Enhancements
+
+### Redesigned Navigation & Display
+
+The Resource Downloads table has been completely redesigned to be much easier to navigate and scan.
+
+#### Before (8 Columns - Cramped):
+```
+| When | Resource | Name | Email | Phone | Consent | Email Sent | Downloads |
+```
+- Too many columns
+- Hard to scan
+- Information scattered
+- No visual hierarchy
+- Tiny text
+
+#### After (5 Columns - Spacious):
+```
+| Date | Contact | Resource | Status | Actions |
+```
+- Grouped related information
+- Clear visual hierarchy
+- Larger, readable text
+- Color-coded status badges
+- Easy to scan
+
+### New Column Structure
+
+**1. Date (15% width)**
+- Date on first line (bold)
+- Time on second line (smaller, gray)
+
+**2. Contact (25% width)**
+- Name (bold) with download count badge if >1
+- Email (clickable mailto link, blue)
+- Phone (if provided, separated by bullet)
+
+**3. Resource (30% width)**
+- Clickable link to edit resource (blue, bold)
+- Deleted resources shown in gray italic
+
+**4. Status (15% width, centered)**
+- **Email Sent** - Green badge with checkmark
+- **Failed** - Red badge with X
+- **Consent** - Green badge with checkmark (only if given)
+
+**5. Actions (15% width, centered)**
+- Email button (envelope icon)
+- Quick mailto link
+
+### Visual Improvements
+
+**Status Badges:**
+- Email Sent: Green background with checkmark
+- Failed: Red background with X
+- Consent: Green background with checkmark
+
+**Download Count Badge:**
+- Blue background, white text
+- Shows count (e.g., "3×") for repeat downloaders
+- Appears next to name
+
+**Pagination Improvements:**
+- Shows exact range (1-25 of 127)
+- Text-based Previous/Next buttons
+- Gray background bar for visibility
+
+**Empty States:**
+- Helpful messages when no results
+- Step-by-step setup guide for first-time users
+- Links to create resource and view resources page
+
+**Location:** Resources → Downloads  
+**File:** `wordpress-theme/inc/resource-admin-page.php`  
+**Function:** `cta_resource_downloads_admin_page()`
+
+**Benefits:**
+- ✅ Faster scanning with grouped information
+- ✅ Better context (all contact info at once)
+- ✅ Easier actions (email button right there)
+- ✅ Professional look with modern badge design

@@ -671,6 +671,8 @@ function cta_generate_performance_htaccess() {
     }
     
     $performance_rules = "\n# BEGIN CTA Performance\n";
+    
+    // Browser caching with Cache-Control headers
     $performance_rules .= "<IfModule mod_expires.c>\n";
     $performance_rules .= "ExpiresActive On\n";
     $performance_rules .= "ExpiresByType image/jpg \"access plus 1 year\"\n";
@@ -678,16 +680,42 @@ function cta_generate_performance_htaccess() {
     $performance_rules .= "ExpiresByType image/gif \"access plus 1 year\"\n";
     $performance_rules .= "ExpiresByType image/png \"access plus 1 year\"\n";
     $performance_rules .= "ExpiresByType image/webp \"access plus 1 year\"\n";
-    $performance_rules .= "ExpiresByType text/css \"access plus 1 month\"\n";
-    $performance_rules .= "ExpiresByType application/javascript \"access plus 1 month\"\n";
+    $performance_rules .= "ExpiresByType image/svg+xml \"access plus 1 year\"\n";
+    $performance_rules .= "ExpiresByType text/css \"access plus 1 year\"\n";
+    $performance_rules .= "ExpiresByType application/javascript \"access plus 1 year\"\n";
+    $performance_rules .= "ExpiresByType text/javascript \"access plus 1 year\"\n";
     $performance_rules .= "ExpiresByType application/pdf \"access plus 1 month\"\n";
-    $performance_rules .= "ExpiresByType text/x-javascript \"access plus 1 month\"\n";
+    $performance_rules .= "ExpiresByType text/x-javascript \"access plus 1 year\"\n";
     $performance_rules .= "ExpiresByType image/x-icon \"access plus 1 year\"\n";
+    $performance_rules .= "ExpiresByType font/woff \"access plus 1 year\"\n";
+    $performance_rules .= "ExpiresByType font/woff2 \"access plus 1 year\"\n";
+    $performance_rules .= "ExpiresByType application/font-woff \"access plus 1 year\"\n";
+    $performance_rules .= "ExpiresByType application/font-woff2 \"access plus 1 year\"\n";
     $performance_rules .= "ExpiresDefault \"access plus 2 days\"\n";
     $performance_rules .= "</IfModule>\n";
     $performance_rules .= "\n";
+    
+    // Cache-Control headers (for better browser caching)
+    $performance_rules .= "<IfModule mod_headers.c>\n";
+    $performance_rules .= "# Cache static assets for 1 year\n";
+    $performance_rules .= "<FilesMatch \"\\.(jpg|jpeg|png|gif|webp|svg|ico|woff|woff2|ttf|eot)$\">\n";
+    $performance_rules .= "Header set Cache-Control \"max-age=31536000, public\"\n";
+    $performance_rules .= "</FilesMatch>\n";
+    $performance_rules .= "# Cache CSS/JS for 1 year (versioned files)\n";
+    $performance_rules .= "<FilesMatch \"\\.(css|js)$\">\n";
+    $performance_rules .= "Header set Cache-Control \"max-age=31536000, public\"\n";
+    $performance_rules .= "</FilesMatch>\n";
+    $performance_rules .= "# Don't cache HTML\n";
+    $performance_rules .= "<FilesMatch \"\\.(html|htm|php)$\">\n";
+    $performance_rules .= "Header set Cache-Control \"max-age=0, must-revalidate\"\n";
+    $performance_rules .= "</FilesMatch>\n";
+    $performance_rules .= "</IfModule>\n";
+    $performance_rules .= "\n";
+    
+    // Gzip compression
     $performance_rules .= "<IfModule mod_deflate.c>\n";
-    $performance_rules .= "AddOutputFilterByType DEFLATE text/html text/plain text/xml text/css text/javascript application/javascript application/json\n";
+    $performance_rules .= "AddOutputFilterByType DEFLATE text/html text/plain text/xml text/css text/javascript application/javascript application/json application/xml\n";
+    $performance_rules .= "AddOutputFilterByType DEFLATE image/svg+xml\n";
     $performance_rules .= "</IfModule>\n";
     $performance_rules .= "# END CTA Performance\n\n";
     
