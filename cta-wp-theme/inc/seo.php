@@ -1529,7 +1529,6 @@ function cta_prevent_sitemap_output() {
     }
 }
 add_action('init', 'cta_prevent_sitemap_output', 1);
- */
 
 /**
  * Add custom post types to WordPress sitemap
