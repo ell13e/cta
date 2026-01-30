@@ -3774,6 +3774,7 @@ function cta_import_meta_descriptions_from_csv() {
         $parsed = wp_parse_url($url);
         if (!$parsed || !isset($parsed['path'])) {
             $failed++;
+            $errors[] = "Row " . ($row_num + 2) . ": Invalid URL format: " . $url;
             continue;
         }
         
@@ -3782,21 +3783,59 @@ function cta_import_meta_descriptions_from_csv() {
             $path = '/';
         }
         
-        // Find post by URL
-        $post_id = url_to_postid(home_url($path));
+        $post_id = 0;
         
         // Handle homepage variants
-        if (!$post_id && ($path === '/' || $path === '')) {
+        if ($path === '/' || $path === '') {
             $post_id = get_option('page_on_front') ?: 0;
             if (!$post_id) {
                 // Homepage is posts page
                 $post_id = 0;
             }
         }
+        // Handle course events (/upcoming-courses/slug/)
+        elseif (preg_match('#^/upcoming-courses/([^/]+)/?$#', $path, $matches)) {
+            $event_slug = $matches[1];
+            $event = get_page_by_path($event_slug, OBJECT, 'course_event');
+            if ($event) {
+                $post_id = $event->ID;
+            }
+        }
+        // Handle courses (/courses/slug/)
+        elseif (preg_match('#^/courses/([^/]+)/?$#', $path, $matches)) {
+            $course_slug = $matches[1];
+            $course = get_page_by_path($course_slug, OBJECT, 'course');
+            if ($course) {
+                $post_id = $course->ID;
+            }
+        }
+        // Handle other URLs (pages, posts, etc.)
+        else {
+            // Try url_to_postid first
+            $post_id = url_to_postid(home_url($path));
+            
+            // If that fails, try to extract slug and find by post_name
+            if (!$post_id) {
+                $slug = basename($path);
+                if ($slug) {
+                    // Try pages first
+                    $page = get_page_by_path($slug, OBJECT, 'page');
+                    if ($page) {
+                        $post_id = $page->ID;
+                    } else {
+                        // Try posts
+                        $post = get_page_by_path($slug, OBJECT, 'post');
+                        if ($post) {
+                            $post_id = $post->ID;
+                        }
+                    }
+                }
+            }
+        }
         
         if (!$post_id) {
             $failed++;
-            $errors[] = "Row " . ($row_num + 2) . ": Could not find post for URL: " . $url;
+            $errors[] = "Row " . ($row_num + 2) . ": Could not find post for URL: " . $url . " (path: " . $path . ")";
             continue;
         }
         
@@ -3850,9 +3889,19 @@ function cta_import_meta_descriptions_from_csv() {
         $imported++;
     }
     
+    $message = sprintf('Imported %d descriptions, skipped %d (already set), failed %d', $imported, $skipped, $failed);
+    if (!empty($errors) && $failed > 0) {
+        // Show first 10 errors in message
+        $error_preview = array_slice($errors, 0, 10);
+        $message .= '. Errors: ' . implode('; ', $error_preview);
+        if (count($errors) > 10) {
+            $message .= ' (and ' . (count($errors) - 10) . ' more)';
+        }
+    }
+    
     return [
         'success' => $imported > 0,
-        'message' => sprintf('Imported %d descriptions, skipped %d (already set), failed %d', $imported, $skipped, $failed),
+        'message' => $message,
         'imported' => $imported,
         'skipped' => $skipped,
         'failed' => $failed,
