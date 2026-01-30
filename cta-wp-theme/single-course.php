@@ -185,20 +185,20 @@ while (have_posts()) : the_post();
           
           <?php if ($outcomes && is_array($outcomes) && count($outcomes) > 0) : ?>
           <!-- What You'll Learn Accordion (opens by default) -->
-          <div class="course-detail-accordion">
+          <div class="accordion" data-accordion-group="course-details">
             <button 
               type="button"
-              class="course-detail-accordion-trigger" 
+              class="accordion-trigger" 
               aria-expanded="true"
               aria-controls="learn-content"
               data-accordion="learn"
             >
               <h3 class="course-detail-accordion-title">What You'll Learn</h3>
-              <svg class="course-detail-accordion-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <svg class="accordion-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <polyline points="6 9 12 15 18 9"></polyline>
               </svg>
             </button>
-            <div class="course-detail-accordion-content" id="learn-content">
+            <div class="accordion-content" id="learn-content" aria-hidden="false">
               <div class="course-detail-learn-grid">
                 <?php foreach ($outcomes as $outcome) : ?>
                 <div class="course-detail-learn-item"><?php echo esc_html($outcome['outcome_text']); ?></div>
@@ -210,20 +210,20 @@ while (have_posts()) : the_post();
 
           <?php if ($description) : ?>
           <!-- Description Accordion -->
-          <div class="course-detail-accordion">
+          <div class="accordion" data-accordion-group="course-details">
             <button 
               type="button"
-              class="course-detail-accordion-trigger" 
+              class="accordion-trigger" 
               aria-expanded="<?php echo (!$outcomes || count($outcomes) === 0) ? 'true' : 'false'; ?>"
               aria-controls="description-content"
               data-accordion="description"
             >
               <h3 class="course-detail-accordion-title">Description</h3>
-              <svg class="course-detail-accordion-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <svg class="accordion-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <polyline points="6 9 12 15 18 9"></polyline>
               </svg>
             </button>
-            <div class="course-detail-accordion-content" id="description-content">
+            <div class="accordion-content" id="description-content" aria-hidden="<?php echo (!$outcomes || count($outcomes) === 0) ? 'false' : 'true'; ?>">
               <div class="course-detail-description">
                 <?php echo nl2br(esc_html($description)); ?>
               </div>
@@ -233,20 +233,20 @@ while (have_posts()) : the_post();
 
           <?php if ($prerequisites) : ?>
           <!-- Requirements Accordion -->
-          <div class="course-detail-accordion">
+          <div class="accordion" data-accordion-group="course-details">
             <button 
               type="button"
-              class="course-detail-accordion-trigger" 
+              class="accordion-trigger" 
               aria-expanded="false"
               aria-controls="requirements-content"
               data-accordion="requirements"
             >
               <h3 class="course-detail-accordion-title">Requirements</h3>
-              <svg class="course-detail-accordion-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <svg class="accordion-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <polyline points="6 9 12 15 18 9"></polyline>
               </svg>
             </button>
-            <div class="course-detail-accordion-content" id="requirements-content">
+            <div class="accordion-content" id="requirements-content" aria-hidden="true">
               <div class="course-detail-text">
                 <?php echo nl2br(esc_html($prerequisites)); ?>
               </div>
@@ -256,20 +256,20 @@ while (have_posts()) : the_post();
 
           <?php if ($suitable_for) : ?>
           <!-- Who Should Attend Accordion -->
-          <div class="course-detail-accordion">
+          <div class="accordion" data-accordion-group="course-details">
             <button 
               type="button"
-              class="course-detail-accordion-trigger" 
+              class="accordion-trigger" 
               aria-expanded="false"
               aria-controls="audience-content"
               data-accordion="audience"
             >
               <h3 class="course-detail-accordion-title">Who Should Attend</h3>
-              <svg class="course-detail-accordion-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <svg class="accordion-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <polyline points="6 9 12 15 18 9"></polyline>
               </svg>
             </button>
-            <div class="course-detail-accordion-content" id="audience-content">
+            <div class="accordion-content" id="audience-content" aria-hidden="true">
               <div class="course-detail-text">
                 <?php echo nl2br(esc_html($suitable_for)); ?>
               </div>
@@ -279,20 +279,20 @@ while (have_posts()) : the_post();
 
           <?php if ($certificate || $accreditation) : ?>
           <!-- Certification Accordion -->
-          <div class="course-detail-accordion">
+          <div class="accordion" data-accordion-group="course-details">
             <button 
               type="button"
-              class="course-detail-accordion-trigger" 
+              class="accordion-trigger" 
               aria-expanded="false"
               aria-controls="certification-content"
               data-accordion="certification"
             >
               <h3 class="course-detail-accordion-title">Certification</h3>
-              <svg class="course-detail-accordion-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <svg class="accordion-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <polyline points="6 9 12 15 18 9"></polyline>
               </svg>
             </button>
-            <div class="course-detail-accordion-content" id="certification-content">
+            <div class="accordion-content" id="certification-content" aria-hidden="true">
               <div class="course-detail-certification">
                 <?php if ($certificate) : ?>
                 <p><?php echo esc_html($certificate); ?></p>
@@ -306,20 +306,20 @@ while (have_posts()) : the_post();
           <?php endif; ?>
 
           <!-- Accessibility Support Accordion -->
-          <div class="course-detail-accordion">
+          <div class="accordion" data-accordion-group="course-details">
             <button 
               type="button"
-              class="course-detail-accordion-trigger" 
+              class="accordion-trigger" 
               aria-expanded="false"
               aria-controls="accessibility-content"
               data-accordion="accessibility"
             >
               <h3 class="course-detail-accordion-title">Accessibility Support</h3>
-              <svg class="course-detail-accordion-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <svg class="accordion-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <polyline points="6 9 12 15 18 9"></polyline>
               </svg>
             </button>
-            <div class="course-detail-accordion-content" id="accessibility-content">
+            <div class="accordion-content" id="accessibility-content" aria-hidden="true">
               <p class="course-detail-text">
                 Our training facilities are fully accessible. Please contact us if you have specific accessibility requirements.
               </p>

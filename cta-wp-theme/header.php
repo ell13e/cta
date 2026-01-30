@@ -399,16 +399,17 @@
 
         <a href="<?php echo esc_url(home_url('/')); ?>" class="mobile-menu-link">Home</a>
 
-        <div class="mobile-accordion">
+        <div class="accordion" data-accordion-group="mobile-nav">
           <button
             type="button"
             id="mobile-courses-accordion"
-            class="mobile-accordion-trigger"
+            class="accordion-trigger"
             aria-expanded="false"
+            aria-controls="mobile-courses-content"
           >
             Courses
             <svg
-              class="chevron-icon"
+              class="accordion-icon"
               width="16"
               height="16"
               viewBox="0 0 24 24"
@@ -422,7 +423,7 @@
               <polyline points="6 9 12 15 18 9"></polyline>
             </svg>
           </button>
-          <div id="mobile-courses-content" class="mobile-accordion-content">
+          <div id="mobile-courses-content" class="accordion-content" aria-hidden="true">
             <a href="<?php echo esc_url(get_post_type_archive_link('course')); ?>" class="mobile-menu-link mobile-menu-link-sub">View All Courses</a>
             <?php foreach (cta_get_course_categories() as $category) : ?>
             <a href="<?php echo esc_url(add_query_arg('category', $category['slug'], get_post_type_archive_link('course'))); ?>" class="mobile-menu-link mobile-menu-link-sub"><?php echo esc_html($category['name']); ?></a>
@@ -434,16 +435,17 @@
         <a href="<?php echo esc_url(get_permalink(get_page_by_path('group-training'))); ?>" class="mobile-menu-link">Group Training</a>
         <a href="<?php echo esc_url(get_permalink(get_page_by_path('about'))); ?>" class="mobile-menu-link">About Us</a>
         
-        <div class="mobile-accordion">
+        <div class="accordion" data-accordion-group="mobile-nav">
           <button
             type="button"
             id="mobile-resources-accordion"
-            class="mobile-accordion-trigger"
+            class="accordion-trigger"
             aria-expanded="false"
+            aria-controls="mobile-resources-content"
           >
             Resources
             <svg
-              class="chevron-icon"
+              class="accordion-icon"
               width="16"
               height="16"
               viewBox="0 0 24 24"
@@ -457,7 +459,7 @@
               <polyline points="6 9 12 15 18 9"></polyline>
             </svg>
           </button>
-          <div id="mobile-resources-content" class="mobile-accordion-content">
+          <div id="mobile-resources-content" class="accordion-content" aria-hidden="true">
             <a href="<?php echo esc_url(get_permalink(get_page_by_path('cqc-compliance-hub'))); ?>" class="mobile-menu-link mobile-menu-link-sub">CQC Compliance Hub</a>
             <a href="<?php echo esc_url(get_permalink(get_page_by_path('training-guides-tools'))); ?>" class="mobile-menu-link mobile-menu-link-sub">Training Guides & Tools</a>
             <a href="<?php echo esc_url(get_permalink(get_page_by_path('downloadable-resources'))); ?>" class="mobile-menu-link mobile-menu-link-sub">Downloadable Resources</a>

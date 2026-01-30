@@ -436,13 +436,14 @@ $hero_subtitle = get_field('hero_subtitle') ?: 'Train your entire team together.
             ];
             
             foreach ($faqs as $index => $faq) :
+              $is_first = $index === 0;
             ?>
-            <div class="group-faq-item" data-category="<?php echo esc_attr($faq['category']); ?>">
-              <button type="button" class="group-faq-question" aria-expanded="false" aria-controls="faq-answer-<?php echo $index + 1; ?>">
+            <div class="accordion" data-accordion-group="group-training-faq" data-category="<?php echo esc_attr($faq['category']); ?>">
+              <button type="button" class="accordion-trigger" aria-expanded="<?php echo $is_first ? 'true' : 'false'; ?>" aria-controls="faq-answer-<?php echo $index + 1; ?>">
                 <span><?php echo esc_html($faq['question']); ?></span>
-                <span class="group-faq-icon" aria-hidden="true"></span>
+                <span class="accordion-icon" aria-hidden="true"></span>
               </button>
-              <div id="faq-answer-<?php echo $index + 1; ?>" class="group-faq-answer" role="region" aria-hidden="true">
+              <div id="faq-answer-<?php echo $index + 1; ?>" class="accordion-content" role="region" aria-hidden="<?php echo $is_first ? 'false' : 'true'; ?>">
                 <p><?php echo esc_html($faq['answer']); ?></p>
               </div>
             </div>
@@ -462,36 +463,6 @@ $hero_subtitle = get_field('hero_subtitle') ?: 'Train your entire team together.
     </div>
   </section>
 </main>
-
-<script>
-(function() {
-  'use strict';
-  
-  // FAQ Category filtering
-  const categoryButtons = document.querySelectorAll('.faq-sidebar-btn');
-  const faqItems = document.querySelectorAll('.group-faq-item');
-  
-  categoryButtons.forEach(button => {
-    button.addEventListener('click', function() {
-      const category = this.getAttribute('data-category');
-      
-      // Update active button
-      categoryButtons.forEach(btn => btn.classList.remove('active'));
-      this.classList.add('active');
-      
-      // Filter FAQ items
-      faqItems.forEach(item => {
-        const itemCategory = item.getAttribute('data-category');
-        if (category === 'all' || itemCategory === category) {
-          item.style.display = 'block';
-        } else {
-          item.style.display = 'none';
-        }
-      });
-    });
-  });
-})();
-</script>
 
 <!-- Schema.org Structured Data -->
 <script type="application/ld+json">

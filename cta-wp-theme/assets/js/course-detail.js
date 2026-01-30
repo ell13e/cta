@@ -312,57 +312,7 @@
     setTimeout(() => document.body.removeChild(announcement), 1000);
   }
 
-  function initAccordions() {
-    const triggers = document.querySelectorAll('.course-detail-accordion-trigger');
-    
-    if (isDevelopment) {
-      console.log('Initializing accordions, found', triggers.length, 'triggers');
-    }
-    
-    triggers.forEach(trigger => {
-      // Remove any existing listeners to avoid duplicates
-      const newTrigger = trigger.cloneNode(true);
-      trigger.parentNode.replaceChild(newTrigger, trigger);
-      
-      newTrigger.addEventListener('click', (e) => {
-        e.preventDefault();
-        const isExpanded = newTrigger.getAttribute('aria-expanded') === 'true';
-        const contentId = newTrigger.getAttribute('aria-controls');
-        const content = document.getElementById(contentId);
-        
-        if (content) {
-          if (isExpanded) {
-            // Closing
-            newTrigger.setAttribute('aria-expanded', 'false');
-            content.setAttribute('aria-hidden', 'true');
-            content.style.maxHeight = '0';
-          } else {
-            // Opening - calculate actual height for smooth transition
-            newTrigger.setAttribute('aria-expanded', 'true');
-            content.setAttribute('aria-hidden', 'false');
-            // Temporarily set to auto to get real height
-            content.style.maxHeight = 'none';
-            const height = content.scrollHeight;
-            // Set back to 0, then animate to actual height
-            content.style.maxHeight = '0';
-            // Force reflow
-            void content.offsetHeight;
-            // Animate to actual height
-            requestAnimationFrame(() => {
-              content.style.maxHeight = height + 'px';
-            });
-          }
-        } else {
-          // Fallback if content not found
-          newTrigger.setAttribute('aria-expanded', !isExpanded);
-        }
-        
-        if (isDevelopment) {
-          console.log('Accordion toggled:', newTrigger.getAttribute('data-accordion'), 'expanded:', !isExpanded);
-        }
-      });
-    });
-  }
+  // Accordion functionality is now handled by unified accordion.js
 
   // Helper function to update or create meta tags
   function updateMetaTag(attr, value, content) {

@@ -12285,6 +12285,7 @@ textarea:focus-visible,
   position: relative;
   display: flex;
   align-items: center;
+  overflow: hidden; /* Prevent icon overflow */
 }
 
 .contact-form-input-wrapper .contact-form-input,
@@ -12294,7 +12295,7 @@ textarea:focus-visible,
 
 /* Discount code (and any icon-inputs using the legacy wrapper) need left padding for the icon */
 .contact-form-input-wrapper .contact-form-input {
-  padding-left: 48px;
+  padding-left: 52px; /* Increased to prevent icon overlap */
 }
 
 .contact-form-input-wrapper .contact-form-input-icon.fa-tag {
@@ -12308,6 +12309,8 @@ textarea:focus-visible,
   pointer-events: none;
   z-index: 1;
   transition: opacity 0.2s ease, color 0.2s ease;
+  width: 20px; /* Explicit width to prevent overflow */
+  text-align: center;
 }
 
 .contact-form-input-wrapper:focus-within .contact-form-input-icon.fa-tag,
@@ -12318,7 +12321,7 @@ textarea:focus-visible,
 /* Responsive styles for discount code field */
 @media (max-width: 639px) {
   .contact-form-input-wrapper .contact-form-input {
-    padding-left: 44px;
+    padding-left: 48px; /* Increased for mobile */
     padding-right: 16px; /* Match base mobile padding */
     padding-top: 16px;
     padding-bottom: 16px;
@@ -12329,16 +12332,18 @@ textarea:focus-visible,
   .contact-form-input-wrapper .contact-form-input-icon.fa-tag {
     left: 14px;
     font-size: 15px;
+    width: 18px;
   }
 }
 
 @media (min-width: 640px) and (max-width: 1023px) {
   .contact-form-input-wrapper .contact-form-input {
-    padding-left: 46px;
+    padding-left: 50px; /* Increased for tablet */
   }
   
   .contact-form-input-wrapper .contact-form-input-icon.fa-tag {
     left: 15px;
+    width: 19px;
   }
 }
 
@@ -32329,29 +32334,32 @@ input[type="email"].contact-form-input {
   }
 }
 
-/* FAQ Item */
+/* FAQ Item - Same styling as group-training-card */
 .group-faq-item {
+  position: relative;
   background: var(--white);
-  border: 1px solid rgba(0, 0, 0, 0.04); /* Match group-benefit-card border */
-  border-radius: 16px; /* Match group-benefit-card border-radius */
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08); /* Match group-benefit-card box-shadow */
-  transition: all 0.3s ease; /* Match group-benefit-card transition */
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  border-radius: 16px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+  transition: all 0.3s ease;
   overflow: hidden;
 }
 
 .group-faq-item:hover {
-  transform: translateY(-4px); /* Match group-benefit-card hover transform */
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12); /* Match group-benefit-card hover box-shadow */
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
 }
 
 .group-faq-item:has(.group-faq-question[aria-expanded="true"]) {
-  background: rgba(250, 248, 244, 1);
+  background: var(--white);
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
   transform: none;
 }
 
 .group-faq-item:has(.group-faq-question[aria-expanded="true"]):hover {
-  background: rgba(248, 245, 240, 1);
+  background: var(--white);
+  transform: none;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
 }
 
 /* Category Filter Animation */
@@ -32402,8 +32410,7 @@ input[type="email"].contact-form-input {
 
 .group-faq-question:hover {
   color: #2d2d2d;
-  background: #f9f7f4;
-  /* Removed translateX for accessibility - prevents layout shift */
+  /* Background handled by parent item hover */
 }
 
 .group-faq-question:active {
@@ -32466,6 +32473,7 @@ input[type="email"].contact-form-input {
 .group-faq-answer[aria-hidden="false"] {
   max-height: 2000px;
   opacity: 1;
+  padding: 20px 24px 24px 24px;
   transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease 0.1s, padding 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 

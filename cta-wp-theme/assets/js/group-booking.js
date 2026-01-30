@@ -338,28 +338,26 @@
     });
   });
 
-  // FAQ Accordion functionality
-  function initFAQAccordions() {
-    const faqQuestions = document.querySelectorAll('.group-faq-question');
+  // FAQ Category filtering (accordion functionality handled by unified accordion.js)
+  function initFAQCategoryFilter() {
+    // Accordion functionality now handled by unified accordion.js
+    // Only handling category filtering here
     const sidebarBtns = document.querySelectorAll('.faq-sidebar-btn');
     const categoryDropdown = document.getElementById('faq-category-select');
     
-    if (faqQuestions.length === 0) return;
-
     // Category filter function
     function filterByCategory(category) {
-      const faqItems = document.querySelectorAll('.group-faq-item');
+      const faqItems = document.querySelectorAll('.accordion[data-accordion-group="group-training-faq"]');
       
       // Close any open accordions first
-      faqQuestions.forEach(q => {
-        const isExpanded = q.getAttribute('aria-expanded') === 'true';
+      const accordionTriggers = document.querySelectorAll('.accordion[data-accordion-group="group-training-faq"] .accordion-trigger');
+      accordionTriggers.forEach(trigger => {
+        const isExpanded = trigger.getAttribute('aria-expanded') === 'true';
         if (isExpanded) {
-          q.setAttribute('aria-expanded', 'false');
-          const answerId = q.getAttribute('aria-controls');
-          const answer = document.getElementById(answerId);
-          if (answer) {
-            answer.setAttribute('aria-hidden', 'true');
-            answer.style.maxHeight = '';
+          const contentId = trigger.getAttribute('aria-controls');
+          const content = document.getElementById(contentId);
+          if (content && window.CTAAccordion) {
+            window.CTAAccordion.close(trigger, content, 'height');
           }
         }
       });
@@ -390,8 +388,11 @@
       });
     });
     
-    // Accordion click handling
-    faqQuestions.forEach(question => {
+    // Accordion click handling now handled by unified accordion.js
+    // Removed old accordion code - using unified system
+    /*
+    const oldFaqQuestions = document.querySelectorAll('.group-faq-question');
+    oldFaqQuestions.forEach(question => {
       question.addEventListener('click', function() {
         const isExpanded = this.getAttribute('aria-expanded') === 'true';
         const answerId = this.getAttribute('aria-controls');
@@ -445,13 +446,14 @@
         }
       });
     });
+    */
   }
 
-  // Initialize FAQ accordions when DOM is ready
+  // Initialize FAQ category filtering when DOM is ready
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initFAQAccordions);
+    document.addEventListener('DOMContentLoaded', initFAQCategoryFilter);
   } else {
-    initFAQAccordions();
+    initFAQCategoryFilter();
   }
 })();
 

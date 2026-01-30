@@ -212,12 +212,12 @@ foreach ($faqs as $faq) {
           </h3>
           <div class="group-faq-list">
           <?php foreach ($faqs_by_category['general'] as $index => $faq) : ?>
-          <div class="group-faq-item faq-item" data-faq-category="general">
-            <button type="button" class="group-faq-question" aria-expanded="false" aria-controls="faq-general-<?php echo (int) $index; ?>">
+          <div class="accordion faq-item" data-accordion-group="faqs" data-faq-category="general">
+            <button type="button" class="accordion-trigger" aria-expanded="false" aria-controls="faq-general-<?php echo (int) $index; ?>">
               <span><?php echo esc_html($faq['question']); ?></span>
-              <span class="group-faq-icon" aria-hidden="true"></span>
+              <span class="accordion-icon" aria-hidden="true"></span>
             </button>
-            <div id="faq-general-<?php echo (int) $index; ?>" class="group-faq-answer" role="region" aria-hidden="true">
+            <div id="faq-general-<?php echo (int) $index; ?>" class="accordion-content" role="region" aria-hidden="true">
               <?php echo wpautop(wp_kses_post($faq['answer'])); ?>
             </div>
           </div>
@@ -235,12 +235,12 @@ foreach ($faqs as $faq) {
           </h3>
           <div class="group-faq-list">
           <?php foreach ($faqs_by_category['booking'] as $index => $faq) : ?>
-          <div class="group-faq-item faq-item" data-faq-category="booking">
-            <button type="button" class="group-faq-question" aria-expanded="false" aria-controls="faq-booking-<?php echo (int) $index; ?>">
+          <div class="accordion faq-item" data-accordion-group="faqs" data-faq-category="booking">
+            <button type="button" class="accordion-trigger" aria-expanded="false" aria-controls="faq-booking-<?php echo (int) $index; ?>">
               <span><?php echo esc_html($faq['question']); ?></span>
-              <span class="group-faq-icon" aria-hidden="true"></span>
+              <span class="accordion-icon" aria-hidden="true"></span>
             </button>
-            <div id="faq-booking-<?php echo (int) $index; ?>" class="group-faq-answer" role="region" aria-hidden="true">
+            <div id="faq-booking-<?php echo (int) $index; ?>" class="accordion-content" role="region" aria-hidden="true">
               <?php echo wpautop(wp_kses_post($faq['answer'])); ?>
             </div>
           </div>
@@ -258,12 +258,12 @@ foreach ($faqs as $faq) {
           </h3>
           <div class="group-faq-list">
           <?php foreach ($faqs_by_category['certification'] as $index => $faq) : ?>
-          <div class="group-faq-item faq-item" data-faq-category="certification">
-            <button type="button" class="group-faq-question" aria-expanded="false" aria-controls="faq-certification-<?php echo (int) $index; ?>">
+          <div class="accordion faq-item" data-accordion-group="faqs" data-faq-category="certification">
+            <button type="button" class="accordion-trigger" aria-expanded="false" aria-controls="faq-certification-<?php echo (int) $index; ?>">
               <span><?php echo esc_html($faq['question']); ?></span>
-              <span class="group-faq-icon" aria-hidden="true"></span>
+              <span class="accordion-icon" aria-hidden="true"></span>
             </button>
-            <div id="faq-certification-<?php echo (int) $index; ?>" class="group-faq-answer" role="region" aria-hidden="true">
+            <div id="faq-certification-<?php echo (int) $index; ?>" class="accordion-content" role="region" aria-hidden="true">
               <?php echo wpautop(wp_kses_post($faq['answer'])); ?>
             </div>
           </div>
@@ -281,12 +281,12 @@ foreach ($faqs as $faq) {
           </h3>
           <div class="group-faq-list">
           <?php foreach ($faqs_by_category['course:specific'] as $index => $faq) : ?>
-          <div class="group-faq-item faq-item">
-            <button type="button" class="group-faq-question" aria-expanded="false" aria-controls="faq-course-specific-<?php echo (int) $index; ?>">
+          <div class="accordion faq-item" data-accordion-group="faqs">
+            <button type="button" class="accordion-trigger" aria-expanded="false" aria-controls="faq-course-specific-<?php echo (int) $index; ?>">
               <span><?php echo esc_html($faq['question']); ?></span>
-              <span class="group-faq-icon" aria-hidden="true"></span>
+              <span class="accordion-icon" aria-hidden="true"></span>
             </button>
-            <div id="faq-course-specific-<?php echo (int) $index; ?>" class="group-faq-answer" role="region" aria-hidden="true">
+            <div id="faq-course-specific-<?php echo (int) $index; ?>" class="accordion-content" role="region" aria-hidden="true">
               <?php echo wpautop(wp_kses_post($faq['answer'])); ?>
             </div>
           </div>
@@ -304,12 +304,12 @@ foreach ($faqs as $faq) {
           </h3>
           <div class="group-faq-list">
           <?php foreach ($faqs_by_category['payment'] as $index => $faq) : ?>
-          <div class="group-faq-item faq-item" data-faq-category="payment">
-            <button type="button" class="group-faq-question" aria-expanded="false" aria-controls="faq-payment-<?php echo (int) $index; ?>">
+          <div class="accordion faq-item" data-accordion-group="faqs" data-faq-category="payment">
+            <button type="button" class="accordion-trigger" aria-expanded="false" aria-controls="faq-payment-<?php echo (int) $index; ?>">
               <span><?php echo esc_html($faq['question']); ?></span>
-              <span class="group-faq-icon" aria-hidden="true"></span>
+              <span class="accordion-icon" aria-hidden="true"></span>
             </button>
-            <div id="faq-payment-<?php echo (int) $index; ?>" class="group-faq-answer" role="region" aria-hidden="true">
+            <div id="faq-payment-<?php echo (int) $index; ?>" class="accordion-content" role="region" aria-hidden="true">
               <?php echo wpautop(wp_kses_post($faq['answer'])); ?>
             </div>
           </div>
@@ -327,12 +327,12 @@ foreach ($faqs as $faq) {
           </h3>
           <div class="group-faq-list">
           <?php foreach ($faqs_by_category['group:training'] as $index => $faq) : ?>
-          <div class="group-faq-item faq-item" data-faq-category="group-training">
-            <button type="button" class="group-faq-question" aria-expanded="false" aria-controls="faq-group-training-<?php echo (int) $index; ?>">
+          <div class="accordion faq-item" data-accordion-group="faqs" data-faq-category="group-training">
+            <button type="button" class="accordion-trigger" aria-expanded="false" aria-controls="faq-group-training-<?php echo (int) $index; ?>">
               <span><?php echo esc_html($faq['question']); ?></span>
-              <span class="group-faq-icon" aria-hidden="true"></span>
+              <span class="accordion-icon" aria-hidden="true"></span>
             </button>
-            <div id="faq-group-training-<?php echo (int) $index; ?>" class="group-faq-answer" role="region" aria-hidden="true">
+            <div id="faq-group-training-<?php echo (int) $index; ?>" class="accordion-content" role="region" aria-hidden="true">
               <?php echo wpautop(wp_kses_post($faq['answer'])); ?>
             </div>
           </div>
@@ -427,22 +427,7 @@ foreach ($faqs as $faq) {
 (function() {
   'use strict';
   
-  // FAQ Accordion functionality
-  const faqButtons = document.querySelectorAll('.group-faq-question');
-  
-  faqButtons.forEach(button => {
-    button.addEventListener('click', function() {
-      const isExpanded = this.getAttribute('aria-expanded') === 'true';
-      const answerId = this.getAttribute('aria-controls');
-      const answer = document.getElementById(answerId);
-      
-      // Toggle this FAQ
-      this.setAttribute('aria-expanded', !isExpanded);
-      answer.setAttribute('aria-hidden', isExpanded);
-    });
-  });
-  
-  // FAQ Filter and Search
+  // FAQ Filter and Search (accordion functionality handled by unified accordion.js)
   const filterButtons = document.querySelectorAll('.faqs-filter-btn');
   const searchInput = document.getElementById('faq-search');
   const faqSections = document.querySelectorAll('.faqs-category-section');
@@ -481,8 +466,8 @@ foreach ($faqs as $faq) {
       
       sectionItems.forEach(item => {
         const itemCategory = item.getAttribute('data-faq-category');
-        const question = item.querySelector('.group-faq-question span')?.textContent.toLowerCase() || '';
-        const answer = item.querySelector('.group-faq-answer p')?.textContent.toLowerCase() || '';
+        const question = item.querySelector('.accordion-trigger span')?.textContent.toLowerCase() || '';
+        const answer = item.querySelector('.accordion-content p')?.textContent.toLowerCase() || '';
         
         // Check category match
         const categoryMatch = currentCategory === 'all' || itemCategory === currentCategory;

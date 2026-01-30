@@ -91,25 +91,25 @@ $cqc_standards = [
     <div class="cqc-standards-grid">
       <?php foreach ($cqc_standards as $standard) : ?>
       <article class="cqc-standard-card cqc-standard-<?php echo esc_attr($standard['color']); ?>">
-        
-        <!-- Card Header (Clickable) -->
-        <button 
-          class="cqc-standard-header"
-          aria-expanded="true"
-          aria-controls="cqc-content-<?php echo esc_attr($standard['id']); ?>"
-          type="button"
-        >
-          <div class="cqc-standard-icon" aria-hidden="true">
-            <?php echo $standard['icon']; ?>
-          </div>
-          <h3 class="cqc-standard-title"><?php echo esc_html($standard['title']); ?></h3>
-          <svg class="cqc-accordion-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-            <polyline points="6 9 12 15 18 9"></polyline>
-          </svg>
-        </button>
+        <div class="accordion" data-accordion-group="cqc-standards">
+          <!-- Card Header (Clickable) -->
+          <button 
+            class="accordion-trigger"
+            aria-expanded="true"
+            aria-controls="cqc-content-<?php echo esc_attr($standard['id']); ?>"
+            type="button"
+          >
+            <div class="cqc-standard-icon" aria-hidden="true">
+              <?php echo $standard['icon']; ?>
+            </div>
+            <h3 class="cqc-standard-title"><?php echo esc_html($standard['title']); ?></h3>
+            <svg class="accordion-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <polyline points="6 9 12 15 18 9"></polyline>
+            </svg>
+          </button>
 
-        <!-- Course List (Collapsible) -->
-        <ul class="cqc-course-list" id="cqc-content-<?php echo esc_attr($standard['id']); ?>" aria-hidden="false">
+          <!-- Course List (Collapsible) -->
+          <ul class="accordion-content" id="cqc-content-<?php echo esc_attr($standard['id']); ?>" aria-hidden="false">
           <?php foreach ($standard['courses'] as $course) : ?>
           <li class="cqc-course-item">
             <svg class="cqc-course-check" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -118,115 +118,11 @@ $cqc_standards = [
             <span><?php echo esc_html($course); ?></span>
           </li>
           <?php endforeach; ?>
-        </ul>
-
+          </ul>
+        </div>
       </article>
       <?php endforeach; ?>
     </div>
 
   </div>
 </section>
-
-<script>
-// CQC Standards Accordion Functionality
-(function() {
-  'use strict';
-  
-  document.addEventListener('DOMContentLoaded', function() {
-    const accordionHeaders = document.querySelectorAll('.cqc-standard-header');
-    
-    accordionHeaders.forEach(function(header) {
-      // Prevent double-binding
-      if (header.dataset.accordionInit === 'true') return;
-      header.dataset.accordionInit = 'true';
-      
-      header.addEventListener('click', function() {
-        const isExpanded = this.getAttribute('aria-expanded') === 'true';
-        const contentId = this.getAttribute('aria-controls');
-        const content = document.getElementById(contentId);
-        
-        if (content) {
-          if (isExpanded) {
-            // Closing
-            this.setAttribute('aria-expanded', 'false');
-            content.setAttribute('aria-hidden', 'true');
-            content.style.maxHeight = '0';
-          } else {
-            // Opening - calculate actual height for smooth transition
-            this.setAttribute('aria-expanded', 'true');
-            content.setAttribute('aria-hidden', 'false');
-            // Temporarily set to auto to get real height
-            content.style.maxHeight = 'none';
-            const height = content.scrollHeight;
-            // Set back to 0, then animate to actual height
-            content.style.maxHeight = '0';
-            // Force reflow
-            void content.offsetHeight;
-            // Animate to actual height
-            requestAnimationFrame(function() {
-              content.style.maxHeight = height + 'px';
-            });
-          }
-        } else {
-          // Fallback if content not found
-          this.setAttribute('aria-expanded', (!isExpanded).toString());
-        }
-      });
-      
-      // Keyboard accessibility
-      header.addEventListener('keydown', function(e) {
-        if (e.key === 'Enter' || e.key === ' ') {
-          e.preventDefault();
-          this.click();
-        }
-      });
-    });
-  });
-})();
-</script>
-
-<style>
-/* CQC Accordion Styles */
-.cqc-standard-header {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  width: 100%;
-  text-align: left;
-  background: none;
-  border: none;
-  padding: 0;
-  cursor: pointer;
-  transition: opacity 0.2s;
-}
-
-.cqc-standard-header:hover {
-  opacity: 0.8;
-}
-
-.cqc-standard-header:focus {
-  outline: 2px solid currentColor;
-  outline-offset: 2px;
-}
-
-.cqc-accordion-icon {
-  margin-left: auto;
-  transition: transform 0.3s ease;
-}
-
-.cqc-standard-header[aria-expanded="false"] .cqc-accordion-icon {
-  transform: rotate(-90deg);
-}
-
-.cqc-course-list {
-  max-height: 1000px;
-  overflow: hidden;
-  transition: max-height 0.3s ease, opacity 0.3s ease;
-  opacity: 1;
-}
-
-.cqc-course-list[aria-hidden="true"] {
-  max-height: 0;
-  opacity: 0;
-}
-</style>

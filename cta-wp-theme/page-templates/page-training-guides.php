@@ -786,12 +786,12 @@ if (empty($hero_cta_url)) {
         <div class="funding-faq-accordions">
           
           <!-- How to apply for WDF -->
-          <div class="group-faq-item">
-            <button type="button" class="group-faq-question" aria-expanded="false" aria-controls="funding-wdf-apply">
+          <div class="accordion" data-accordion-group="funding-faq">
+            <button type="button" class="accordion-trigger" aria-expanded="false" aria-controls="funding-wdf-apply">
               <span><i class="fas fa-clipboard-list" aria-hidden="true"></i> How do I apply for WDF funding?</span>
-              <span class="group-faq-icon" aria-hidden="true"></span>
+              <span class="accordion-icon" aria-hidden="true"></span>
             </button>
-            <div id="funding-wdf-apply" class="group-faq-answer" role="region" aria-hidden="true">
+            <div id="funding-wdf-apply" class="accordion-content" role="region" aria-hidden="true">
               <ol class="funding-faq-steps">
                 <li><strong>Register with Skills for Care:</strong> Create an account on the Skills for Care website and complete your organization's ASC-WDS return</li>
                 <li><strong>Check course eligibility:</strong> Ensure the training you're booking is WDF-eligible (we'll confirm this when you book)</li>
@@ -804,12 +804,12 @@ if (empty($hero_cta_url)) {
           </div>
           
           <!-- Which courses are eligible -->
-          <div class="group-faq-item">
-            <button type="button" class="group-faq-question" aria-expanded="false" aria-controls="funding-eligible-courses">
+          <div class="accordion" data-accordion-group="funding-faq">
+            <button type="button" class="accordion-trigger" aria-expanded="false" aria-controls="funding-eligible-courses">
               <span><i class="fas fa-certificate" aria-hidden="true"></i> Which CTA courses are WDF-eligible?</span>
-              <span class="group-faq-icon" aria-hidden="true"></span>
+              <span class="accordion-icon" aria-hidden="true"></span>
             </button>
-            <div id="funding-eligible-courses" class="group-faq-answer" role="region" aria-hidden="true">
+            <div id="funding-eligible-courses" class="accordion-content" role="region" aria-hidden="true">
               <p><strong>Most of our CPD-accredited courses qualify for WDF funding, including:</strong></p>
               <ul>
                 <li>Care Certificate program</li>
@@ -825,12 +825,12 @@ if (empty($hero_cta_url)) {
           </div>
           
           <!-- Payment and reimbursement -->
-          <div class="group-faq-item">
-            <button type="button" class="group-faq-question" aria-expanded="false" aria-controls="funding-payment">
+          <div class="accordion" data-accordion-group="funding-faq">
+            <button type="button" class="accordion-trigger" aria-expanded="false" aria-controls="funding-payment">
               <span><i class="fas fa-pound-sign" aria-hidden="true"></i> Do I pay upfront and get reimbursed?</span>
-              <span class="group-faq-icon" aria-hidden="true"></span>
+              <span class="accordion-icon" aria-hidden="true"></span>
             </button>
-            <div id="funding-payment" class="group-faq-answer" role="region" aria-hidden="true">
+            <div id="funding-payment" class="accordion-content" role="region" aria-hidden="true">
               <p><strong>Yes, with WDF you pay for the training upfront and claim reimbursement afterwards.</strong></p>
               <p>This is standard practice for WDF funding. We accept payment by card, invoice, or bank transfer. Once your staff complete the course, you submit your claim to Skills for Care who will reimburse the training costs.</p>
               <p>Processing times vary, but claims are typically processed within 4-6 weeks of submission.</p>
@@ -838,12 +838,12 @@ if (empty($hero_cta_url)) {
           </div>
           
           <!-- What if not eligible -->
-          <div class="group-faq-item">
-            <button type="button" class="group-faq-question" aria-expanded="false" aria-controls="funding-not-eligible">
+          <div class="accordion" data-accordion-group="funding-faq">
+            <button type="button" class="accordion-trigger" aria-expanded="false" aria-controls="funding-not-eligible">
               <span><i class="fas fa-question-circle" aria-hidden="true"></i> What if I'm not eligible for WDF funding?</span>
-              <span class="group-faq-icon" aria-hidden="true"></span>
+              <span class="accordion-icon" aria-hidden="true"></span>
             </button>
-            <div id="funding-not-eligible" class="group-faq-answer" role="region" aria-hidden="true">
+            <div id="funding-not-eligible" class="accordion-content" role="region" aria-hidden="true">
               <p><strong>You still have options:</strong></p>
               <ul>
                 <li><strong>Group discounts:</strong> Book multiple staff at once to reduce per-person costs</li>
@@ -1001,26 +1001,6 @@ if (empty($hero_cta_url)) {
 }
 </script>
 
-<script>
-(function() {
-  'use strict';
-  
-  // Accordion functionality for training pathways
-  const accordionButtons = document.querySelectorAll('.group-faq-question');
-  
-  accordionButtons.forEach(button => {
-    button.addEventListener('click', function() {
-      const isExpanded = this.getAttribute('aria-expanded') === 'true';
-      const answerId = this.getAttribute('aria-controls');
-      const answer = document.getElementById(answerId);
-      
-      // Toggle this accordion
-      this.setAttribute('aria-expanded', !isExpanded);
-      answer.setAttribute('aria-hidden', isExpanded);
-    });
-  });
-})();
-</script>
 
 <?php
 get_footer();

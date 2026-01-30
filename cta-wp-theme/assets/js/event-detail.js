@@ -159,16 +159,7 @@
     }, 1000);
   }
 
-  function initAccordions() {
-    const triggers = document.querySelectorAll('.course-detail-accordion-trigger');
-    
-    triggers.forEach(trigger => {
-      trigger.addEventListener('click', () => {
-        const isExpanded = trigger.getAttribute('aria-expanded') === 'true';
-        trigger.setAttribute('aria-expanded', !isExpanded);
-      });
-    });
-  }
+  // Accordion functionality is now handled by unified accordion.js
 
   function populateCurriculum(course) {
     const curriculumContainer = document.getElementById('course-curriculum');

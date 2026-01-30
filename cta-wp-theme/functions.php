@@ -134,6 +134,14 @@ function cta_enqueue_assets() {
         ['cta-google-fonts', 'font-awesome'],
         CTA_THEME_VERSION
     );
+
+    // Unified accordion system (used across the site)
+    wp_enqueue_style(
+        'cta-accordion',
+        CTA_THEME_URI . '/assets/css/accordion.css',
+        ['cta-main'],
+        CTA_THEME_VERSION
+    );
     
     $recaptcha_site_key = function_exists('cta_get_recaptcha_site_key') ? cta_get_recaptcha_site_key() : get_theme_mod('cta_recaptcha_site_key', '');
     if (!empty($recaptcha_site_key)) {
@@ -165,6 +173,15 @@ function cta_enqueue_assets() {
     wp_enqueue_script(
         'cta-main',
         CTA_THEME_URI . '/assets/js/main.js',
+        [],
+        CTA_THEME_VERSION,
+        true
+    );
+
+    // Unified accordion system (used across the site)
+    wp_enqueue_script(
+        'cta-accordion',
+        CTA_THEME_URI . '/assets/js/accordion.js',
         [],
         CTA_THEME_VERSION,
         true
