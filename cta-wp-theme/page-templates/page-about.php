@@ -152,7 +152,7 @@ $cta_text = get_field('cta_text') ?: 'Join hundreds of care professionals who tr
           [
             'icon' => 'fas fa-handshake',
             'title' => 'Partnership Care Training',
-            'description' => 'We're your external training room. We learn your policies and procedures, then deliver training that fits how you actually work.'
+            'description' => 'We\'re your external training room. We learn your policies and procedures, then deliver training that fits how you actually work.'
           ]
         ];
         
