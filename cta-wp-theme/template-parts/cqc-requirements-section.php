@@ -91,35 +91,25 @@ $cqc_standards = [
     <div class="cqc-standards-grid">
       <?php foreach ($cqc_standards as $standard) : ?>
       <article class="cqc-standard-card cqc-standard-<?php echo esc_attr($standard['color']); ?>">
-        <div class="accordion" data-accordion-group="cqc-standards">
-          <!-- Card Header (Clickable) -->
-          <button 
-            class="accordion-trigger"
-            aria-expanded="true"
-            aria-controls="cqc-content-<?php echo esc_attr($standard['id']); ?>"
-            type="button"
-          >
-            <div class="cqc-standard-icon" aria-hidden="true">
-              <?php echo $standard['icon']; ?>
-            </div>
-            <h3 class="cqc-standard-title"><?php echo esc_html($standard['title']); ?></h3>
-            <svg class="accordion-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-              <polyline points="6 9 12 15 18 9"></polyline>
-            </svg>
-          </button>
-
-          <!-- Course List (Collapsible) -->
-          <ul class="accordion-content" id="cqc-content-<?php echo esc_attr($standard['id']); ?>" aria-hidden="false">
-          <?php foreach ($standard['courses'] as $course) : ?>
-          <li class="cqc-course-item">
-            <svg class="cqc-course-check" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-              <polyline points="20 6 9 17 4 12"></polyline>
-            </svg>
-            <span><?php echo esc_html($course); ?></span>
-          </li>
-          <?php endforeach; ?>
-          </ul>
+        <!-- Card Header -->
+        <div class="cqc-standard-header">
+          <div class="cqc-standard-icon" aria-hidden="true">
+            <?php echo $standard['icon']; ?>
+          </div>
+          <h3 class="cqc-standard-title"><?php echo esc_html($standard['title']); ?></h3>
         </div>
+
+        <!-- Course List -->
+        <ul class="cqc-course-list">
+        <?php foreach ($standard['courses'] as $course) : ?>
+        <li class="cqc-course-item">
+          <svg class="cqc-course-check" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <polyline points="20 6 9 17 4 12"></polyline>
+          </svg>
+          <span><?php echo esc_html($course); ?></span>
+        </li>
+        <?php endforeach; ?>
+        </ul>
       </article>
       <?php endforeach; ?>
     </div>

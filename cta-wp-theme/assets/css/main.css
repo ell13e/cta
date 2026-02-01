@@ -48631,8 +48631,8 @@ a.article-cta-btn:focus-visible {
 
 /* FAQs Category Section */
 .faqs-category-section {
-  margin-bottom: 64px;
-  padding: 40px;
+  margin-bottom: 48px;
+  padding: 32px;
   background: var(--white);
   border-radius: 16px;
   border: 1px solid var(--cream-border);
@@ -48647,8 +48647,8 @@ a.article-cta-btn:focus-visible {
   font-size: 1.75rem;
   font-weight: 700;
   color: var(--brown-dark);
-  margin: 0 0 32px 0;
-  padding-bottom: 20px;
+  margin: 0 0 28px 0;
+  padding-bottom: 16px;
   border-bottom: 2px solid var(--gold-primary);
   display: flex;
   align-items: center;
@@ -48662,14 +48662,14 @@ a.article-cta-btn:focus-visible {
 
 @media (max-width: 768px) {
   .faqs-category-section {
-    margin-bottom: 48px;
-    padding: 28px 20px;
+    margin-bottom: 40px;
+    padding: 24px 20px;
   }
   
   .faqs-category-title {
     font-size: 1.5rem;
-    margin-bottom: 24px;
-    padding-bottom: 16px;
+    margin-bottom: 20px;
+    padding-bottom: 12px;
   }
   
   .faqs-category-icon {
