@@ -47122,12 +47122,6 @@ a.article-cta-btn:focus-visible {
   font-weight: 700;
   font-size: 1.25rem;
   line-height: 1.2;
-  top: 8px;
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
-  background: var(--gold-primary);
-  border: 3px solid var(--cream-light);
 }
 
 /* CQC Resources Grid */
