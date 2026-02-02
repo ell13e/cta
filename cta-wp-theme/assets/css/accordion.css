@@ -104,6 +104,10 @@
   text-align: left;
 }
 
+.accordion-trigger span:first-child > * {
+  text-align: left;
+}
+
 /* Accordion Icon (+ / - or chevron) */
 .accordion-icon {
   width: 24px;
