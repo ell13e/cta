@@ -75,57 +75,6 @@ function cta_course_link($course_name, $display_text = null) {
   return $link ? '<a href="' . esc_url($link) . '">' . esc_html($text) . '</a>' : esc_html($text);
 }
 
-/**
- * Determine if content should show "NEW" badge
- * Rules: Content updated within last 30 days OR manually flagged
- */
-function cta_is_content_new($post_id, $manual_flag = false) {
-  if ($manual_flag) {
-    return true; // Manual override
-  }
-  
-  $updated = get_the_modified_date('U', $post_id);
-  if (!$updated) {
-    $updated = get_the_date('U', $post_id);
-  }
-  
-  $days_old = (current_time('timestamp') - $updated) / DAY_IN_SECONDS;
-  
-  return $days_old <= 30; // 30 day rule
-}
-
-/**
- * Get human-readable update date
- */
-function cta_get_content_updated_date($post_id) {
-  $updated = get_the_modified_date('Y-m-d', $post_id);
-  if (!$updated) {
-    $updated = get_the_date('Y-m-d', $post_id);
-  }
-  
-  $timestamp = strtotime($updated);
-  return human_time_diff($timestamp, current_time('timestamp')) . ' ago';
-}
-
-/**
- * Get SVG icon for CQC hub components
- */
-function cta_get_cqc_icon($type) {
-  $icons = [
-    'inspection' => '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>',
-    'alert' => '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>',
-    'guide' => '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/></svg>',
-    'tool' => '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg>',
-    'checklist' => '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>',
-    'calendar' => '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>',
-    'grid' => '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="9" y1="3" x2="9" y2="21"/><line x1="3" y1="9" x2="21" y2="9"/></svg>',
-    'question' => '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>',
-    'book' => '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 3h6a4 4 0 014 4v14a3 3 0 00-3-3H2z"/><path d="M22 3h-6a4 4 0 00-4 4v14a3 3 0 003 3h7z"/></svg>',
-  ];
-  
-  return $icons[$type] ?? '';
-}
-
 // ACF fields
 $hero_title = function_exists('get_field') ? get_field('hero_title') : '';
 $hero_subtitle = function_exists('get_field') ? get_field('hero_subtitle') : '';
@@ -278,8 +227,8 @@ $collection_schema = [
 </script>
 
 <main id="main-content" class="site-main">
-  <!-- Hero Section with Training Selector -->
-  <section class="cqc-hero-section" aria-labelledby="cqc-heading">
+  <!-- Hero Section -->
+  <section class="group-hero-section" aria-labelledby="cqc-heading">
     <div class="container">
       <nav aria-label="Breadcrumb" class="breadcrumb breadcrumb-hero">
         <ol class="breadcrumb-list">
@@ -292,121 +241,8 @@ $collection_schema = [
       </nav>
       <h1 id="cqc-heading" class="hero-title"><?php echo esc_html($hero_title); ?></h1>
       <p class="hero-subtitle"><?php echo esc_html($hero_subtitle); ?></p>
-      
-      <!-- Training Requirements Selector -->
-      <div class="cqc-training-selector-hero">
-        <h2 class="cqc-selector-title">What Training Do You Need?</h2>
-        <p class="cqc-selector-description">Select your care setting to see mandatory training requirements</p>
-        
-        <div class="cqc-setting-buttons">
-          <button type="button" class="cqc-setting-btn" data-setting="domiciliary" aria-label="Show training requirements for Domiciliary Care">
-            Domiciliary Care
-          </button>
-          <button type="button" class="cqc-setting-btn" data-setting="residential" aria-label="Show training requirements for Residential Care">
-            Residential Care
-          </button>
-          <button type="button" class="cqc-setting-btn" data-setting="nursing" aria-label="Show training requirements for Nursing Home">
-            Nursing Home
-          </button>
-          <button type="button" class="cqc-setting-btn" data-setting="supported-living" aria-label="Show training requirements for Supported Living">
-            Supported Living
-          </button>
-          <button type="button" class="cqc-setting-btn" data-setting="complex-care" aria-label="Show training requirements for Complex Care">
-            Complex Care
-          </button>
-        </div>
-        
-        <!-- Results display area -->
-        <div class="cqc-training-results" id="training-results" aria-live="polite" style="display: none;">
-          <div class="cqc-results-header">
-            <h3 id="results-title" class="cqc-results-title"></h3>
-            <button type="button" class="cqc-results-collapse" aria-label="Collapse results">×</button>
-          </div>
-          <div class="cqc-results-content">
-            <ul class="cqc-results-list list-two-column-gold" id="results-list">
-              <!-- Dynamically populated -->
-            </ul>
-            <div class="cqc-results-footer" id="results-footer" style="display: none;">
-              <p class="cqc-results-count">Showing 10 of <span id="total-count"></span> courses</p>
-              <a href="<?php echo esc_url(get_post_type_archive_link('course')); ?>" class="btn btn-secondary">
-                View All Courses →
-              </a>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
-  
-  <!-- Quick Start Paths -->
-  <section class="cqc-quick-paths" aria-label="Quick start options">
-    <div class="container">
-      <h2 class="sr-only">Quick Start</h2>
-      <div class="cqc-path-grid">
-        <a href="#inspection-prep" class="cqc-path-card">
-          <?php echo cta_get_cqc_icon('inspection'); ?>
-          <strong>Facing Inspection?</strong>
-          <span>Get inspection-ready checklist</span>
-        </a>
-        
-        <a href="#regulatory-updates" class="cqc-path-card cqc-path-urgent">
-          <?php echo cta_get_cqc_icon('alert'); ?>
-          <strong>2026 Regulatory Changes</strong>
-          <span>New requirements coming</span>
-          <span class="cqc-path-badge">NEW</span>
-        </a>
-        
-        <a href="#essential-guidance" class="cqc-path-card">
-          <?php echo cta_get_cqc_icon('guide'); ?>
-          <strong>New Provider?</strong>
-          <span>Essential compliance guidance</span>
-        </a>
-      </div>
-    </div>
-  </section>
-  
-  <!-- Critical Alert Banner -->
-  <section class="cqc-alert-banner" aria-label="Critical regulatory updates">
-    <div class="container">
-      <div class="cqc-alert-content">
-        <span class="cqc-alert-badge">NEW 2026</span>
-        <div class="cqc-alert-text">
-          <strong>Major Regulatory Changes:</strong>
-          Oliver McGowan Training becomes statutory • New Single Assessment Framework • Enhanced safeguarding requirements
-        </div>
-        <a href="#regulatory-updates" class="btn btn-alert">View All Changes →</a>
-      </div>
-    </div>
-  </section>
-  
-  <!-- Search Section -->
-  <section class="cqc-search-section" aria-label="Search CQC compliance resources">
-    <div class="container">
-      <form class="cqc-hub-search" role="search" method="get" action="<?php echo esc_url(home_url('/')); ?>">
-        <label for="cqc-search" class="sr-only">Search CQC compliance resources</label>
-        <div class="cqc-search-wrapper">
-          <input 
-            type="search" 
-            id="cqc-search" 
-            name="s" 
-            value="<?php echo esc_attr(get_query_var('s')); ?>"
-            placeholder="Search training requirements, regulations, inspection guidance..."
-            class="cqc-search-input"
-          >
-          <input type="hidden" name="post_type" value="post">
-          <button type="submit" class="cqc-search-btn" aria-label="Search">
-            <?php echo cta_get_cqc_icon('inspection'); ?>
-          </button>
-        </div>
-      </form>
-      
-      <!-- Quick Filters -->
-      <div class="cqc-quick-filters">
-        <span class="cqc-filter-label">Quick filters:</span>
-        <a href="?filter=training" class="cqc-filter-tag <?php echo (isset($_GET['filter']) && $_GET['filter'] === 'training') ? 'is-active' : ''; ?>">Training</a>
-        <a href="?filter=inspection" class="cqc-filter-tag <?php echo (isset($_GET['filter']) && $_GET['filter'] === 'inspection') ? 'is-active' : ''; ?>">Inspection</a>
-        <a href="?filter=regulations" class="cqc-filter-tag <?php echo (isset($_GET['filter']) && $_GET['filter'] === 'regulations') ? 'is-active' : ''; ?>">Regulations</a>
-        <a href="?filter=tools" class="cqc-filter-tag <?php echo (isset($_GET['filter']) && $_GET['filter'] === 'tools') ? 'is-active' : ''; ?>">Tools</a>
+      <div class="group-hero-cta">
+        <a href="<?php echo esc_url(get_permalink(get_page_by_path('downloadable-resources'))); ?>" class="btn btn-primary group-hero-btn-primary">Download CQC Training Checklist</a>
       </div>
     </div>
   </section>
