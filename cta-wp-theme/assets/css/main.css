@@ -41065,6 +41065,13 @@ fieldset.booking-modal-field legend.booking-modal-label {
   color: #dc3232;
 }
 
+.course-detail-price-container {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
 .course-detail-price {
   font-size: clamp(1.75rem, 4vw, 2.5rem);
   font-weight: 700;
@@ -50222,17 +50229,23 @@ a.article-cta-btn:focus-visible {
 }
 
 .course-benefits-list li {
-  padding: 8px 0 8px 24px;
+  padding: 10px 0 10px 32px;
   position: relative;
   color: #374151;
+  font-size: 1rem;
+  line-height: 1.6;
 }
 
 .course-benefits-list li::before {
-  content: '✓';
+  content: '\2713';
   position: absolute;
   left: 0;
   color: #2271b1;
   font-weight: bold;
+  font-size: 1.125rem;
+  line-height: 1.5;
+  width: 1.5rem;
+  text-align: center;
 }
 
 .course-after-note {
@@ -50434,14 +50447,19 @@ a.article-cta-btn:focus-visible {
    Prominent Price Display
    ========================================= */
 
-.course-detail-price-prominent .course-detail-price {
-  font-size: clamp(2rem, 5vw, 3rem);
-  margin-bottom: 0.5rem;
+.course-detail-price-prominent .course-detail-price-container {
+  margin-bottom: 0.75rem;
 }
 
-.course-detail-price-prominent .course-detail-price-note {
+.course-detail-price-prominent .course-detail-price {
+  font-size: clamp(2rem, 5vw, 3rem);
+  margin-bottom: 0;
+}
+
+.course-detail-price-prominent .course-detail-price-unit {
   font-size: 1rem;
-  margin-top: 0.25rem;
+  color: #6b7280;
+  font-weight: 500;
 }
 
 /* =========================================
@@ -50666,17 +50684,25 @@ a.article-cta-btn:focus-visible {
    ========================================= */
 
 .course-detail-price-includes {
-  margin-top: 0.75rem;
-  font-size: 0.875rem;
-  color: #4b5563;
-  line-height: 1.5;
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid #e5e7eb;
+  font-size: 0.9375rem;
+  color: #374151;
+  line-height: 1.6;
+}
+
+.course-detail-price-includes-label {
+  font-weight: 600;
+  color: #1f2937;
+  display: block;
+  margin-bottom: 0.25rem;
 }
 
 .course-detail-price-unit {
-  display: block;
-  margin-top: 0.25rem;
-  font-size: 0.875rem;
+  font-size: 1rem;
   color: #6b7280;
+  font-weight: 500;
 }
 
 /* Audience text styling for paragraph format */
@@ -50941,28 +50967,103 @@ a.article-cta-btn:focus-visible {
 }
 
 .cqc-setting-btn {
-  padding: 1rem 1.5rem;
+  padding: 1.25rem 1.5rem;
   background: #ffffff;
-  border: 2px solid #e2e8f0;
-  border-radius: 0.5rem;
+  border: 1.5px solid;
+  border-radius: 0.75rem;
   font-size: 1rem;
   font-weight: 600;
   color: #2d3748;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: border-color 0.2s ease;
   text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  position: relative;
+  box-shadow: none;
 }
 
-.cqc-setting-btn:hover {
-  border-color: var(--teal-primary, #5BA8A0);
-  background: #f0f9f8;
-  color: var(--teal-primary, #5BA8A0);
-}
-
-.cqc-setting-btn.is-active {
-  border-color: var(--teal-primary, #5BA8A0);
-  background: var(--teal-primary, #5BA8A0);
+.cqc-setting-icon {
+  width: 3.5rem;
+  height: 3.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: currentColor;
   color: #ffffff;
+  border-radius: 0.75rem;
+  opacity: 0.85;
+  transition: opacity 0.2s ease, background-color 0.2s ease;
+  flex-shrink: 0;
+}
+
+.cqc-setting-btn:hover .cqc-setting-icon,
+.cqc-setting-btn:focus-within .cqc-setting-icon {
+  opacity: 1;
+}
+
+.cqc-setting-icon svg {
+  width: 24px;
+  height: 24px;
+  color: currentColor;
+}
+
+.cqc-setting-text {
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+/* Color variants for each setting - matching CQC standard cards style */
+.cqc-setting-domiciliary {
+  color: var(--teal-primary, #5BA8A0);
+  border-color: rgba(91, 168, 160, 0.25);
+}
+
+.cqc-setting-domiciliary:hover,
+.cqc-setting-domiciliary:focus-within {
+  border-color: rgba(91, 168, 160, 0.45);
+}
+
+.cqc-setting-residential {
+  color: var(--gold-primary, #8B6F3F);
+  border-color: rgba(139, 111, 63, 0.25);
+}
+
+.cqc-setting-residential:hover,
+.cqc-setting-residential:focus-within {
+  border-color: rgba(139, 111, 63, 0.45);
+}
+
+.cqc-setting-nursing {
+  color: #4A90E2;
+  border-color: rgba(74, 144, 226, 0.25);
+}
+
+.cqc-setting-nursing:hover,
+.cqc-setting-nursing:focus-within {
+  border-color: rgba(74, 144, 226, 0.45);
+}
+
+.cqc-setting-supported {
+  color: #9B59B6;
+  border-color: rgba(155, 89, 182, 0.25);
+}
+
+.cqc-setting-supported:hover,
+.cqc-setting-supported:focus-within {
+  border-color: rgba(155, 89, 182, 0.45);
+}
+
+.cqc-setting-complex {
+  color: #E67E22;
+  border-color: rgba(230, 126, 34, 0.25);
+}
+
+.cqc-setting-complex:hover,
+.cqc-setting-complex:focus-within {
+  border-color: rgba(230, 126, 34, 0.45);
 }
 
 .cqc-training-results {
@@ -51136,71 +51237,6 @@ a.article-cta-btn:focus-visible {
   border-radius: 1rem;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-}
-
-/* Critical Alert Banner */
-.cqc-alert-banner {
-  background: linear-gradient(135deg, #fff9f0 0%, #fff5e6 100%);
-  border-top: 3px solid var(--gold-primary, #8B6F3F);
-  border-bottom: 3px solid var(--gold-primary, #8B6F3F);
-  padding: 1.5rem 0;
-}
-
-.cqc-alert-content {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 1rem;
-  text-align: center;
-}
-
-@media (min-width: 768px) {
-  .cqc-alert-content {
-    flex-direction: row;
-    justify-content: space-between;
-    text-align: left;
-  }
-}
-
-.cqc-alert-badge {
-  background: var(--gold-primary, #8B6F3F);
-  color: #ffffff;
-  font-size: 0.75rem;
-  font-weight: 700;
-  padding: 0.5rem 1rem;
-  border-radius: 0.25rem;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-  white-space: nowrap;
-}
-
-.cqc-alert-text {
-  flex: 1;
-  font-size: 1rem;
-  color: #2d3748;
-  margin: 0;
-}
-
-.cqc-alert-text strong {
-  color: #1a202c;
-  font-weight: 700;
-}
-
-.btn-alert {
-  background: var(--gold-primary, #8B6F3F);
-  color: #ffffff;
-  padding: 0.75rem 1.5rem;
-  border-radius: 0.5rem;
-  font-weight: 600;
-  text-decoration: none;
-  white-space: nowrap;
-  transition: background 0.2s ease;
-}
-
-.btn-alert:hover {
-  background: var(--gold-hover, #A68B5B);
-  color: #ffffff;
-  text-decoration: none;
 }
 
 /* Search Section */
@@ -51731,112 +51767,6 @@ a.article-cta-btn:focus-visible {
   width: 16px;
   height: 16px;
   color: currentColor;
-}
-
-/* Subscription Bar */
-.cqc-subscription-bar {
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  background: var(--cream-light, #F5EFE0);
-  border-top: 2px solid var(--gold-primary, #8B6F3F);
-  padding: 1rem;
-  z-index: 1000;
-  transform: translateY(100%);
-  transition: transform 0.3s ease;
-  box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.1);
-}
-
-.cqc-subscription-bar.is-visible {
-  transform: translateY(0);
-}
-
-.cqc-subscription-close {
-  position: absolute;
-  top: 0.75rem;
-  right: 0.75rem;
-  background: none;
-  border: none;
-  font-size: 1.5rem;
-  color: #718096;
-  cursor: pointer;
-  padding: 0;
-  width: 32px;
-  height: 32px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 0.25rem;
-  transition: all 0.2s ease;
-}
-
-.cqc-subscription-close:hover {
-  background: #e2e8f0;
-  color: #2d3748;
-}
-
-.cqc-subscription-content {
-  max-width: 1200px;
-  margin: 0 auto;
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-  align-items: center;
-  text-align: center;
-}
-
-@media (min-width: 768px) {
-  .cqc-subscription-content {
-    flex-direction: row;
-    justify-content: space-between;
-    text-align: left;
-  }
-}
-
-.cqc-subscription-title {
-  font-size: 1.125rem;
-  font-weight: 700;
-  color: #1a202c;
-  margin: 0;
-}
-
-.cqc-subscription-description {
-  font-size: 0.9375rem;
-  color: #4a5568;
-  margin: 0;
-}
-
-.cqc-subscription-form {
-  display: flex;
-  gap: 0.75rem;
-  width: 100%;
-  max-width: 400px;
-}
-
-@media (max-width: 767px) {
-  .cqc-subscription-form {
-    flex-direction: column;
-  }
-}
-
-.cqc-subscription-input {
-  flex: 1;
-  padding: 0.75rem 1rem;
-  border: 2px solid #e2e8f0;
-  border-radius: 0.5rem;
-  font-size: 1rem;
-  color: #2d3748;
-  outline: none;
-  transition: border-color 0.2s ease;
-}
-
-.cqc-subscription-input:focus {
-  border-color: var(--teal-primary, #5BA8A0);
-}
-
-.cqc-subscription-form .btn {
-  white-space: nowrap;
 }
 
 /* Accordion Icon Inline */

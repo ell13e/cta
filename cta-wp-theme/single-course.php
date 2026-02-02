@@ -548,12 +548,17 @@ while (have_posts()) : the_post();
               <?php if ($has_discount) : ?>
                 <div class="course-detail-price-line">
                   <span class="course-detail-price-original" aria-label="Original price">£<?php echo esc_html(number_format($original_price, 0)); ?></span>
-                  <div class="course-detail-price is-discounted">From £<?php echo esc_html(number_format($price, 0)); ?></div>
+                  <div class="course-detail-price-container">
+                    <span class="course-detail-price is-discounted">From £<?php echo esc_html(number_format($price, 0)); ?></span>
+                    <span class="course-detail-price-unit">per person</span>
+                  </div>
                 </div>
               <?php else : ?>
-                <div class="course-detail-price">From £<?php echo esc_html(number_format($price, 0)); ?></div>
+                <div class="course-detail-price-container">
+                  <span class="course-detail-price">From £<?php echo esc_html(number_format($price, 0)); ?></span>
+                  <span class="course-detail-price-unit">per person</span>
+                </div>
               <?php endif; ?>
-              <div class="course-detail-price-note">per person</div>
               <div class="course-detail-price-includes">
                 <?php
                 // Build includes array dynamically based on available fields
@@ -578,7 +583,7 @@ while (have_posts()) : the_post();
                   $includes_text = $includes[0];
                 }
                 
-                echo 'Includes ' . $includes_text;
+                echo '<span class="course-detail-price-includes-label">Includes:</span> ' . $includes_text;
                 ?>
               </div>
             </div>
