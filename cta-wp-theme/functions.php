@@ -408,13 +408,21 @@ function cta_enqueue_page_scripts() {
         );
     }
 
-    // CQC hub page: load dedicated styles
+    // CQC hub page: load dedicated styles and scripts
     if (is_page_template('page-templates/page-cqc-hub.php')) {
         wp_enqueue_style(
             'cta-cqc-requirements',
             CTA_THEME_URI . '/assets/css/cqc-requirements.css',
             ['cta-main'],
             CTA_THEME_VERSION
+        );
+        
+        wp_enqueue_script(
+            'cta-cqc-hub',
+            CTA_THEME_URI . '/assets/js/cqc-hub.js',
+            ['cta-main'],
+            CTA_THEME_VERSION,
+            true
         );
     }
 
