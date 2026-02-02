@@ -11,6 +11,18 @@ get_header();
 
 $contact = cta_get_contact_info();
 
+/**
+ * Shorten accreditation text for display
+ */
+function cta_shorten_accreditation($accreditation) {
+  if (empty($accreditation)) {
+    return $accreditation;
+  }
+  // Shorten "Skills for Health UK Core Skills Training Framework" to "Skills For Health UK"
+  $accreditation = str_ireplace('Skills for Health UK Core Skills Training Framework', 'Skills For Health UK', $accreditation);
+  return $accreditation;
+}
+
 while (have_posts()) : the_post();
   
   $level = get_field('course_level');
@@ -144,7 +156,7 @@ while (have_posts()) : the_post();
             <circle cx="12" cy="8" r="7"></circle>
             <polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"></polyline>
           </svg>
-          <span><?php echo esc_html($accreditation); ?></span>
+          <span><?php echo esc_html(cta_shorten_accreditation($accreditation)); ?></span>
         </div>
         <?php endif; ?>
       </div>
@@ -281,7 +293,7 @@ while (have_posts()) : the_post();
                   </svg>
                 </div>
                 <div class="course-format-label">Accreditation</div>
-                <div class="course-format-value"><?php echo esc_html($accreditation); ?> Accredited</div>
+                <div class="course-format-value"><?php echo esc_html(cta_shorten_accreditation($accreditation)); ?> Accredited</div>
               </div>
               <?php endif; ?>
             </div>
@@ -465,7 +477,7 @@ while (have_posts()) : the_post();
                 <p><?php echo esc_html($certificate); ?></p>
                 <?php endif; ?>
                 <?php if ($accreditation && strtolower(trim($accreditation)) !== 'none') : ?>
-                <span class="course-detail-certification-badge"><?php echo esc_html($accreditation); ?></span>
+                <span class="course-detail-certification-badge"><?php echo esc_html(cta_shorten_accreditation($accreditation)); ?></span>
                 <?php endif; ?>
               </div>
             </div>
@@ -571,7 +583,7 @@ while (have_posts()) : the_post();
                   }
                   
                   if ($accreditation && strtolower(trim($accreditation)) !== 'none') {
-                    $includes[] = esc_html($accreditation) . ' accreditation';
+                    $includes[] = esc_html(cta_shorten_accreditation($accreditation)) . ' accreditation';
                   }
                   
                   // Always include materials
