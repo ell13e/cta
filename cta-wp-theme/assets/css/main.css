@@ -50868,6 +50868,14 @@ a.article-cta-btn:focus-visible {
 .cqc-hero-section {
   padding: 3rem 0 4rem;
   background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+  text-align: center;
+}
+
+.cqc-hero-section .hero-title,
+.cqc-hero-section .hero-subtitle {
+  text-align: center;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 @media (min-width: 768px) {
