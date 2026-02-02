@@ -50516,16 +50516,27 @@ a.article-cta-btn:focus-visible {
    Large CTA Button
    ========================================= */
 
-.primary-cta-button-large {
-  width: 100%;
-  max-width: 400px;
+.course-detail-cta-action .primary-cta-button-large {
+  background: var(--white);
+  color: var(--gold-primary);
+  border: none;
+  padding: 14px 32px;
+  font-size: 1rem;
+  min-width: 200px;
   margin: 0 auto;
-  padding: 18px 32px;
-  font-size: 18px;
-  text-align: center;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+}
+
+.course-detail-cta-action .primary-cta-button-large:hover {
+  background: var(--white-95);
+  color: var(--gold-hover);
+  transform: translateY(-2px);
+}
+
+@media (min-width: 768px) {
+  .course-detail-cta-action .primary-cta-button-large {
+    padding: 16px 40px;
+    font-size: 1.05rem;
+  }
 }
 
 /* =========================================
