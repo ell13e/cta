@@ -304,8 +304,8 @@ while (have_posts()) : the_post();
           <!-- Description - EXPANDED (no accordion) -->
           <div class="course-detail-description-section">
             <h3 class="course-detail-subheading">Course Description</h3>
-            <div class="course-detail-description">
-              <?php echo wpautop(wp_kses_post($description)); ?>
+              <div class="course-detail-description">
+                <?php echo wpautop(wp_kses_post($description)); ?>
             </div>
           </div>
           <?php endif; ?>
@@ -334,7 +334,7 @@ while (have_posts()) : the_post();
           <!-- Requirements - EXPANDED (no accordion) -->
           <div class="course-detail-requirements-section">
             <h3 class="course-detail-subheading">Requirements</h3>
-            <div class="course-detail-text">
+              <div class="course-detail-text">
               <?php 
               // Check if prerequisites are minimal (like "No prerequisites required")
               $prereq_text = strip_tags($prerequisites);

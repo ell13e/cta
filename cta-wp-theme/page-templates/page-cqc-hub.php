@@ -584,7 +584,7 @@ $collection_schema = [
         <div class="accordion" data-accordion-group="cqc-inspection">
           <button type="button" class="accordion-trigger" aria-expanded="false" aria-controls="inspection-organize">
             <span>
-              <i class="fas fa-folder-open" aria-hidden="true" style="margin-right: 12px; color: #35938d;"></i>
+              <i class="fas fa-folder-open" aria-hidden="true" style="margin-right: 12px; color: #5BA8A0;"></i>
               How to Organize Your Training Evidence
             </span>
             <span class="accordion-icon" aria-hidden="true"></span>
@@ -652,7 +652,7 @@ $collection_schema = [
         <div class="accordion cqc-featured-item" data-accordion-group="cqc-inspection">
           <button type="button" class="accordion-trigger" aria-expanded="false" aria-controls="inspection-best-practice">
             <span>
-              <i class="fas fa-star" aria-hidden="true" style="margin-right: 12px; color: #9b8560;"></i>
+              <i class="fas fa-star" aria-hidden="true" style="margin-right: 12px; color: #8B6F3F;"></i>
               Best Practice Documentation
             </span>
             <span class="accordion-icon" aria-hidden="true"></span>
@@ -742,7 +742,7 @@ $collection_schema = [
             'content' => 'Several new mandatory training requirements are being introduced in 2026:',
             'list_items' => [
               'Oliver McGowan Mandatory Training on Learning Disability and Autism (becoming statutory)',
-              'Enhanced <a href="' . esc_url(cta_find_course_link('Safeguarding') ?: get_post_type_archive_link('course')) . '">safeguarding training</a> requirements',
+              '<a href="' . esc_url(cta_find_course_link('Safeguarding') ?: get_post_type_archive_link('course')) . '">Enhanced safeguarding training</a> requirements',
               'Updated <a href="' . esc_url(cta_find_course_link('Medication Management') ?: get_post_type_archive_link('course')) . '">medication management</a> competencies',
               'Refreshed <a href="' . esc_url(cta_find_course_link('Infection Control') ?: get_post_type_archive_link('course')) . '">infection prevention and control</a> standards',
             ],

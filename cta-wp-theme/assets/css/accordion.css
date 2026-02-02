@@ -154,6 +154,8 @@
   max-height: 2000px;
   opacity: 1;
   padding: 20px 24px 20px 24px;
+  padding-top: 20px;
+  padding-bottom: 20px;
   transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1), 
               opacity 0.3s ease 0.1s, 
               padding 0.4s cubic-bezier(0.4, 0, 0.2, 1);
@@ -162,12 +164,16 @@
 @media (min-width: 768px) {
   .accordion-content[aria-hidden="false"] {
     padding: 22px 24px 22px 24px;
+    padding-top: 22px;
+    padding-bottom: 22px;
   }
 }
 
 @media (min-width: 1024px) {
   .accordion-content[aria-hidden="false"] {
     padding: 24px 28px 24px 28px;
+    padding-top: 24px;
+    padding-bottom: 24px;
   }
 }
 

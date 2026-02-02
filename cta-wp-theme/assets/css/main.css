@@ -41106,9 +41106,9 @@ fieldset.booking-modal-field legend.booking-modal-label {
 
 .course-detail-price-container {
   display: flex;
-  align-items: baseline;
-  gap: 0.5rem;
-  flex-wrap: wrap;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.25rem;
 }
 
 .course-detail-price {
@@ -46813,6 +46813,7 @@ a.article-cta-btn:focus-visible {
   padding: 32px;
   background: linear-gradient(135deg, rgba(53, 147, 141, 0.08) 0%, rgba(53, 147, 141, 0.03) 100%);
   border-radius: 16px;
+  border-left: none;
 }
 
 .cqc-inspection-highlight-icon {
@@ -47047,6 +47048,7 @@ a.article-cta-btn:focus-visible {
   line-height: 1.7;
   color: var(--brown-medium);
   margin: 0 0 16px 0;
+  padding-left: 0;
 }
 
 .cqc-regulatory-card p {
@@ -47060,6 +47062,7 @@ a.article-cta-btn:focus-visible {
   margin: 16px 0 0 0;
   padding-left: 0;
   list-style: none;
+  padding-left: 0;
 }
 
 .cqc-regulatory-card li {
@@ -50405,9 +50408,10 @@ a.article-cta-btn:focus-visible {
   margin: 1.5rem 0;
   padding: 1.5rem;
   background: var(--cream-light, #F5EFE0);
-  border-radius: 8px;
-  border: 1px solid rgba(0, 0, 0, 0.05);
+  border-radius: 12px;
+  border: 1px solid rgba(0, 0, 0, 0.08);
   text-align: center;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
 }
 
 .course-next-dates h4 {
