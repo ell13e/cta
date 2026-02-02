@@ -961,8 +961,8 @@ while (have_posts()) : the_post();
     handleHeaderScroll();
   }
   
-  // Toggle course content (Show more/less)
-  function toggleCourseContent() {
+  // Toggle course content (Show more/less) - make globally accessible
+  window.toggleCourseContent = function() {
     const moreWrapper = document.getElementById('course-content-more');
     const toggleButton = document.getElementById('course-content-toggle');
     
