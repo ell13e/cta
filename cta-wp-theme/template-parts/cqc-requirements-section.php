@@ -101,12 +101,20 @@ $cqc_standards = [
 
         <!-- Course List -->
         <ul class="cqc-course-list">
-        <?php foreach ($standard['courses'] as $course) : ?>
+        <?php foreach ($standard['courses'] as $course) : 
+          $course_name = is_array($course) ? $course['name'] : $course;
+          $course_def = is_array($course) && isset($course['definition']) ? $course['definition'] : '';
+        ?>
         <li class="cqc-course-item">
           <svg class="cqc-course-check" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
             <polyline points="20 6 9 17 4 12"></polyline>
           </svg>
-          <span><?php echo esc_html($course); ?></span>
+          <div class="cqc-course-content">
+            <span class="cqc-course-name"><?php echo esc_html($course_name); ?></span>
+            <?php if ($course_def) : ?>
+            <p class="cqc-course-definition"><?php echo esc_html($course_def); ?></p>
+            <?php endif; ?>
+          </div>
         </li>
         <?php endforeach; ?>
         </ul>
