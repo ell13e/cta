@@ -576,8 +576,9 @@ while (have_posts()) : the_post();
             else :
             ?>
             <div class="course-next-dates">
-              <p class="course-dates-fallback">
-                Can't see a date that works for you?
+              <h4>Next Available Dates</h4>
+              <p class="course-dates-no-dates">
+                No upcoming dates scheduled at the moment. Please get in touch to discuss your training needs.
               </p>
               <a href="<?php echo esc_url(get_permalink(get_page_by_path('contact'))); ?>" class="button button-secondary">
                 Enquire About This Course
@@ -601,6 +602,7 @@ while (have_posts()) : the_post();
                 <i class="fas fa-phone" aria-hidden="true"></i>
                 <span><?php echo esc_html($contact['phone']); ?></span>
               </a>
+              <p class="course-detail-phone-hours">Mon-Fri 9am-5pm</p>
             </div>
 
           </div>

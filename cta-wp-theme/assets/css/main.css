@@ -41273,6 +41273,14 @@ fieldset.booking-modal-field legend.booking-modal-label {
   color: #2B1B0E;
 }
 
+.course-detail-phone-hours {
+  margin: 0.5rem 0 0 0;
+  font-size: 0.8125rem;
+  color: var(--brown-medium, #4A3A2A);
+  opacity: 0.7;
+  line-height: 1.4;
+}
+
 .course-detail-phone-link svg {
   flex-shrink: 0;
 }
@@ -50357,15 +50365,15 @@ a.article-cta-btn:focus-visible {
 
 .course-next-dates {
   margin: 1.5rem 0;
-  padding: 1.5rem 0;
-  background: transparent;
-  border: none;
+  padding: 1.5rem;
+  background: var(--cream-light, #F5EFE0);
+  border-radius: 8px;
+  border: 1px solid rgba(0, 0, 0, 0.05);
   text-align: center;
-  box-shadow: none;
 }
 
 .course-next-dates h4 {
-  margin: 0 0 1.25rem 0;
+  margin: 0 0 1rem 0;
   font-size: clamp(1rem, 1.5vw, 1.125rem);
   font-weight: 700;
   color: var(--brown-dark, #2B1B0E);
@@ -50432,9 +50440,17 @@ a.article-cta-btn:focus-visible {
 .course-dates-fallback {
   margin: 1.5rem 0 1rem 0;
   font-size: clamp(0.875rem, 1.125vw, 0.9375rem);
-  color: #4b5563;
+  color: var(--brown-medium, #4A3A2A);
   line-height: 1.6;
   font-weight: 500;
+}
+
+.course-dates-no-dates {
+  margin: 0 0 1rem 0;
+  font-size: clamp(0.875rem, 1.125vw, 0.9375rem);
+  color: var(--brown-medium, #4A3A2A);
+  line-height: 1.6;
+  font-weight: 400;
 }
 
 .course-next-dates .button-secondary {
@@ -50563,10 +50579,7 @@ a.article-cta-btn:focus-visible {
 
 .course-detail-price-prominent .course-detail-price-container {
   margin-bottom: 1rem;
-  display: flex;
-  align-items: baseline;
-  gap: 0.5rem;
-  flex-wrap: wrap;
+  display: block;
 }
 
 .course-detail-price-prominent .course-detail-price {
@@ -50580,9 +50593,11 @@ a.article-cta-btn:focus-visible {
 
 .course-detail-price-prominent .course-detail-price-unit {
   font-size: clamp(0.9375rem, 1.25vw, 1.125rem);
-  color: #6b7280;
-  font-weight: 500;
+  color: var(--brown-medium, #4A3A2A);
+  font-weight: 400;
   line-height: 1.4;
+  display: block;
+  margin-top: 0.25rem;
 }
 
 /* =========================================
