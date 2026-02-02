@@ -818,19 +818,27 @@ while (have_posts()) : the_post();
   <!-- CTA Section Before Related Courses -->
   <section class="course-detail-cta-section">
     <div class="container">
-      <div class="course-detail-cta-inline">
+      <div class="course-detail-cta-card">
         <div class="course-detail-cta-content">
           <h3>Ready to Get Started?</h3>
-          <p>Spaces fill quickly - secure your place today</p>
+          <p class="course-detail-cta-lead">Join hundreds of care professionals advancing their skills with this course.</p>
+          <ul class="course-detail-cta-benefits">
+            <li>CPD-accredited training</li>
+            <li>Expert-led sessions</li>
+            <li>Certificate upon completion</li>
+          </ul>
         </div>
-        <button 
-          type="button"
-          onclick="openBookingModal('<?php echo esc_js(get_the_title()); ?>', '<?php echo esc_js(get_the_ID()); ?>')"
-          class="primary-cta-button primary-cta-button-inline"
-          aria-label="Book this course"
-        >
-          Book Now
-        </button>
+        <div class="course-detail-cta-action">
+          <button 
+            type="button"
+            onclick="openBookingModal('<?php echo esc_js(get_the_title()); ?>', '<?php echo esc_js(get_the_ID()); ?>')"
+            class="primary-cta-button primary-cta-button-large"
+            aria-label="Book this course"
+          >
+            Book Your Place Now
+          </button>
+          <p class="course-detail-cta-note">Spaces fill quickly - secure your place today</p>
+        </div>
       </div>
     </div>
   </section>
