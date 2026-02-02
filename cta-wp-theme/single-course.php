@@ -486,10 +486,16 @@ while (have_posts()) : the_post();
             <div class="accordion-content" id="certification-content" aria-hidden="true">
               <div class="course-detail-certification">
                 <?php if ($certificate) : ?>
-                <p><?php echo esc_html($certificate); ?></p>
+                <div class="course-detail-certification-item">
+                  <div class="course-detail-certification-label">Certificate</div>
+                  <div class="course-detail-certification-value"><?php echo esc_html($certificate); ?></div>
+                </div>
                 <?php endif; ?>
                 <?php if ($accreditation && strtolower(trim($accreditation)) !== 'none') : ?>
-                <span class="course-detail-certification-badge"><?php echo esc_html(cta_shorten_accreditation($accreditation)); ?></span>
+                <div class="course-detail-certification-item">
+                  <div class="course-detail-certification-label">Accreditation</div>
+                  <div class="course-detail-certification-badge"><?php echo esc_html(cta_shorten_accreditation($accreditation)); ?></div>
+                </div>
                 <?php endif; ?>
               </div>
             </div>
