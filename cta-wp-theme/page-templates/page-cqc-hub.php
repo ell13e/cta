@@ -746,7 +746,7 @@ $collection_schema = [
               'Updated <a href="' . esc_url(cta_find_course_link('Medication Management') ?: get_post_type_archive_link('course')) . '">medication management</a> competencies',
               'Refreshed <a href="' . esc_url(cta_find_course_link('Infection Control') ?: get_post_type_archive_link('course')) . '">infection prevention and control</a> standards',
             ],
-            'link_url' => get_permalink(get_page_by_path('faqs')) . '?category=mandatory-training',
+            'link_url' => get_permalink(get_page_by_path('faqs')) . '?category=general',
             'link_text' => 'View mandatory training FAQs',
             'highlight' => false,
           ],

@@ -302,11 +302,11 @@ echo '<script type="application/ld+json">' . wp_json_encode($schema_data, JSON_U
             <i class="fas fa-building" aria-hidden="true"></i>
           </div>
           <h3 class="locations-delivery-title">At Our Centre</h3>
-          <p class="locations-delivery-address">The Maidstone Studios, New Cut Road, Maidstone ME14 5NZ</p>
+          <p class="locations-delivery-address">The Maidstone Studios<br>New Cut Road<br>Maidstone, Kent<br>ME14 5NZ</p>
           
           <ul class="locations-delivery-features">
             <li><i class="fas fa-check-circle" aria-hidden="true"></i> Free parking at the venue</li>
-            <li><i class="fas fa-check-circle" aria-hidden="true"></i> 10 minutes from Maidstone West station</li>
+            <li><i class="fas fa-check-circle" aria-hidden="true"></i> Less than 10 minutes from Maidstone West station</li>
             <li><i class="fas fa-check-circle" aria-hidden="true"></i> Bus routes 7, 71, and 72 stop nearby</li>
             <li><i class="fas fa-check-circle" aria-hidden="true"></i> Purpose-built training rooms</li>
             <li><i class="fas fa-check-circle" aria-hidden="true"></i> All equipment on-site</li>

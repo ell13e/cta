@@ -80,20 +80,31 @@
 }
 
 .locations-delivery-highlight {
-  padding: 16px;
-  background: var(--cream-bg);
+  padding: 20px;
+  background: rgba(91, 168, 160, 0.08);
+  border: 2px solid #35938d;
   border-radius: 8px;
   margin: 0;
+  transition: all 0.3s ease;
+}
+
+.locations-delivery-card:hover .locations-delivery-highlight {
+  background: rgba(91, 168, 160, 0.12);
+  border-color: #4aa8a1;
 }
 
 .locations-delivery-highlight p {
   margin: 0;
   font-size: 15px;
   color: var(--brown-medium);
+  line-height: 1.6;
 }
 
 .locations-delivery-highlight strong {
-  color: var(--brown-dark);
+  color: #35938d;
+  display: block;
+  margin-bottom: 8px;
+  font-size: 16px;
 }
 
 /* Contact Prompt */
@@ -116,7 +127,7 @@
 .locations-contact-details {
   margin: 0;
   font-size: 16px;
-  color: var(--brown-medium);
+  color: #35938d;
 }
 
 .locations-contact-details a {
@@ -639,134 +650,7 @@
 /* ============================================
    Popular Courses Section
    ============================================ */
-
-.locations-courses-grid {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 28px;
-  max-width: 1200px;
-  margin: 0 auto 64px;
-}
-
-@media (min-width: 640px) {
-  .locations-courses-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-}
-
-@media (min-width: 1024px) {
-  .locations-courses-grid {
-    grid-template-columns: repeat(3, 1fr);
-    gap: 32px;
-  }
-}
-
-.locations-course-card {
-  position: relative;
-  background: var(--white);
-  border: 1px solid rgba(0, 0, 0, 0.06);
-  border-radius: 16px;
-  padding: 32px 28px;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
-}
-
-.locations-course-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
-  border-color: rgba(0, 0, 0, 0.12);
-}
-
-.locations-course-icon {
-  width: 72px;
-  height: 72px;
-  margin: 0 0 20px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 50%;
-  font-size: 32px;
-  color: var(--white);
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
-  transition: all 0.3s ease;
-}
-
-.locations-course-card:hover .locations-course-icon {
-  transform: scale(1.1);
-}
-
-.locations-course-icon-red {
-  background: linear-gradient(135deg, #ef4444, #dc2626);
-}
-
-.locations-course-icon-blue {
-  background: linear-gradient(135deg, #3b82f6, #2563eb);
-}
-
-.locations-course-icon-purple {
-  background: linear-gradient(135deg, #a855f7, #9333ea);
-}
-
-.locations-course-icon-teal {
-  background: linear-gradient(135deg, #35938d, #4aa8a1);
-}
-
-.locations-course-icon-orange {
-  background: linear-gradient(135deg, #f97316, #ea580c);
-}
-
-.locations-course-icon-green {
-  background: linear-gradient(135deg, #22c55e, #16a34a);
-}
-
-.locations-course-title {
-  font-size: 20px;
-  font-weight: 700;
-  color: var(--brown-dark);
-  margin: 0 0 12px;
-  line-height: 1.3;
-  letter-spacing: -0.01em;
-}
-
-@media (max-width: 639px) {
-  .locations-course-title {
-    font-size: 18px;
-  }
-}
-
-.locations-course-meta {
-  font-size: 14px;
-  font-weight: 600;
-  color: #35938d;
-  margin: 0 0 16px;
-  padding: 6px 14px;
-  background: rgba(53, 147, 141, 0.1);
-  border-radius: 20px;
-  display: inline-block;
-}
-
-.locations-course-description {
-  font-size: 15px;
-  color: var(--brown-medium);
-  line-height: 1.7;
-  margin: 0 0 24px;
-  flex-grow: 1;
-}
-
-@media (max-width: 639px) {
-  .locations-course-description {
-    font-size: 14px;
-  }
-}
-
-.locations-course-card .btn {
-  width: 100%;
-  margin-top: auto;
-}
+/* Course cards use standard .courses-grid and .course-card classes from main.css */
 
 /* ============================================
    Specialist Courses Section
