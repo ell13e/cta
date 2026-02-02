@@ -202,6 +202,12 @@
   text-align: center;
 }
 
+@media (min-width: 768px) {
+  .cqc-standard-header {
+    gap: 1.25rem;
+  }
+}
+
 .cqc-standard-icon {
   width: 3.5rem;
   height: 3.5rem;
@@ -290,6 +296,13 @@
   }
 }
 
+.cqc-standard-title-wrapper {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
 .cqc-standard-title {
   font-size: 1.375rem;
   font-weight: 700;
@@ -297,6 +310,21 @@
   color: #1a202c;
   margin: 0;
   letter-spacing: -0.0125em;
+}
+
+.cqc-standard-description {
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: #4a5568;
+  margin: 0;
+  font-weight: 400;
+  font-style: italic;
+}
+
+@media (min-width: 768px) {
+  .cqc-standard-description {
+    font-size: 0.9375rem;
+  }
 }
 
 /* ============================================
@@ -347,6 +375,33 @@
   color: #1a202c;
   word-wrap: break-word;
   overflow-wrap: break-word;
+}
+
+.cqc-course-name a {
+  color: inherit;
+  text-decoration: none;
+  transition: color 0.2s ease, text-decoration 0.2s ease;
+}
+
+.cqc-course-name a:hover,
+.cqc-course-name a:focus {
+  color: currentColor;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.cqc-course-name a:focus {
+  outline: 2px solid currentColor;
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+.cqc-course-explanation {
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  color: #4a5568;
+  margin: 0;
+  font-weight: 400;
 }
 
 .cqc-course-definition {

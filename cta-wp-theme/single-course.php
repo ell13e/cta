@@ -189,7 +189,7 @@ while (have_posts()) : the_post();
   </div>
 
   <!-- Course Detail Content Section -->
-  <section class="course-detail-content">
+  <section class="course-detail-content content-section">
     <div class="container">
       <div class="course-detail-grid">
         
@@ -760,7 +760,7 @@ while (have_posts()) : the_post();
     
     if ($related->have_posts()) :
   ?>
-  <section class="course-detail-related-section">
+  <section class="course-detail-related-section content-section">
     <div class="container">
       <div class="course-detail-related-header">
         <h2 class="course-detail-related-title">Related Courses</h2>

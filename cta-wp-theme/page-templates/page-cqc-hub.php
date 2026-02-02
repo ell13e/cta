@@ -38,7 +38,8 @@ function cta_find_course_link($keywords) {
   // Keyword mapping for common variations
   $keyword_map = [
     'safeguarding' => ['safeguarding', 'safeguarding adults', 'safeguarding children'],
-    'first aid' => ['first aid', 'efaw', 'emergency first aid', 'efa'],
+    'first aid' => ['first aid', 'first aid at work', 'faw'],
+    'emergency first aid' => ['emergency first aid', 'efaw', 'efa', 'emergency first aid at work'],
     'moving' => ['moving', 'handling', 'manual handling', 'moving & handling', 'moving and handling'],
     'medication' => ['medication', 'medicines', 'medication management', 'medication competency'],
     'fire safety' => ['fire safety', 'fire'],
