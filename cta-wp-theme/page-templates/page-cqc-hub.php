@@ -88,7 +88,7 @@ if (empty($hero_subtitle)) {
     $hero_subtitle = 'Everything care providers need to know about training requirements, inspection preparation, and regulatory changes.';
 }
 if (empty($intro_text)) {
-    $intro_text = 'The Care Quality Commission (CQC) sets standards for health and social care services in England. Our CQC-compliant training courses help care providers meet these requirements and prepare for inspections.';
+    $intro_text = 'The Care Quality Commission (CQC) sets standards for health and social care services in England. Our <a href="' . esc_url(get_post_type_archive_link('course')) . '">CQC-compliant training courses</a> help care providers meet these requirements and prepare for inspections.';
 }
 
 // Get CQC-related posts
@@ -181,7 +181,7 @@ if (empty($faqs)) {
         [
             'category' => 'training',
             'question' => 'Is online training accepted by CQC?',
-            'answer' => 'CQC accepts a mix of online and face-to-face training, but some topics (like practical first aid) require hands-on training. Our face-to-face courses ensure all practical elements are covered to CQC standards.',
+            'answer' => 'CQC accepts a mix of online and face-to-face training, but some topics (like <a href="' . esc_url(cta_find_course_link('First Aid') ?: get_post_type_archive_link('course')) . '">practical first aid</a>) require hands-on training. Our <a href="' . esc_url(get_permalink(get_page_by_path('group-training'))) . '">face-to-face courses</a> ensure all practical elements are covered to CQC standards.',
         ],
     ];
 }
@@ -299,7 +299,7 @@ $collection_schema = [
               <li><?php echo cta_course_link('Fire Safety'); ?></li>
               <li><?php echo cta_course_link('Food Hygiene'); ?></li>
               <li><?php echo cta_course_link('Dementia Care'); ?></li>
-              <li>End of Life Care</li>
+              <li><?php echo cta_course_link('End of Life Care') ?: 'End of Life Care'; ?></li>
             </ul>
           </div>
         </div>
@@ -313,13 +313,13 @@ $collection_schema = [
             <p><strong>Required courses:</strong></p>
             <p>All residential care requirements plus:</p>
             <ul>
-              <li>Clinical Skills</li>
-              <li>Wound Care</li>
-              <li>Catheter Care</li>
-              <li>PEG Feeding</li>
-              <li>Diabetes Management</li>
-              <li>Pressure Ulcer Prevention</li>
-              <li>Clinical Governance</li>
+              <li><?php echo cta_course_link('Clinical Skills') ?: 'Clinical Skills'; ?></li>
+              <li><?php echo cta_course_link('Wound Care') ?: 'Wound Care'; ?></li>
+              <li><?php echo cta_course_link('Catheter Care') ?: 'Catheter Care'; ?></li>
+              <li><?php echo cta_course_link('PEG Feeding') ?: 'PEG Feeding'; ?></li>
+              <li><?php echo cta_course_link('Diabetes Management') ?: 'Diabetes Management'; ?></li>
+              <li><?php echo cta_course_link('Pressure Ulcer Prevention') ?: 'Pressure Ulcer Prevention'; ?></li>
+              <li><?php echo cta_course_link('Clinical Governance') ?: 'Clinical Governance'; ?></li>
             </ul>
           </div>
         </div>
@@ -337,9 +337,9 @@ $collection_schema = [
               <li><?php echo cta_course_link('Moving & Handling'); ?></li>
               <li><?php echo cta_course_link('First Aid'); ?></li>
               <li><?php echo cta_course_link('Medication Management'); ?></li>
-              <li>Learning Disabilities Awareness</li>
+              <li><?php echo cta_course_link('Learning Disabilities') ?: 'Learning Disabilities Awareness'; ?></li>
               <li><?php echo cta_course_link('Mental Capacity Act'); ?> & DoLS</li>
-              <li>Positive Behaviour Support</li>
+              <li><?php echo cta_course_link('Positive Behaviour Support') ?: 'Positive Behaviour Support'; ?></li>
               <li><?php echo cta_course_link('Health & Safety'); ?></li>
               <li><?php echo cta_course_link('Fire Safety'); ?></li>
             </ul>
@@ -355,14 +355,14 @@ $collection_schema = [
             <p><strong>Required courses:</strong></p>
             <p>All core care training plus:</p>
             <ul>
-              <li>Clinical Skills</li>
-              <li>Ventilator Care</li>
-              <li>Tracheostomy Care</li>
-              <li>Enteral Feeding</li>
-              <li>Seizure Management</li>
-              <li>Diabetes Management</li>
-              <li>Epilepsy Awareness</li>
-              <li>Specialist Health Conditions</li>
+              <li><?php echo cta_course_link('Clinical Skills') ?: 'Clinical Skills'; ?></li>
+              <li><?php echo cta_course_link('Ventilator Care') ?: 'Ventilator Care'; ?></li>
+              <li><?php echo cta_course_link('Tracheostomy Care') ?: 'Tracheostomy Care'; ?></li>
+              <li><?php echo cta_course_link('Enteral Feeding') ?: 'Enteral Feeding'; ?></li>
+              <li><?php echo cta_course_link('Seizure Management') ?: 'Seizure Management'; ?></li>
+              <li><?php echo cta_course_link('Diabetes Management') ?: 'Diabetes Management'; ?></li>
+              <li><?php echo cta_course_link('Epilepsy Awareness') ?: 'Epilepsy Awareness'; ?></li>
+              <li><?php echo cta_course_link('Specialist Health Conditions') ?: 'Specialist Health Conditions'; ?></li>
             </ul>
           </div>
         </div>
@@ -375,7 +375,7 @@ $collection_schema = [
     <div class="container">
       <div class="section-header-center">
         <h2 id="inspection-prep-heading" class="section-title">CQC Inspection Preparation</h2>
-        <p class="section-description">Be inspection-ready with organized training records and documentation</p>
+        <p class="section-description">Be inspection-ready with organized <a href="<?php echo esc_url(get_permalink(get_page_by_path('downloadable-resources'))); ?>">training records</a> and documentation</p>
       </div>
       
       <!-- Key Focus Areas -->
@@ -441,7 +441,7 @@ $collection_schema = [
             <div class="cqc-checklist-grid">
               <div class="cqc-checklist-item">
                 <i class="fas fa-check-circle" aria-hidden="true"></i>
-                <span>Maintain a central training matrix for all staff</span>
+                <span>Maintain a central <a href="<?php echo esc_url(get_permalink(get_page_by_path('downloadable-resources'))); ?>">training matrix</a> for all staff</span>
               </div>
               <div class="cqc-checklist-item">
                 <i class="fas fa-check-circle" aria-hidden="true"></i>
@@ -457,7 +457,7 @@ $collection_schema = [
               </div>
               <div class="cqc-checklist-item">
                 <i class="fas fa-check-circle" aria-hidden="true"></i>
-                <span>Ensure managers can quickly access training records during inspections</span>
+                <span>Ensure managers can quickly access <a href="<?php echo esc_url(get_permalink(get_page_by_path('downloadable-resources'))); ?>">training records</a> during inspections</span>
               </div>
             </div>
           </div>
@@ -511,11 +511,11 @@ $collection_schema = [
             <div class="cqc-checklist-grid">
               <div class="cqc-checklist-item">
                 <i class="fas fa-check-circle" aria-hidden="true"></i>
-                <span>Individual training records for each staff member</span>
+                <span>Individual <a href="<?php echo esc_url(get_permalink(get_page_by_path('downloadable-resources'))); ?>">training records</a> for each staff member</span>
               </div>
               <div class="cqc-checklist-item">
                 <i class="fas fa-check-circle" aria-hidden="true"></i>
-                <span>Organizational training matrix showing all staff and courses</span>
+                <span>Organizational <a href="<?php echo esc_url(get_permalink(get_page_by_path('downloadable-resources'))); ?>">training matrix</a> showing all staff and courses</span>
               </div>
               <div class="cqc-checklist-item">
                 <i class="fas fa-check-circle" aria-hidden="true"></i>
@@ -569,7 +569,7 @@ $collection_schema = [
           [
             'label' => 'New Framework',
             'title' => 'Single Assessment Framework Updates',
-            'content' => 'CQC is implementing a new Single Assessment Framework that streamlines inspections and focuses on outcomes. <a href="' . esc_url(get_permalink(get_page_by_path('faqs')) . '?category=general') . '">Training evidence</a> will continue to be a key component, with emphasis on demonstrating <a href="' . esc_url(get_permalink(get_page_by_path('downloadable-resources'))) . '">competency</a> and continuous improvement.',
+            'content' => 'CQC is implementing a new Single Assessment Framework that streamlines inspections and focuses on outcomes. <a href="' . esc_url(get_permalink(get_page_by_path('downloadable-resources'))) . '">Training evidence</a> will continue to be a key component, with emphasis on demonstrating <a href="' . esc_url(get_permalink(get_page_by_path('downloadable-resources'))) . '">competency</a> and continuous improvement.',
             'link_url' => 'https://www.cqc.org.uk/guidance-providers/assessment-framework',
             'link_text' => 'Read CQC framework guidance',
             'highlight' => false,
