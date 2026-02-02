@@ -23,6 +23,18 @@ function cta_shorten_accreditation($accreditation) {
   return $accreditation;
 }
 
+/**
+ * Shorten accreditation text for "What's Included" section
+ */
+function cta_shorten_accreditation_for_includes($accreditation) {
+  if (empty($accreditation)) {
+    return $accreditation;
+  }
+  // Shorten "Skills for Health UK Core Skills Training Framework" to "Skills for Health UK Core Framework Accreditation"
+  $accreditation = str_ireplace('Skills for Health UK Core Skills Training Framework', 'Skills for Health UK Core Framework', $accreditation);
+  return $accreditation;
+}
+
 while (have_posts()) : the_post();
   
   $level = get_field('course_level');
@@ -583,7 +595,7 @@ while (have_posts()) : the_post();
                   }
                   
                   if ($accreditation && strtolower(trim($accreditation)) !== 'none') {
-                    $includes[] = esc_html(cta_shorten_accreditation($accreditation)) . ' accreditation';
+                    $includes[] = esc_html(cta_shorten_accreditation_for_includes($accreditation)) . ' Accreditation';
                   }
                   
                   // Always include materials
