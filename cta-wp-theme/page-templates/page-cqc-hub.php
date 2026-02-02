@@ -161,7 +161,7 @@ if (empty($faqs)) {
               '<li>' . (cta_find_course_link('Health Safety') ? '<a href="' . esc_url(cta_find_course_link('Health Safety')) . '">Health & Safety</a>' : 'Health & Safety') . '</li>' .
               '<li>' . (cta_find_course_link('Fire Safety') ? '<a href="' . esc_url(cta_find_course_link('Fire Safety')) . '">Fire Safety</a>' : 'Fire Safety') . '</li>' .
               '<li>' . (cta_find_course_link('Moving Handling') ? '<a href="' . esc_url(cta_find_course_link('Moving Handling')) . '">Moving & Handling</a>' : 'Moving & Handling') . '</li>' .
-              '<li>' . (cta_find_course_link('First Aid') ? '<a href="' . esc_url(cta_find_course_link('First Aid')) . '">First Aid</a>' : 'First Aid') . '</li>' .
+              '<li>' . (cta_find_course_link('First Aid') ? '<a href="' . esc_url(cta_find_course_link('First Aid')) . '">First Aid at Work</a>' : 'First Aid at Work') . '</li>' .
               '<li>' . (cta_find_course_link('Food Hygiene') ? '<a href="' . esc_url(cta_find_course_link('Food Hygiene')) . '">Food Hygiene</a>' : 'Food Hygiene') . '</li>' .
               '<li>' . (cta_find_course_link('Infection Control') ? '<a href="' . esc_url(cta_find_course_link('Infection Control')) . '">Infection Control</a>' : 'Infection Control') . '</li>' .
               '<li>' . (cta_find_course_link('Medication Management') ? '<a href="' . esc_url(cta_find_course_link('Medication Management')) . '">Medication Management</a>' : 'Medication Management') . '</li>' .
@@ -176,7 +176,7 @@ if (empty($faqs)) {
         [
             'category' => 'training',
             'question' => 'How often does CQC training need to be refreshed?',
-            'answer' => 'Most CQC <a href="' . esc_url(get_permalink(get_page_by_path('faqs')) . '?category=general') . '">mandatory training</a> should be refreshed annually. <a href="' . esc_url(cta_find_course_link('First Aid') ?: get_post_type_archive_link('course')) . '">First Aid</a> certificates typically last 3 years. <a href="' . esc_url(cta_find_course_link('Safeguarding') ?: get_post_type_archive_link('course')) . '">Safeguarding</a> training should be refreshed every 2-3 years. Check specific <a href="' . esc_url(get_post_type_archive_link('course')) . '">course requirements</a> for exact refresh periods.',
+            'answer' => 'Most CQC <a href="' . esc_url(get_permalink(get_page_by_path('faqs')) . '?category=general') . '">mandatory training</a> should be refreshed annually. <a href="' . esc_url(cta_find_course_link('First Aid') ?: get_post_type_archive_link('course')) . '">First Aid at Work</a> certificates typically last 3 years. <a href="' . esc_url(cta_find_course_link('Safeguarding') ?: get_post_type_archive_link('course')) . '">Safeguarding</a> training should be refreshed every 2-3 years. Check specific <a href="' . esc_url(get_post_type_archive_link('course')) . '">course requirements</a> for exact refresh periods.',
         ],
         [
             'category' => 'training',
@@ -251,14 +251,69 @@ $collection_schema = [
   <?php get_template_part('template-parts/cqc-requirements-section'); ?>
 
   <!-- Mandatory Training by Setting Section -->
+  <?php
+  $mandatory_training_title = function_exists('get_field') ? get_field('mandatory_training_title') : '';
+  $mandatory_training_description = function_exists('get_field') ? get_field('mandatory_training_description') : '';
+  $mandatory_training_settings = function_exists('get_field') ? get_field('mandatory_training_settings') : [];
+  
+  if (empty($mandatory_training_title)) {
+    $mandatory_training_title = 'Mandatory Training by Setting';
+  }
+  if (empty($mandatory_training_description)) {
+    $mandatory_training_description = 'Training requirements vary by care setting. Find what\'s required for your service type.';
+  }
+  ?>
   <section class="content-section bg-light-cream" aria-labelledby="mandatory-training-heading">
     <div class="container">
       <div class="section-header-center">
-        <h2 id="mandatory-training-heading" class="section-title">Mandatory Training by Setting</h2>
-        <p class="section-description">Training requirements vary by care setting. Find what's required for your service type.</p>
+        <h2 id="mandatory-training-heading" class="section-title"><?php echo esc_html($mandatory_training_title); ?></h2>
+        <p class="section-description"><?php echo esc_html($mandatory_training_description); ?></p>
       </div>
       
       <div class="cqc-accordion-wrapper">
+        <?php if (!empty($mandatory_training_settings) && is_array($mandatory_training_settings)) : 
+          // Use ACF fields if available
+          foreach ($mandatory_training_settings as $setting) :
+            $setting_name = $setting['setting_name'] ?? '';
+            $setting_id = $setting['setting_id'] ?? '';
+            $setting_intro = $setting['setting_intro'] ?? '';
+            $setting_courses = $setting['setting_courses'] ?? '';
+            
+            if (empty($setting_name) || empty($setting_id) || empty($setting_courses)) continue;
+        ?>
+        <div class="accordion" data-accordion-group="cqc-settings">
+          <button type="button" class="accordion-trigger" aria-expanded="false" aria-controls="cqc-setting-<?php echo esc_attr($setting_id); ?>">
+            <span><?php echo esc_html($setting_name); ?></span>
+            <span class="accordion-icon" aria-hidden="true"></span>
+          </button>
+          <div id="cqc-setting-<?php echo esc_attr($setting_id); ?>" class="accordion-content" role="region" aria-hidden="true">
+            <p><strong>Required courses:</strong></p>
+            <?php if (!empty($setting_intro)) : ?>
+            <p><?php echo wp_kses_post($setting_intro); ?></p>
+            <?php endif; ?>
+            <ul class="list-two-column-gold">
+              <?php 
+              $courses = explode("\n", $setting_courses);
+              foreach ($courses as $course) {
+                $course = trim($course);
+                if (empty($course)) continue;
+                // Check if it has a note in parentheses
+                $note = '';
+                if (preg_match('/^(.+?)\s*\((.+?)\)$/', $course, $matches)) {
+                  $course = trim($matches[1]);
+                  $note = ' (' . esc_html($matches[2]) . ')';
+                }
+                echo '<li>' . cta_course_link($course) . $note . '</li>';
+              }
+              ?>
+            </ul>
+          </div>
+        </div>
+        <?php 
+          endforeach;
+        else :
+          // Default hardcoded content
+        ?>
         <div class="accordion" data-accordion-group="cqc-settings">
           <button type="button" class="accordion-trigger" aria-expanded="false" aria-controls="cqc-setting-domiciliary">
             <span>Domiciliary Care</span>
@@ -270,7 +325,7 @@ $collection_schema = [
               <li><?php echo cta_course_link('Care Certificate'); ?></li>
               <li><?php echo cta_course_link('Safeguarding Adults'); ?></li>
               <li><?php echo cta_course_link('Moving & Handling'); ?></li>
-              <li><?php echo cta_course_link('First Aid'); ?></li>
+              <li><?php echo cta_course_link('First Aid', 'First Aid at Work'); ?></li>
               <li><?php echo cta_course_link('Medication Awareness'); ?></li>
               <li><?php echo cta_course_link('Infection Control'); ?></li>
               <li><?php echo cta_course_link('Health & Safety'); ?></li>
@@ -292,7 +347,7 @@ $collection_schema = [
               <li><?php echo cta_course_link('Care Certificate'); ?></li>
               <li><?php echo cta_course_link('Safeguarding Adults'); ?> & Children</li>
               <li><?php echo cta_course_link('Moving & Handling'); ?></li>
-              <li><?php echo cta_course_link('First Aid'); ?></li>
+              <li><?php echo cta_course_link('First Aid', 'First Aid at Work'); ?></li>
               <li><?php echo cta_course_link('Medication Management'); ?></li>
               <li><?php echo cta_course_link('Infection Control'); ?></li>
               <li><?php echo cta_course_link('Health & Safety'); ?></li>
@@ -335,7 +390,7 @@ $collection_schema = [
               <li><?php echo cta_course_link('Care Certificate'); ?></li>
               <li><?php echo cta_course_link('Safeguarding Adults'); ?></li>
               <li><?php echo cta_course_link('Moving & Handling'); ?></li>
-              <li><?php echo cta_course_link('First Aid'); ?></li>
+              <li><?php echo cta_course_link('First Aid', 'First Aid at Work'); ?></li>
               <li><?php echo cta_course_link('Medication Management'); ?></li>
               <li><?php echo cta_course_link('Learning Disabilities') ?: 'Learning Disabilities Awareness'; ?></li>
               <li><?php echo cta_course_link('Mental Capacity Act'); ?> & DoLS</li>
@@ -366,16 +421,53 @@ $collection_schema = [
             </ul>
           </div>
         </div>
+        <?php endif; ?>
       </div>
     </div>
   </section>
 
   <!-- CQC Inspection Preparation Section -->
+  <?php
+  $inspection_title = function_exists('get_field') ? get_field('inspection_title') : '';
+  $inspection_description = function_exists('get_field') ? get_field('inspection_description') : '';
+  $inspection_highlight_title = function_exists('get_field') ? get_field('inspection_highlight_title') : '';
+  $inspection_highlight_text = function_exists('get_field') ? get_field('inspection_highlight_text') : '';
+  $inspection_accordions = function_exists('get_field') ? get_field('inspection_accordions') : [];
+  $inspection_cta_title = function_exists('get_field') ? get_field('inspection_cta_title') : '';
+  $inspection_cta_text = function_exists('get_field') ? get_field('inspection_cta_text') : '';
+  $inspection_cta_button_text = function_exists('get_field') ? get_field('inspection_cta_button_text') : '';
+  $inspection_cta_link = function_exists('get_field') ? get_field('inspection_cta_link') : '';
+  
+  if (empty($inspection_title)) {
+    $inspection_title = 'CQC Inspection Preparation';
+  }
+  if (empty($inspection_description)) {
+    $inspection_description = 'Be inspection-ready with organized <a href="' . esc_url(get_permalink(get_page_by_path('downloadable-resources'))) . '">training records</a> and documentation';
+  }
+  if (empty($inspection_highlight_title)) {
+    $inspection_highlight_title = 'What Inspectors Check';
+  }
+  if (empty($inspection_highlight_text)) {
+    $inspection_highlight_text = 'CQC inspectors verify all staff have completed <a href="' . esc_url(get_permalink(get_page_by_path('faqs')) . '?category=general') . '">mandatory training</a>, certificates are current, and competency is documented.';
+  }
+  if (empty($inspection_cta_title)) {
+    $inspection_cta_title = 'Get Inspection Ready';
+  }
+  if (empty($inspection_cta_text)) {
+    $inspection_cta_text = 'Download our comprehensive checklist to ensure your training records meet CQC standards';
+  }
+  if (empty($inspection_cta_button_text)) {
+    $inspection_cta_button_text = 'Download Inspection Readiness Checklist';
+  }
+  if (empty($inspection_cta_link)) {
+    $inspection_cta_link = get_permalink(get_page_by_path('downloadable-resources'));
+  }
+  ?>
   <section class="content-section" aria-labelledby="inspection-prep-heading">
     <div class="container">
       <div class="section-header-center">
-        <h2 id="inspection-prep-heading" class="section-title">CQC Inspection Preparation</h2>
-        <p class="section-description">Be inspection-ready with organized <a href="<?php echo esc_url(get_permalink(get_page_by_path('downloadable-resources'))); ?>">training records</a> and documentation</p>
+        <h2 id="inspection-prep-heading" class="section-title"><?php echo esc_html($inspection_title); ?></h2>
+        <p class="section-description"><?php echo wp_kses_post($inspection_description); ?></p>
       </div>
       
       <!-- Key Focus Areas -->
@@ -385,15 +477,67 @@ $collection_schema = [
             <i class="fas fa-clipboard-check" aria-hidden="true"></i>
           </div>
           <div class="cqc-inspection-highlight-content">
-            <h3>What Inspectors Check</h3>
-            <p>CQC inspectors verify all staff have completed <a href="<?php echo esc_url(get_permalink(get_page_by_path('faqs')) . '?category=general'); ?>">mandatory training</a>, certificates are current, and competency is documented.</p>
+            <h3><?php echo esc_html($inspection_highlight_title); ?></h3>
+            <p><?php echo wp_kses_post($inspection_highlight_text); ?></p>
           </div>
         </div>
       </div>
 
       <!-- Accordion Sections -->
       <div class="cqc-inspection-accordions">
-        <!-- What Inspectors Look For -->
+        <?php if (!empty($inspection_accordions) && is_array($inspection_accordions)) : 
+          // Use ACF fields if available
+          foreach ($inspection_accordions as $index => $accordion) :
+            $accordion_title = $accordion['title'] ?? '';
+            $accordion_icon = $accordion['icon'] ?? 'fas fa-check-circle';
+            $accordion_icon_color = $accordion['icon_color'] ?? '#35938d';
+            $accordion_expanded = !empty($accordion['expanded']);
+            $accordion_warning = !empty($accordion['warning']);
+            $accordion_items = $accordion['items'] ?? '';
+            
+            if (empty($accordion_title) || empty($accordion_items)) continue;
+            
+            $accordion_id = 'inspection-accordion-' . $index;
+            $accordion_class = 'accordion';
+            if ($accordion_warning) {
+              $accordion_class .= ' cqc-warning-item';
+            }
+        ?>
+        <div class="<?php echo esc_attr($accordion_class); ?>" data-accordion-group="cqc-inspection">
+          <button type="button" class="accordion-trigger" aria-expanded="<?php echo $accordion_expanded ? 'true' : 'false'; ?>" aria-controls="<?php echo esc_attr($accordion_id); ?>">
+            <span>
+              <?php if (!empty($accordion_icon)) : ?>
+              <i class="<?php echo esc_attr($accordion_icon); ?>" aria-hidden="true" style="margin-right: 12px; color: <?php echo esc_attr($accordion_icon_color); ?>;"></i>
+              <?php endif; ?>
+              <?php echo esc_html($accordion_title); ?>
+            </span>
+            <span class="accordion-icon" aria-hidden="true"></span>
+          </button>
+          <div id="<?php echo esc_attr($accordion_id); ?>" class="accordion-content" role="region" aria-hidden="<?php echo $accordion_expanded ? 'false' : 'true'; ?>">
+            <div class="cqc-checklist-grid">
+              <?php 
+              $items = array_filter(array_map('trim', explode("\n", $accordion_items)));
+              foreach ($items as $item) :
+                $item_class = 'cqc-checklist-item';
+                if ($accordion_warning) {
+                  $item_class .= ' cqc-warning';
+                }
+                $icon_class = $accordion_warning ? 'fas fa-times-circle' : 'fas fa-check-circle';
+              ?>
+              <div class="<?php echo esc_attr($item_class); ?>">
+                <i class="<?php echo esc_attr($icon_class); ?>" aria-hidden="true"></i>
+                <span><?php echo wp_kses_post($item); ?></span>
+              </div>
+              <?php endforeach; ?>
+            </div>
+          </div>
+        </div>
+        <?php 
+          endforeach;
+        else :
+          // Default hardcoded content
+        ?>
+        <!-- Default hardcoded accordions -->
         <div class="accordion" data-accordion-group="cqc-inspection">
           <button type="button" class="accordion-trigger" aria-expanded="true" aria-controls="inspection-look-for">
             <span>
@@ -428,7 +572,6 @@ $collection_schema = [
           </div>
         </div>
 
-        <!-- How to Organize -->
         <div class="accordion" data-accordion-group="cqc-inspection">
           <button type="button" class="accordion-trigger" aria-expanded="false" aria-controls="inspection-organize">
             <span>
@@ -463,7 +606,6 @@ $collection_schema = [
           </div>
         </div>
 
-        <!-- Common Inadequate Ratings -->
         <div class="accordion cqc-warning-item" data-accordion-group="cqc-inspection">
           <button type="button" class="accordion-trigger" aria-expanded="false" aria-controls="inspection-inadequate">
             <span>
@@ -498,7 +640,6 @@ $collection_schema = [
           </div>
         </div>
 
-        <!-- Best Practice -->
         <div class="accordion cqc-featured-item" data-accordion-group="cqc-inspection">
           <button type="button" class="accordion-trigger" aria-expanded="false" aria-controls="inspection-best-practice">
             <span>
@@ -536,33 +677,47 @@ $collection_schema = [
             </div>
           </div>
         </div>
+        <?php endif; ?>
       </div>
       
       <!-- CTA -->
       <div class="cqc-inspection-cta">
         <div class="cqc-inspection-cta-content">
-          <h3>Get Inspection Ready</h3>
-          <p>Download our comprehensive checklist to ensure your training records meet CQC standards</p>
-          <a href="<?php echo esc_url(get_permalink(get_page_by_path('downloadable-resources'))); ?>" class="btn btn-primary btn-large">
+          <h3><?php echo esc_html($inspection_cta_title); ?></h3>
+          <p><?php echo esc_html($inspection_cta_text); ?></p>
+          <a href="<?php echo esc_url($inspection_cta_link); ?>" class="btn btn-primary btn-large">
             <i class="fas fa-download" aria-hidden="true"></i>
-            Download Inspection Readiness Checklist
+            <?php echo esc_html($inspection_cta_button_text); ?>
           </a>
         </div>
       </div>
+        <?php endif; ?>
     </div>
   </section>
 
   <!-- 2026 Regulatory Changes Section -->
+  <?php
+  $regulatory_title = function_exists('get_field') ? get_field('regulatory_title') : '';
+  $regulatory_description = function_exists('get_field') ? get_field('regulatory_description') : '';
+  $regulatory_cards = function_exists('get_field') ? get_field('regulatory_cards') : [];
+  
+  if (empty($regulatory_title)) {
+    $regulatory_title = '2026 Regulatory Changes';
+  }
+  if (empty($regulatory_description)) {
+    $regulatory_description = 'Stay ahead of upcoming CQC framework updates and new training requirements';
+  }
+  ?>
   <section class="content-section bg-light-cream" aria-labelledby="regulatory-changes-heading">
     <div class="container">
       <div class="section-header-center">
-        <h2 id="regulatory-changes-heading" class="section-title">2026 Regulatory Changes</h2>
-        <p class="section-description">Stay ahead of upcoming CQC framework updates and new training requirements</p>
+        <h2 id="regulatory-changes-heading" class="section-title"><?php echo esc_html($regulatory_title); ?></h2>
+        <p class="section-description"><?php echo esc_html($regulatory_description); ?></p>
       </div>
       
       <?php
       // Get regulatory cards from ACF or use defaults
-      $regulatory_cards = get_field('regulatory_cards');
+      if (empty($regulatory_cards)) {
       if (empty($regulatory_cards)) {
         // Default cards with links
         $regulatory_cards = [
@@ -929,7 +1084,7 @@ $collection_schema = [
         "name": "What training is required for domiciliary care?",
         "acceptedAnswer": {
           "@type": "Answer",
-          "text": "Required courses include: Care Certificate, Safeguarding Adults, Moving & Handling, First Aid, Medication Awareness, Infection Control, Health & Safety, Fire Safety, Food Hygiene (if applicable), and Lone Working Safety."
+          "text": "Required courses include: Care Certificate, Safeguarding Adults, Moving & Handling, First Aid at Work, Medication Awareness, Infection Control, Health & Safety, Fire Safety, Food Hygiene (if applicable), and Lone Working Safety."
         }
       },
       {
@@ -937,7 +1092,7 @@ $collection_schema = [
         "name": "What training is required for residential care homes?",
         "acceptedAnswer": {
           "@type": "Answer",
-          "text": "Required courses include: Care Certificate, Safeguarding Adults & Children, Moving & Handling, First Aid, Medication Management, Infection Control, Health & Safety, Fire Safety, Food Hygiene, Dementia Care, and End of Life Care."
+          "text": "Required courses include: Care Certificate, Safeguarding Adults & Children, Moving & Handling, First Aid at Work, Medication Management, Infection Control, Health & Safety, Fire Safety, Food Hygiene, Dementia Care, and End of Life Care."
         }
       },
       {
