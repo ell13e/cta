@@ -772,6 +772,365 @@ function cta_newsletter_admin_enqueue_styles($hook) {
         return;
     }
     
+    // Add inline CSS for newsletter admin styling
+    wp_add_inline_style('wp-admin', '
+        :root {
+            --cta-admin-spacing-sm: 8px;
+            --cta-admin-spacing-md: 16px;
+            --cta-admin-spacing-lg: 24px;
+            --cta-admin-spacing-xl: 32px;
+        }
+        
+        /* Global Newsletter Admin Styles */
+        .wrap.cta-newsletter-admin,
+        .wrap[class*="cta-newsletter"] {
+            padding: var(--cta-admin-spacing-lg) 0;
+        }
+        
+        /* Postbox and container spacing */
+        .postbox,
+        .cta-newsletter-card {
+            margin-bottom: var(--cta-admin-spacing-lg);
+            padding: 0;
+        }
+        
+        .postbox .inside,
+        .cta-newsletter-card .inside {
+            padding: var(--cta-admin-spacing-lg);
+        }
+        
+        .postbox-header {
+            padding: var(--cta-admin-spacing-md) var(--cta-admin-spacing-lg);
+            border-bottom: 1px solid #dcdcde;
+        }
+        
+        .postbox-header h2 {
+            margin: 0;
+            font-size: 14px;
+            font-weight: 600;
+            color: #1d2327;
+        }
+        
+        /* Typography hierarchy */
+        .cta-newsletter-admin h1,
+        .wrap.cta-newsletter-admin h1 {
+            font-size: 23px;
+            font-weight: 400;
+            margin: 0 0 var(--cta-admin-spacing-md) 0;
+            padding: 9px 0 4px 0;
+            line-height: 1.3;
+        }
+        
+        .cta-newsletter-admin h2,
+        .wrap.cta-newsletter-admin h2 {
+            font-size: 18px;
+            font-weight: 600;
+            margin: 0 0 var(--cta-admin-spacing-md) 0;
+            color: #1d2327;
+        }
+        
+        .cta-newsletter-admin h3,
+        .wrap.cta-newsletter-admin h3 {
+            font-size: 16px;
+            font-weight: 600;
+            margin: 0 0 var(--cta-admin-spacing-sm) 0;
+            color: #1d2327;
+        }
+        
+        .cta-newsletter-admin p,
+        .wrap.cta-newsletter-admin p {
+            margin: 0 0 var(--cta-admin-spacing-md) 0;
+            line-height: 1.6;
+        }
+        
+        .cta-newsletter-admin .description {
+            margin-top: var(--cta-admin-spacing-sm);
+            margin-bottom: var(--cta-admin-spacing-md);
+            color: #646970;
+            font-size: 13px;
+        }
+        
+        /* Form field spacing */
+        .cta-newsletter-admin .form-table th,
+        .cta-newsletter-admin .form-table td {
+            padding: var(--cta-admin-spacing-md) 0;
+            vertical-align: top;
+        }
+        
+        .cta-newsletter-admin .form-table th {
+            padding-right: var(--cta-admin-spacing-lg);
+            font-weight: 600;
+            color: #1d2327;
+        }
+        
+        .cta-newsletter-admin input[type="text"],
+        .cta-newsletter-admin input[type="email"],
+        .cta-newsletter-admin input[type="number"],
+        .cta-newsletter-admin input[type="date"],
+        .cta-newsletter-admin input[type="time"],
+        .cta-newsletter-admin select,
+        .cta-newsletter-admin textarea {
+            margin-bottom: var(--cta-admin-spacing-md);
+            padding: 6px 8px;
+        }
+        
+        .cta-newsletter-admin textarea {
+            width: 100%;
+            min-height: 120px;
+        }
+        
+        .cta-newsletter-admin label {
+            display: block;
+            margin-bottom: var(--cta-admin-spacing-sm);
+            font-weight: 500;
+            color: #1d2327;
+        }
+        
+        /* Card-based statistics display */
+        .cta-newsletter-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: var(--cta-admin-spacing-md);
+            margin-bottom: var(--cta-admin-spacing-lg);
+        }
+        
+        .cta-newsletter-stat-card {
+            background: #f6f7f7;
+            border: 1px solid #dcdcde;
+            border-radius: 4px;
+            padding: var(--cta-admin-spacing-lg);
+        }
+        
+        .cta-newsletter-stat-card h3 {
+            margin: 0 0 var(--cta-admin-spacing-sm) 0;
+            font-size: 13px;
+            font-weight: 600;
+            color: #646970;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .cta-newsletter-stat-card .stat-value {
+            font-size: 32px;
+            font-weight: 600;
+            color: #1d2327;
+            line-height: 1;
+            margin: 0;
+        }
+        
+        /* Button spacing */
+        .cta-newsletter-admin .button,
+        .cta-newsletter-admin .button-primary {
+            margin-right: var(--cta-admin-spacing-sm);
+            margin-bottom: var(--cta-admin-spacing-sm);
+        }
+        
+        /* Table improvements */
+        .cta-newsletter-admin .wp-list-table th,
+        .cta-newsletter-admin .wp-list-table td {
+            padding: var(--cta-admin-spacing-md) var(--cta-admin-spacing-sm);
+        }
+        
+        .cta-newsletter-admin .wp-list-table thead th {
+            font-weight: 600;
+            color: #1d2327;
+        }
+        
+        /* Filter/search UI */
+        .cta-newsletter-filters {
+            background: #f6f7f7;
+            border: 1px solid #dcdcde;
+            border-radius: 4px;
+            padding: var(--cta-admin-spacing-md);
+            margin-bottom: var(--cta-admin-spacing-lg);
+        }
+        
+        .cta-newsletter-filters .form-table {
+            margin: 0;
+        }
+        
+        .cta-newsletter-filters .form-table th,
+        .cta-newsletter-filters .form-table td {
+            padding: var(--cta-admin-spacing-sm) var(--cta-admin-spacing-md);
+        }
+        
+        /* Calendar Grid Layout */
+        .cta-calendar-container {
+            background: #fff;
+            border: 1px solid #dcdcde;
+            border-radius: 4px;
+            padding: var(--cta-admin-spacing-lg);
+            margin-top: var(--cta-admin-spacing-lg);
+        }
+        
+        .cta-calendar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: var(--cta-admin-spacing-lg);
+            padding-bottom: var(--cta-admin-spacing-md);
+            border-bottom: 2px solid #dcdcde;
+        }
+        
+        .cta-calendar-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: #1d2327;
+        }
+        
+        .cta-calendar-nav {
+            display: flex;
+            gap: var(--cta-admin-spacing-sm);
+        }
+        
+        .cta-calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 2px;
+            background: #dcdcde;
+            border: 1px solid #dcdcde;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        
+        .cta-calendar-day-header {
+            background: #f6f7f7;
+            padding: var(--cta-admin-spacing-md);
+            text-align: center;
+            font-weight: 600;
+            font-size: 12px;
+            color: #646970;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .cta-calendar-day {
+            background: #fff;
+            min-height: 100px;
+            padding: var(--cta-admin-spacing-sm);
+            display: flex;
+            flex-direction: column;
+            transition: background-color 0.2s;
+        }
+        
+        .cta-calendar-day:hover {
+            background: #f6f7f7;
+        }
+        
+        .cta-calendar-day.today {
+            background: #f0f6fc;
+            border: 2px solid #2271b1;
+        }
+        
+        .cta-calendar-day.other-month {
+            background: #fafafa;
+            opacity: 0.5;
+        }
+        
+        .cta-calendar-day-number {
+            font-weight: 600;
+            font-size: 14px;
+            color: #1d2327;
+            margin-bottom: var(--cta-admin-spacing-sm);
+        }
+        
+        .cta-calendar-day.today .cta-calendar-day-number {
+            color: #2271b1;
+        }
+        
+        .cta-calendar-event {
+            background: #dba617;
+            color: #fff;
+            padding: 4px 6px;
+            margin-bottom: 4px;
+            border-radius: 3px;
+            font-size: 11px;
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+        
+        .cta-calendar-event:hover {
+            opacity: 0.9;
+        }
+        
+        .cta-calendar-event strong {
+            font-weight: 600;
+        }
+        
+        .cta-calendar-day .button-small {
+            width: 100%;
+            margin: 0;
+        }
+        
+        .cta-calendar-today-badge {
+            font-size: 10px;
+            padding: 2px 6px;
+            background: #2271b1;
+            color: #fff;
+            border-radius: 3px;
+            font-weight: 600;
+        }
+        
+        .cta-calendar-more {
+            padding: 4px 8px;
+            font-size: 11px;
+            color: #646970;
+        }
+        
+        .cta-calendar-schedule-wrapper {
+            padding: 8px;
+            text-align: center;
+        }
+        
+        .cta-calendar-schedule-btn {
+            font-size: 11px;
+        }
+        
+        .cta-calendar-legend {
+            margin-top: var(--cta-admin-spacing-lg);
+            padding: var(--cta-admin-spacing-md);
+            background: #f6f7f7;
+            border-radius: 8px;
+            display: flex;
+            gap: var(--cta-admin-spacing-lg);
+            align-items: center;
+            font-size: 13px;
+        }
+        
+        .cta-calendar-legend strong {
+            color: #1d2327;
+        }
+        
+        .cta-calendar-legend-item {
+            display: flex;
+            align-items: center;
+            gap: var(--cta-admin-spacing-sm);
+        }
+        
+        .cta-calendar-legend-color {
+            width: 16px;
+            height: 16px;
+            border-radius: 4px;
+        }
+        
+        .cta-calendar-legend-color.scheduled {
+            background: #dba617;
+        }
+        
+        .cta-calendar-legend-color.today {
+            background: #f0f6fc;
+            border: 2px solid #2271b1;
+        }
+        
+        .cta-calendar-legend-note {
+            margin-left: auto;
+        }
+        
+        .cta-calendar-legend-note span {
+            color: #646970;
+        }
+    ');
+    
     // Enqueue JavaScript for enhanced interactions
     wp_enqueue_script(
         'cta-newsletter-admin',
@@ -1852,7 +2211,7 @@ function cta_newsletter_calendar_page() {
 
                         echo '<div class="' . esc_attr($day_classes) . '" data-date="' . esc_attr($date_key) . '">';
                         echo '<div class="cta-calendar-day-number">' . esc_html((string) $day);
-                        if ($is_today) echo ' <span class="cta-badge primary" style="font-size: 10px; padding: 2px 6px;">Today</span>';
+                        if ($is_today) echo ' <span class="cta-calendar-today-badge">Today</span>';
                         echo '</div>';
 
                         if (!empty($items)) {
@@ -1869,11 +2228,11 @@ function cta_newsletter_calendar_page() {
                                 $shown++;
                             }
                             if (count($items) > 3) {
-                                echo '<div style="padding: 4px 8px; font-size: 11px; color: #646970;">+' . esc_html((string) (count($items) - 3)) . ' more</div>';
+                                echo '<div class="cta-calendar-more">+' . esc_html((string) (count($items) - 3)) . ' more</div>';
                             }
                         } else {
-                            echo '<div style="padding: 8px; text-align: center;">';
-                            echo '<a href="' . esc_url(admin_url('admin.php?page=cta-newsletter-compose&schedule_date=' . $date_key)) . '" class="button button-small" style="font-size: 11px;">+ Schedule</a>';
+                            echo '<div class="cta-calendar-schedule-wrapper">';
+                            echo '<a href="' . esc_url(admin_url('admin.php?page=cta-newsletter-compose&schedule_date=' . $date_key)) . '" class="button button-small cta-calendar-schedule-btn">+ Schedule</a>';
                             echo '</div>';
                         }
 
@@ -1885,18 +2244,18 @@ function cta_newsletter_calendar_page() {
             </div>
             
             <!-- Calendar Legend -->
-            <div style="margin-top: 24px; padding: 16px; background: #f6f7f7; border-radius: 8px; display: flex; gap: 24px; align-items: center; font-size: 13px;">
-                <strong style="color: #1d2327;">Legend:</strong>
-                <div style="display: flex; align-items: center; gap: 8px;">
-                    <div style="width: 16px; height: 16px; background: #dba617; border-radius: 4px;"></div>
+            <div class="cta-calendar-legend">
+                <strong>Legend:</strong>
+                <div class="cta-calendar-legend-item">
+                    <div class="cta-calendar-legend-color scheduled"></div>
                     <span>Scheduled</span>
                 </div>
-                <div style="display: flex; align-items: center; gap: 8px;">
-                    <div style="width: 16px; height: 16px; background: #f0f6fc; border: 2px solid #2271b1; border-radius: 4px;"></div>
+                <div class="cta-calendar-legend-item">
+                    <div class="cta-calendar-legend-color today"></div>
                     <span>Today</span>
                 </div>
-                <div style="margin-left: auto;">
-                    <span style="color: #646970;">Click any date to schedule a campaign</span>
+                <div class="cta-calendar-legend-note">
+                    <span>Click any date to schedule a campaign</span>
                 </div>
             </div>
         </div>

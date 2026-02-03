@@ -31,6 +31,9 @@
     
     if (triggers.length === 0) return;
 
+    // Track which groups have been initialized to open first accordion
+    const initializedGroups = new Set();
+
     triggers.forEach(trigger => {
       // Prevent double-binding
       if (trigger.dataset.accordionInit === 'true') return;
@@ -61,6 +64,17 @@
         
         // Force a reflow to ensure CSS applies
         void content.offsetHeight;
+      } else {
+        // Ensure closed accordions have inline styles cleared
+        content.setAttribute('aria-hidden', 'true');
+        content.style.maxHeight = '';
+        content.style.paddingTop = '';
+        content.style.paddingBottom = '';
+        content.style.opacity = '';
+        content.style.display = '';
+        
+        // Force a reflow to ensure CSS applies
+        void content.offsetHeight;
       }
 
       // Get accordion container and configuration
@@ -68,6 +82,16 @@
       const group = accordion?.dataset.accordionGroup || 'default';
       const allowMultiple = accordion?.dataset.accordionAllowMultiple === 'true';
       const animation = accordion?.dataset.accordionAnimation || 'height';
+
+      // Open first accordion in each group on page load
+      if (!initializedGroups.has(group)) {
+        initializedGroups.add(group);
+        const isExpanded = trigger.getAttribute('aria-expanded') === 'true';
+        if (!isExpanded) {
+          // Open the first accordion in this group
+          openAccordion(trigger, content, animation);
+        }
+      }
 
       // Click handler
       trigger.addEventListener('click', function(e) {

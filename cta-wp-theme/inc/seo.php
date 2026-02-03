@@ -1614,12 +1614,22 @@ function cta_filter_sitemap_entry($entry, $post, $post_type) {
         'training-guides',
         'downloadable-resources',
         'faqs',
-        // All location pages (add more as needed)
+        // All location pages (completely removed - keeping slugs for sitemap exclusion)
         'location-maidstone',
         'location-london',
         'location-lancashire',
         'location-tunbridge-wells',
         'location-wales',
+        'location-scotland',
+        'location-canterbury',
+        'location-ashford',
+        'location-medway',
+        'location-midlands',
+        'location-merseyside',
+        'location-greater-manchester',
+        'location-east-england',
+        'location-south-west',
+        'location-west-yorkshire',
         'locations-index',
         'locations',
         'group-training',
@@ -2598,6 +2608,143 @@ function cta_robots_txt($output, $public) {
 add_filter('robots_txt', 'cta_robots_txt', 10, 2);
 
 /**
+ * Get link suggestions for an orphan page
+ * 
+ * @param int $orphan_id The ID of the orphan page
+ * @return array Array of suggestion objects with source info and relevance
+ */
+function cta_get_orphan_link_suggestions($orphan_id) {
+    $orphan = get_post($orphan_id);
+    if (!$orphan) {
+        return [];
+    }
+    
+    $suggestions = [];
+    $orphan_title = get_the_title($orphan_id);
+    $orphan_content = $orphan->post_content;
+    $orphan_type = $orphan->post_type;
+    
+    // Extract keywords from orphan page
+    $orphan_keywords = cta_extract_keywords_from_content($orphan_title . ' ' . wp_strip_all_tags($orphan_content));
+    
+    // Get potential source pages
+    $source_posts = get_posts([
+        'post_type' => ['page', 'course', 'course_event', 'post'],
+        'posts_per_page' => 100,
+        'post_status' => 'publish',
+        'exclude' => [$orphan_id]
+    ]);
+    
+    foreach ($source_posts as $source) {
+        $source_content = $source->post_content;
+        $source_title = get_the_title($source->ID);
+        $source_type = $source->post_type;
+        
+        // Calculate relevance score
+        $relevance = cta_calculate_content_relevance(
+            $orphan_keywords,
+            $source_title . ' ' . wp_strip_all_tags($source_content),
+            $orphan_type,
+            $source_type
+        );
+        
+        // Only suggest if relevance is above threshold
+        if ($relevance >= 30) {
+            $suggestions[] = [
+                'source_id' => $source->ID,
+                'source_title' => $source_title,
+                'source_type' => $source_type,
+                'source_url' => get_permalink($source->ID),
+                'edit_link' => get_edit_post_link($source->ID),
+                'relevance_score' => round($relevance),
+                'suggested_keyword' => cta_find_best_keyword_match($orphan_keywords, $source_content)
+            ];
+        }
+    }
+    
+    // Sort by relevance (highest first)
+    usort($suggestions, function($a, $b) {
+        return $b['relevance_score'] - $a['relevance_score'];
+    });
+    
+    return array_slice($suggestions, 0, 10); // Return top 10
+}
+
+/**
+ * Extract keywords from content
+ */
+function cta_extract_keywords_from_content($content) {
+    $content = strtolower($content);
+    $words = preg_split('/\s+/', $content);
+    $stop_words = ['the', 'a', 'an', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for', 'of', 'with', 'by', 'from', 'is', 'are', 'was', 'were', 'be', 'been', 'being', 'have', 'has', 'had', 'do', 'does', 'did', 'will', 'would', 'could', 'should', 'may', 'might', 'must', 'shall', 'can', 'need', 'dare', 'ought', 'used', 'this', 'that', 'these', 'those'];
+    
+    $keywords = [];
+    foreach ($words as $word) {
+        $word = trim($word, '.,!?;:"()[]{}');
+        if (strlen($word) >= 4 && !in_array($word, $stop_words)) {
+            $keywords[] = $word;
+        }
+    }
+    
+    return array_unique($keywords);
+}
+
+/**
+ * Calculate relevance score between orphan page and potential source
+ */
+function cta_calculate_content_relevance($orphan_keywords, $source_content, $orphan_type, $source_type) {
+    $source_lower = strtolower($source_content);
+    $score = 0;
+    
+    // Keyword matching (40% weight)
+    $matched_keywords = 0;
+    foreach ($orphan_keywords as $keyword) {
+        if (stripos($source_lower, $keyword) !== false) {
+            $matched_keywords++;
+        }
+    }
+    if (count($orphan_keywords) > 0) {
+        $score += ($matched_keywords / count($orphan_keywords)) * 40;
+    }
+    
+    // Post type relationships (30% weight)
+    if ($orphan_type === 'course_event' && $source_type === 'course') {
+        $score += 30; // Course events should link to courses
+    } elseif ($orphan_type === $source_type) {
+        $score += 20; // Same type
+    } elseif (in_array($orphan_type, ['page', 'post']) && in_array($source_type, ['page', 'post'])) {
+        $score += 15; // Related types
+    }
+    
+    // Category/taxonomy matching (20% weight)
+    if ($orphan_type === 'course' && $source_type === 'course') {
+        $orphan_terms = wp_get_post_terms($orphan_type === 'course' ? get_the_ID() : 0, 'course_category', ['fields' => 'slugs']);
+        // This would need the source post ID, simplified here
+        $score += 10;
+    }
+    
+    // Content length bonus (10% weight)
+    if (strlen($source_content) > 500) {
+        $score += 10; // Longer content is better for linking
+    }
+    
+    return min(100, $score);
+}
+
+/**
+ * Find best keyword match in source content
+ */
+function cta_find_best_keyword_match($keywords, $content) {
+    $content_lower = strtolower($content);
+    foreach ($keywords as $keyword) {
+        if (stripos($content_lower, $keyword) !== false) {
+            return $keyword;
+        }
+    }
+    return !empty($keywords) ? $keywords[0] : '';
+}
+
+/**
  * SEO Tools admin page
  */
 function cta_seo_tools_admin_page() {
@@ -2726,8 +2873,15 @@ function cta_seo_tools_admin_page() {
             foreach ($all_pages as $page_id) {
                 // Count internal links to this page
                 $link_count = 0;
+                $link_sources = [];
                 
-                // Search for links to this page in post content
+                // Get page identifiers
+                $page_url = get_permalink($page_id);
+                $page_url_clean = rtrim($page_url, '/');
+                $page_slug = get_post_field('post_name', $page_id);
+                $page_id_num = (string) $page_id;
+                
+                // Search for actual HTML links in post content
                 $posts = get_posts([
                     'post_type' => ['page', 'course', 'course_event', 'post'],
                     'posts_per_page' => -1,
@@ -2735,23 +2889,90 @@ function cta_seo_tools_admin_page() {
                     'exclude' => [$page_id]
                 ]);
                 
-                $page_url = get_permalink($page_id);
-                $page_slug = get_post_field('post_name', $page_id);
-                
                 foreach ($posts as $post) {
                     $content = $post->post_content;
-                    // Count occurrences of this page's URL or slug
-                    if (strpos($content, $page_url) !== false || strpos($content, $page_slug) !== false) {
-                        $link_count++;
+                    
+                    if (empty($content)) {
+                        continue;
+                    }
+                    
+                    // Check for actual <a> tags linking to this page
+                    // Use libxml_use_internal_errors to suppress warnings for malformed HTML
+                    libxml_use_internal_errors(true);
+                    $dom = new DOMDocument();
+                    $dom->loadHTML('<?xml encoding="utf-8" ?>' . $content, LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD);
+                    libxml_clear_errors();
+                    
+                    $links = $dom->getElementsByTagName('a');
+                    
+                    foreach ($links as $link) {
+                        $href = $link->getAttribute('href');
+                        if (empty($href)) continue;
+                        
+                        // Normalize URLs for comparison
+                        $href_clean = rtrim($href, '/');
+                        
+                        // Check if link points to this page
+                        if ($href === $page_url || 
+                            $href_clean === $page_url_clean ||
+                            strpos($href, $page_url) !== false ||
+                            strpos($href, '?p=' . $page_id_num) !== false ||
+                            strpos($href, '/' . $page_slug . '/') !== false ||
+                            strpos($href, '/' . $page_slug) !== false) {
+                            $link_count++;
+                            $link_sources[] = [
+                                'type' => 'content',
+                                'source' => get_the_title($post->ID),
+                                'source_id' => $post->ID
+                            ];
+                            break; // Count once per post
+                        }
                     }
                 }
                 
-                // Check menu items
-                $menu_items = wp_get_nav_menu_items('primary');
-                if ($menu_items) {
-                    foreach ($menu_items as $item) {
-                        if ($item->object_id == $page_id) {
-                            $link_count++;
+                // Check all navigation menus
+                $menus = wp_get_nav_menus();
+                foreach ($menus as $menu) {
+                    $menu_items = wp_get_nav_menu_items($menu->term_id);
+                    if ($menu_items) {
+                        foreach ($menu_items as $item) {
+                            if ($item->object_id == $page_id) {
+                                $link_count++;
+                                $link_sources[] = [
+                                    'type' => 'menu',
+                                    'source' => $menu->name,
+                                    'source_id' => $menu->term_id
+                                ];
+                                break; // Count once per menu
+                            }
+                        }
+                    }
+                }
+                
+                // Check widgets (text widgets, custom HTML)
+                if (function_exists('wp_get_sidebars_widgets')) {
+                    $sidebars = wp_get_sidebars_widgets();
+                    foreach ($sidebars as $sidebar_id => $widgets) {
+                        if (!is_array($widgets)) continue;
+                        foreach ($widgets as $widget_id) {
+                            $widget_data = get_option('widget_' . str_replace('_', '-', explode('-', $widget_id)[0]));
+                            if (is_array($widget_data)) {
+                                foreach ($widget_data as $instance) {
+                                    if (isset($instance['text']) || isset($instance['content'])) {
+                                        $widget_content = $instance['text'] ?? $instance['content'] ?? '';
+                                        if (strpos($widget_content, $page_url) !== false || 
+                                            strpos($widget_content, '/' . $page_slug) !== false) {
+                                            $link_count++;
+                                            $link_sources[] = [
+                                                'type' => 'widget',
+                                                'source' => $sidebar_id,
+                                                'source_id' => 0
+                                            ];
+                                            break 2; // Count once per sidebar
+                                        }
+                                    }
+                                }
+                            }
                         }
                     }
                 }
@@ -2763,6 +2984,7 @@ function cta_seo_tools_admin_page() {
                         'url' => $page_url,
                         'type' => get_post_type($page_id),
                         'link_count' => $link_count,
+                        'link_sources' => $link_sources,
                         'edit_link' => get_edit_post_link($page_id)
                     ];
                 }
@@ -2786,11 +3008,79 @@ function cta_seo_tools_admin_page() {
                     <?php if (count($orphan_pages) > 20) : ?>
                         <p class="description">... and <?php echo count($orphan_pages) - 20; ?> more. Add internal links to these pages from relevant content.</p>
                     <?php endif; ?>
+                    
+                    <div style="margin-top: 20px; padding: 16px; background: #f0f6fc; border-left: 4px solid #2271b1;">
+                        <h3 style="margin-top: 0;">Fix Orphan Pages</h3>
+                        <p>Use the tool below to get suggestions for where to add internal links to orphan pages.</p>
+                        <form method="post" action="<?php echo esc_url(admin_url('admin.php?page=cta-seo-tools&tab=orphan-fixer')); ?>">
+                            <?php wp_nonce_field('cta_fix_orphan_pages'); ?>
+                            <input type="hidden" name="action" value="fix_orphan_pages" />
+                            <button type="submit" class="button button-primary">Get Link Suggestions for Orphan Pages</button>
+                        </form>
+                    </div>
                 </div>
             <?php else : ?>
                 <p>No orphan pages detected. All pages have sufficient internal linking.</p>
             <?php endif; ?>
         </div>
+        
+        <?php
+        // Handle orphan page fixing
+        if (isset($_POST['action']) && $_POST['action'] === 'fix_orphan_pages' && check_admin_referer('cta_fix_orphan_pages')) {
+            $orphan_id = isset($_POST['orphan_id']) ? absint($_POST['orphan_id']) : 0;
+            if ($orphan_id > 0) {
+                $suggestions = cta_get_orphan_link_suggestions($orphan_id);
+                $show_suggestions = true;
+            } else {
+                // Show all orphan pages with suggestions
+                $all_orphans_with_suggestions = [];
+                foreach ($orphan_pages as $orphan) {
+                    $suggestions = cta_get_orphan_link_suggestions($orphan['id']);
+                    if (!empty($suggestions)) {
+                        $all_orphans_with_suggestions[] = [
+                            'orphan' => $orphan,
+                            'suggestions' => $suggestions
+                        ];
+                    }
+                }
+                $show_suggestions = true;
+            }
+        }
+        ?>
+        
+        <?php if (isset($show_suggestions) && $show_suggestions) : ?>
+        <div class="card" style="max-width: 1200px; margin-top: 20px;">
+            <h2>Link Suggestions for Orphan Pages</h2>
+            
+            <?php if (isset($all_orphans_with_suggestions)) : ?>
+                <?php foreach (array_slice($all_orphans_with_suggestions, 0, 10) as $item) : 
+                    $orphan = $item['orphan'];
+                    $suggestions = $item['suggestions'];
+                ?>
+                <div style="margin-bottom: 24px; padding: 16px; border: 1px solid #dcdcde; border-radius: 4px;">
+                    <h3><?php echo esc_html($orphan['title']); ?> (<?php echo esc_html($orphan['type']); ?>)</h3>
+                    <p><strong>Current links:</strong> <?php echo $orphan['link_count']; ?></p>
+                    
+                    <?php if (!empty($suggestions)) : ?>
+                        <h4>Suggested link locations:</h4>
+                        <ul>
+                            <?php foreach (array_slice($suggestions, 0, 5) as $suggestion) : ?>
+                            <li>
+                                <strong><?php echo esc_html($suggestion['source_title']); ?></strong> 
+                                (<?php echo esc_html($suggestion['source_type']); ?>)
+                                - Relevance: <?php echo esc_html($suggestion['relevance_score']); ?>%
+                                <a href="<?php echo esc_url($suggestion['edit_link']); ?>" class="button button-small">Edit</a>
+                            </li>
+                            <?php endforeach; ?>
+                        </ul>
+                    <?php else : ?>
+                        <p class="description">No suggestions found. Consider manually adding links from related content.</p>
+                    <?php endif; ?>
+                </div>
+                <?php endforeach; ?>
+            <?php endif; ?>
+        </div>
+        <?php endif; ?>
         
         <div class="card" style="max-width: 1200px; margin-top: 20px;">
             <h2>Content Audit - Thin Content Detection</h2>

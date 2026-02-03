@@ -1221,7 +1221,7 @@ section .container,
   position: absolute;
   top: 100%;
   left: 50%; /* Center relative to nav item */
-  transform: translateX(calc(-50% + 200px)) translateY(-8px); /* Shift 200px to the right, slide up when hidden */
+  transform: translateX(-50%) translateY(-8px); /* Center without side offset */
   margin-top: 8px;
   opacity: 0;
   visibility: hidden;
@@ -1239,8 +1239,8 @@ section .container,
 @media (min-width: 1121px) and (max-width: 1400px) {
   #courses-mega-menu,
   #courses-dropdown {
-    /* Adjust transform to prevent right-side clipping */
-    transform: translateX(calc(-50% + min(200px, calc((100vw - 1100px) / 2)))) translateY(-8px);
+    /* Center without side offset */
+    transform: translateX(-50%) translateY(-8px);
   }
   
   .nav-dropdown-wrapper:hover #courses-mega-menu,
@@ -1251,7 +1251,7 @@ section .container,
   #courses-dropdown.active,
   #courses-mega-menu:hover,
   #courses-dropdown:hover {
-    transform: translateX(calc(-50% + min(200px, calc((100vw - 1100px) / 2)))) translateY(0);
+    transform: translateX(-50%) translateY(0);
   }
 }
 
@@ -1307,7 +1307,7 @@ section .container,
   opacity: 1;
   visibility: visible;
   pointer-events: auto;
-  transform: translateX(calc(-50% + 200px)) translateY(0); /* Shift 200px to the right, slide down when visible */
+  transform: translateX(-50%) translateY(0); /* Center without side offset */
 }
 
 /* Mega menu content - clean modern panel */
@@ -6127,6 +6127,35 @@ input[type="search"]::-ms-clear,
   position: relative;
   border-radius: 16px 16px 0 0;
   background: var(--cream-light);
+}
+
+/* Placeholder for course cards without images */
+.course-image-wrapper:not(:has(img))::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: var(--cream-light);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.course-image-wrapper:not(:has(img))::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 48px;
+  height: 48px;
+  background-image: url("data:image/svg+xml,%3Csvg width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%23B29456' stroke-width='1.5'%3E%3Cpath d='M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: contain;
+  opacity: 0.3;
 }
 
 @media (min-width: 640px) {
@@ -11076,7 +11105,7 @@ textarea:focus-visible,
 .course-card-badge-wrapper {
   display: flex;
   align-items: center;
-  justify-content: flex-start; /* Left align badges */
+  justify-content: flex-end; /* Right align badges */
   flex-wrap: wrap;
   gap: 0.5rem;
   margin-bottom: 12px; /* Tighter spacing: badge to title (0.75rem) */
@@ -40093,8 +40122,11 @@ fieldset.booking-modal-field legend.booking-modal-label {
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
-  gap: 16px;
+  gap: 12px;
   margin-top: 24px;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 @media (min-width: 640px) {
@@ -40116,6 +40148,10 @@ fieldset.booking-modal-field legend.booking-modal-label {
   border: 1px solid rgba(178, 148, 86, 0.2);
   border-radius: var(--radius-sm);
   transition: all var(--transition-fast);
+  flex-shrink: 0;
+  white-space: nowrap;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 @media (min-width: 640px) {
@@ -40668,6 +40704,10 @@ fieldset.booking-modal-field legend.booking-modal-label {
 /* Apply standardized container padding */
 .course-detail-content .container {
   padding: 16px; /* Mobile: 16px - standardized to match base container */
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
 }
 
 @media (min-width: 640px) {
@@ -40721,7 +40761,9 @@ fieldset.booking-modal-field legend.booking-modal-label {
   width: 100%;
   max-width: 100%;
   box-sizing: border-box;
-  min-width: 0; /* Prevent flex item from overflowing */
+  min-width: 0;
+  overflow-wrap: break-word;
+  word-wrap: break-word;
 }
 
 .course-detail-section-heading {
@@ -40886,6 +40928,9 @@ fieldset.booking-modal-field legend.booking-modal-label {
   margin-top: 0;
   max-width: 100%;
   width: 100%;
+  box-sizing: border-box;
+  overflow-wrap: break-word;
+  word-wrap: break-word;
 }
 
 .course-detail-learn-item {
@@ -40899,6 +40944,11 @@ fieldset.booking-modal-field legend.booking-modal-label {
   line-height: 1.7;
   align-items: flex-start;
   margin-bottom: 0.5rem;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
 }
 
 .course-detail-learn-item::before {
@@ -40990,6 +41040,9 @@ fieldset.booking-modal-field legend.booking-modal-label {
 .course-detail-description {
   width: 100%;
   max-width: 100%;
+  box-sizing: border-box;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
 }
 
 .course-detail-description p {
@@ -40997,6 +41050,9 @@ fieldset.booking-modal-field legend.booking-modal-label {
   font-size: clamp(1rem, 1.5vw, 1.125rem);
   color: var(--brown-medium, #4A3A2A);
   line-height: 1.7;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  max-width: 100%;
 }
 
 .course-detail-description-section .course-detail-description p:last-child {
@@ -41044,12 +41100,19 @@ fieldset.booking-modal-field legend.booking-modal-label {
 /* Who Should Attend Styles */
 .course-detail-audience {
   margin: 0;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
 }
 
 .course-detail-audience strong {
   display: block;
   margin-bottom: 1rem;
   color: #333;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
 }
 
 .course-detail-audience ul {
@@ -41057,6 +41120,8 @@ fieldset.booking-modal-field legend.booking-modal-label {
   padding: 0;
   list-style: disc;
   color: #555;
+  max-width: calc(100% - 1.5rem);
+  box-sizing: border-box;
 }
 
 .course-detail-audience li {
@@ -41144,7 +41209,9 @@ fieldset.booking-modal-field legend.booking-modal-label {
 /* Mobile: full width, sticky positioning */
 @media (max-width: 639px) {
   .course-detail-grid {
-    gap: 2rem; /* Ensure proper gap on mobile */
+    gap: 2rem;
+    padding: 0 16px;
+    box-sizing: border-box;
   }
   
   .course-detail-sidebar {
@@ -41154,16 +41221,35 @@ fieldset.booking-modal-field legend.booking-modal-label {
     order: -1;
     width: 100%;
     max-width: 100%;
-    margin-bottom: 2rem; /* Add spacing between sidebar and main content */
+    margin-bottom: 2rem;
+    box-sizing: border-box;
   }
   
   .course-detail-main {
-    margin-top: 0; /* Remove any top margin */
+    margin-top: 0;
+    padding: 0;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+  }
+  
+  .course-detail-section-heading {
+    font-size: 1.75rem;
+    margin: 1.5rem 0 1rem 0;
+  }
+  
+  .course-detail-booking-card {
+    padding: 1.25rem;
   }
 }
 
 /* Tablet: full width, sticky positioning */
 @media (min-width: 640px) and (max-width: 967px) {
+  .course-detail-grid {
+    padding: 0 24px;
+    box-sizing: border-box;
+  }
+  
   .course-detail-sidebar {
     position: sticky;
     top: 80px;
@@ -41171,6 +41257,13 @@ fieldset.booking-modal-field legend.booking-modal-label {
     order: -1;
     width: 100%;
     max-width: 100%;
+    box-sizing: border-box;
+  }
+  
+  .course-detail-main {
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
   }
 }
 
@@ -46796,6 +46889,14 @@ a.article-cta-btn:focus-visible {
   padding-bottom: 24px;
 }
 
+/* Ensure closed accordions in CQC FAQ wrapper are properly hidden */
+.cqc-faq-wrapper .accordion-content[aria-hidden="true"] {
+  max-height: 0;
+  opacity: 0;
+  padding: 0;
+  overflow: hidden;
+}
+
 .cqc-faq-wrapper .accordion-content p {
   margin: 0 0 16px 0;
   font-size: 1rem;
@@ -51105,6 +51206,19 @@ a.article-cta-btn:focus-visible {
   margin-bottom: 2rem;
   padding-bottom: 1rem;
   border-bottom: 1px solid #e5e5e5;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+@media (max-width: 639px) {
+  .course-detail-audience-section,
+  .course-detail-requirements-section,
+  .course-detail-learn-section,
+  .course-detail-description-section {
+    margin-bottom: 1.5rem;
+    padding-bottom: 0.75rem;
+  }
 }
 
 .course-detail-learn-section:last-child,
@@ -51133,6 +51247,11 @@ a.article-cta-btn:focus-visible {
   line-height: 1.7;
   color: var(--brown-medium, #4A3A2A);
   margin-bottom: 1rem;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
 }
 
 .course-detail-text p {

@@ -51,11 +51,6 @@ $contact = cta_get_contact_info();
             <li><a href="<?php echo esc_url(get_permalink($group_training_page)); ?>" class="footer-modern-link">Group Training</a></li>
           <?php endif; ?>
           <?php 
-          $locations_page = get_page_by_path('locations');
-          if ($locations_page) : ?>
-            <li><a href="<?php echo esc_url(get_permalink($locations_page)); ?>" class="footer-modern-link">Training Locations</a></li>
-          <?php endif; ?>
-          <?php 
           $cqc_hub_page = get_page_by_path('cqc-compliance-hub');
           if ($cqc_hub_page) : ?>
             <li><a href="<?php echo esc_url(get_permalink($cqc_hub_page)); ?>" class="footer-modern-link">CQC Compliance Hub</a></li>
