@@ -62,27 +62,28 @@ function cta_populate_test_discounts() {
     
     if (empty($existing_codes)) {
         // Create some test discount codes
+        // Note: Discount codes appear to be fixed at 20% based on validate function
         $test_codes = [
             [
                 'code' => 'WELCOME20',
-                'discount' => 20,
                 'active' => true,
                 'expiry_date' => date('Y-m-d', strtotime('+3 months')),
                 'sync_to_eventbrite' => false,
+                'created' => current_time('mysql'),
             ],
             [
                 'code' => 'EARLYBIRD15',
-                'discount' => 15,
                 'active' => true,
                 'expiry_date' => date('Y-m-d', strtotime('+1 month')),
                 'sync_to_eventbrite' => false,
+                'created' => current_time('mysql'),
             ],
             [
                 'code' => 'STUDENT10',
-                'discount' => 10,
                 'active' => true,
                 'expiry_date' => date('Y-m-d', strtotime('+6 months')),
                 'sync_to_eventbrite' => false,
+                'created' => current_time('mysql'),
             ],
         ];
         
