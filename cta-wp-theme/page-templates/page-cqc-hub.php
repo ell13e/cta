@@ -12,6 +12,85 @@ get_header();
 $contact = cta_get_contact_info();
 
 /**
+ * Format FAQ answer text, converting semicolon-separated lists to HTML lists
+ * (Same function as in page-faqs.php)
+ * 
+ * @param string $text The FAQ answer text
+ * @return string Formatted HTML
+ */
+function cta_format_faq_answer($text) {
+    if (empty($text)) {
+        return '';
+    }
+    
+    // Look for patterns like: "intro text: Item : Description; Item : Description; closing text"
+    // Improved pattern to catch more variations
+    // Match: "Title : Description;" where Title starts with capital letter
+    $pattern = '/([A-Z][A-Za-z\s&\-\'()]{3,}?)\s*:\s*([^;]{10,}?)(?:;\s*(?=[A-Z])|;\s*$|$)/';
+    
+    $matches = [];
+    if (preg_match_all($pattern, $text, $matches, PREG_SET_ORDER | PREG_OFFSET_CAPTURE)) {
+        // Need at least 2 consecutive items to format as list
+        if (count($matches) >= 2) {
+            $first_pos = $matches[0][0][1];
+            $last_end = $matches[count($matches) - 1][0][1] + strlen($matches[count($matches) - 1][0][0]);
+            $list_span = $last_end - $first_pos;
+            $text_length = strlen($text);
+            
+            // If list spans at least 20% of text, format as list
+            if ($list_span >= $text_length * 0.2) {
+                $before_text = trim(substr($text, 0, $first_pos));
+                $after_text = trim(substr($text, $last_end));
+                
+                $list_items = [];
+                foreach ($matches as $match) {
+                    $title = trim($match[1][0]);
+                    $description = trim($match[2][0]);
+                    $description = rtrim($description, '; ');
+                    
+                    // Validate item - more lenient
+                    if (!empty($title) && !empty($description) && 
+                        strlen($title) >= 3 && strlen($description) >= 10) {
+                        $list_items[] = ['title' => $title, 'description' => $description];
+                    }
+                }
+                
+                // Format as list if we have 2+ valid items
+                if (count($list_items) >= 2) {
+                    $output = '';
+                    
+                    if (!empty($before_text)) {
+                        // Remove trailing colon/space
+                        $before_text = preg_replace('/:\s*$/', '', trim($before_text));
+                        $output .= '<p class="faq-intro">' . wp_kses_post($before_text) . '</p>';
+                    }
+                    
+                    $output .= '<ul class="faq-answer-list">';
+                    foreach ($list_items as $item) {
+                        $output .= '<li><strong class="faq-list-title">' . esc_html($item['title']) . ':</strong> <span class="faq-list-description">' . esc_html($item['description']) . '</span></li>';
+                    }
+                    $output .= '</ul>';
+                    
+                    if (!empty($after_text)) {
+                        $output .= '<p class="faq-outro">' . wp_kses_post($after_text) . '</p>';
+                    }
+                    
+                    return $output;
+                }
+            }
+        }
+    }
+    
+    // Default: standard formatting with improved paragraph spacing
+    $formatted = wpautop(wp_kses_post($text));
+    
+    // Add classes to paragraphs for better styling
+    $formatted = preg_replace('/<p>/', '<p class="faq-paragraph">', $formatted);
+    
+    return $formatted;
+}
+
+/**
  * Helper function to safely get page URL with fallback
  */
 function cta_safe_page_url($slug, $fallback = null) {
@@ -304,8 +383,8 @@ $collection_schema = [
   <!-- Jump to Navigation -->
   <nav class="cqc-jump-nav" aria-label="Page sections">
     <div class="container">
+      <span class="cqc-jump-nav-label">Jump to:</span>
       <div class="cqc-jump-nav-wrapper">
-        <span class="cqc-jump-nav-label">Jump to:</span>
         <ul class="cqc-jump-nav-list">
           <li><a href="#cqc-requirements-heading" class="cqc-jump-nav-link">Training Requirements</a></li>
           <li><a href="#mandatory-training-heading" class="cqc-jump-nav-link">Mandatory Training</a></li>
@@ -588,16 +667,23 @@ $collection_schema = [
           $default_colors = ['#3182ce', '#805ad5', '#d53f8c', '#d69e2e', '#38a169', '#35938d'];
           
           // Use ACF fields if available
+          $first_accordion_index = null;
           foreach ($inspection_accordions as $index => $accordion) :
             $accordion_title = $accordion['title'] ?? '';
+            $accordion_items = $accordion['items'] ?? '';
+            if (empty($accordion_title) || empty($accordion_items)) continue;
+            
+            // Set first valid accordion index
+            if ($first_accordion_index === null) {
+              $first_accordion_index = $index;
+            }
+            
             $accordion_icon = $accordion['icon'] ?? 'fas fa-check-circle';
             // Use custom color if set, otherwise use default color based on index
             $accordion_icon_color = !empty($accordion['icon_color']) ? $accordion['icon_color'] : $default_colors[$index % count($default_colors)];
-            $accordion_expanded = !empty($accordion['expanded']);
+            // First accordion is always expanded, or use ACF field if set
+            $accordion_expanded = ($index === $first_accordion_index) || !empty($accordion['expanded']);
             $accordion_warning = !empty($accordion['warning']);
-            $accordion_items = $accordion['items'] ?? '';
-            
-            if (empty($accordion_title) || empty($accordion_items)) continue;
             
             $accordion_id = 'inspection-accordion-' . $index;
             $accordion_class = 'accordion';
@@ -824,7 +910,7 @@ $collection_schema = [
     $regulatory_description = 'Stay ahead of upcoming CQC framework updates and new training requirements';
   }
   ?>
-  <section class="content-section bg-light-cream" aria-labelledby="regulatory-changes-heading" style="margin-top: 2rem;">
+  <section class="content-section bg-light-cream" aria-labelledby="regulatory-changes-heading">
     <div class="container">
       <div class="section-header-center">
         <h2 id="regulatory-changes-heading" class="section-title"><?php echo esc_html($regulatory_title); ?></h2>
@@ -966,7 +1052,7 @@ $collection_schema = [
   </section>
 
   <!-- Oliver McGowan Training Section -->
-  <section class="content-section" aria-labelledby="oliver-mcgowan-heading">
+  <section class="content-section bg-light-cream" aria-labelledby="oliver-mcgowan-heading">
     <div class="container">
       <div class="section-header-center">
         <h2 id="oliver-mcgowan-heading" class="section-title">Oliver McGowan Mandatory Training</h2>
@@ -1072,7 +1158,7 @@ $collection_schema = [
   </section>
 
   <!-- CQC Official Resources Section -->
-  <section class="content-section" aria-labelledby="cqc-resources-heading" style="padding-top: 4rem; padding-bottom: 4rem;">
+  <section class="content-section bg-light-cream" aria-labelledby="cqc-resources-heading">
     <div class="container">
       <div class="section-header-center">
         <h2 id="cqc-resources-heading" class="section-title">Official CQC Resources</h2>
@@ -1181,7 +1267,7 @@ $collection_schema = [
   </section>
 
   <!-- Additional Government Guidance Section -->
-  <section class="content-section bg-light-cream" aria-labelledby="government-guidance-heading" style="padding-top: 4rem; padding-bottom: 4rem;">
+  <section class="content-section" aria-labelledby="government-guidance-heading">
     <div class="container">
       <div class="section-header-center">
         <h2 id="government-guidance-heading" class="section-title">Additional Government Guidance</h2>
@@ -1456,7 +1542,14 @@ $collection_schema = [
             </span>
           </button>
           <div id="cqc-faq-<?php echo (int) $index; ?>" class="accordion-content" role="region" aria-hidden="<?php echo $is_expanded ? 'false' : 'true'; ?>">
-            <?php echo wpautop(wp_kses_post($faq['answer'])); ?>
+            <?php 
+            // Use FAQ formatting function if available, otherwise use wpautop
+            if (function_exists('cta_format_faq_answer')) {
+              echo cta_format_faq_answer($faq['answer']);
+            } else {
+              echo wpautop(wp_kses_post($faq['answer']));
+            }
+            ?>
           </div>
         </div>
         <?php endforeach; ?>

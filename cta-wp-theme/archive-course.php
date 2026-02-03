@@ -182,10 +182,17 @@ $category_names = [
           $price = get_field('course_price');
           $accreditation = get_field('course_accreditation');
           $level = get_field('course_level');
-          $terms = get_the_terms(get_the_ID(), 'course_category');
-          $category_slug = $terms && !is_wp_error($terms) ? $terms[0]->slug : '';
+          // Use limiting function to get max 2 categories
+          $terms = function_exists('cta_get_course_category_terms') ? cta_get_course_category_terms(get_the_ID()) : get_the_terms(get_the_ID(), 'course_category');
+          $primary_term = $terms && !is_wp_error($terms) && !empty($terms) ? $terms[0] : null;
+          $secondary_term = $terms && !is_wp_error($terms) && count($terms) >= 2 ? $terms[1] : null;
+          $category_slug = $primary_term ? $primary_term->slug : '';
           $badge_color = isset($category_badge_colors[$category_slug]) ? $category_badge_colors[$category_slug] : 'course-badge-blue';
-          $short_name = isset($category_short_names[$category_slug]) ? $category_short_names[$category_slug] : ($terms && !is_wp_error($terms) ? $terms[0]->name : '');
+          $short_name = isset($category_short_names[$category_slug]) ? $category_short_names[$category_slug] : ($primary_term ? $primary_term->name : '');
+          $primary_icon = isset($category_icons[$category_slug]) ? $category_icons[$category_slug] : 'fa-book';
+          $secondary_icon = $secondary_term && isset($category_icons[$secondary_term->slug]) ? $category_icons[$secondary_term->slug] : 'fa-book';
+          $secondary_badge_color = $secondary_term && isset($category_badge_colors[$secondary_term->slug]) ? $category_badge_colors[$secondary_term->slug] : 'course-badge-blue';
+          $secondary_short_name = $secondary_term && isset($category_short_names[$secondary_term->slug]) ? $category_short_names[$secondary_term->slug] : ($secondary_term ? $secondary_term->name : '');
         ?>
         <article class="course-card" data-category="<?php echo esc_attr($category_slug); ?>" data-title="<?php echo esc_attr(strtolower(get_the_title())); ?>" data-course-id="<?php echo get_the_ID(); ?>" data-course-url="<?php echo esc_url(get_permalink()); ?>">
           <?php if (has_post_thumbnail()) : 
@@ -206,12 +213,20 @@ $category_names = [
           <?php endif; ?>
           
           <div class="course-card-header">
-            <?php if ($short_name) : ?>
+            <?php if ($primary_term || $secondary_term) : ?>
             <div class="course-card-badge-wrapper">
+              <?php if ($primary_term) : ?>
               <span class="course-card-badge <?php echo esc_attr($badge_color); ?>">
-                <i class="fas fa-book course-card-badge-icon" aria-hidden="true"></i>
+                <i class="fas <?php echo esc_attr($primary_icon); ?> course-card-badge-icon" aria-hidden="true"></i>
                 <?php echo esc_html($short_name); ?>
               </span>
+              <?php endif; ?>
+              <?php if ($secondary_term) : ?>
+              <span class="course-card-badge <?php echo esc_attr($secondary_badge_color); ?>">
+                <i class="fas <?php echo esc_attr($secondary_icon); ?> course-card-badge-icon" aria-hidden="true"></i>
+                <?php echo esc_html($secondary_short_name); ?>
+              </span>
+              <?php endif; ?>
             </div>
             <?php endif; ?>
             

@@ -58,8 +58,11 @@
   }
 }
 
+/* Mobile/Tablet: Hide desktop nav */
 @media (max-width: 1120px) {
-  .site-header .nav-desktop {
+  .site-header .nav-desktop,
+  .header-inner-wrapper .nav-desktop,
+  .site-header.header--overflow .nav-desktop {
     display: none;
   }
   .site-header .mobile-menu-btn {
@@ -75,15 +78,18 @@
 }
 
 /* Overflow state - placed after other rules for proper cascade */
-.site-header.header--overflow .nav-desktop {
-  display: none;
-}
 
 .site-header.header--overflow .mobile-menu-btn {
   display: inline-flex;
 }
 
 .site-header.header--overflow .header-actions {
+  display: none;
+}
+
+/* Hide mega menu when header overflows */
+.site-header.header--overflow #courses-mega-menu,
+.site-header.header--overflow #courses-dropdown {
   display: none;
 }
 
@@ -866,9 +872,12 @@ section .container,
   justify-content: center; /* Center the navigation items */
 }
 
-@media (min-width: 768px) {
+@media (min-width: 1121px) {
   .header-inner-wrapper .nav-desktop {
-    display: flex; /* md:flex - Show on desktop */
+    display: flex; /* Show on desktop only above 1120px */
+  }
+  .header-inner-wrapper .mobile-menu-btn {
+    display: none; /* Hide mobile button on desktop */
   }
 }
 
@@ -887,13 +896,13 @@ section .container,
   }
 }
 
-/* On mobile, hide nav and actions, show mobile button */
-@media (max-width: 767px) {
-  .header-inner-wrapper .nav-desktop {
-    display: none;
-  }
+/* On mobile/tablet, hide nav and actions, show mobile button */
+@media (max-width: 1120px) {
   .header-inner-wrapper .header-actions {
     display: none;
+  }
+  .header-inner-wrapper .mobile-menu-btn {
+    display: inline-flex; /* Show mobile button */
   }
 }
 
@@ -961,9 +970,9 @@ section .container,
   margin: 0 auto; /* mx-auto - center the navigation */
 }
 
-@media (min-width: 768px) {
+@media (min-width: 1121px) {
   .nav-desktop {
-    display: flex; /* md:flex */
+    display: flex; /* Show on desktop only */
     flex-direction: row; /* Horizontal layout - CRITICAL */
     align-items: center; /* items-center */
     flex-wrap: nowrap; /* Prevent wrapping */
@@ -1222,6 +1231,28 @@ section .container,
   width: 1100px; /* Increased width for better fit */
   max-width: calc(100vw - 32px);
   box-sizing: border-box;
+  /* Prevent clipping on smaller screens */
+  overflow: visible;
+}
+
+/* Ensure mega menu doesn't clip on medium screens */
+@media (min-width: 1121px) and (max-width: 1400px) {
+  #courses-mega-menu,
+  #courses-dropdown {
+    /* Adjust transform to prevent right-side clipping */
+    transform: translateX(calc(-50% + min(200px, calc((100vw - 1100px) / 2)))) translateY(-8px);
+  }
+  
+  .nav-dropdown-wrapper:hover #courses-mega-menu,
+  .nav-dropdown-wrapper:hover #courses-dropdown,
+  .nav-item-dropdown:hover #courses-mega-menu,
+  .nav-item-dropdown:hover #courses-dropdown,
+  #courses-mega-menu.active,
+  #courses-dropdown.active,
+  #courses-mega-menu:hover,
+  #courses-dropdown:hover {
+    transform: translateX(calc(-50% + min(200px, calc((100vw - 1100px) / 2)))) translateY(0);
+  }
 }
 
 /* Mega menu close button */
@@ -1323,30 +1354,11 @@ section .container,
   }
 }
 
-/* Mobile */
-@media (max-width: 767px) {
+/* Mobile/Tablet - Hide mega menu completely */
+@media (max-width: 1120px) {
   #courses-mega-menu,
   #courses-dropdown {
-    position: fixed;
-    top: 72px;
-    left: 16px;
-    right: 16px;
-    width: auto;
-    max-width: calc(100vw - 32px);
-    transform: translateY(-8px);
-  }
-  
-  .nav-dropdown-wrapper:hover #courses-mega-menu,
-  .nav-dropdown-wrapper:hover #courses-dropdown,
-  .nav-item-dropdown:hover #courses-mega-menu,
-  .nav-item-dropdown:hover #courses-dropdown,
-  #courses-mega-menu.active,
-  #courses-dropdown.active {
-    transform: translateY(0);
-  }
-  
-  .mega-menu-content {
-    padding: 24px 20px;
+    display: none; /* Completely hide on mobile/tablet */
   }
 }
 
@@ -1746,32 +1758,6 @@ section .container,
   margin: 32px 0;
 }
 
-/* Specialist courses section */
-.specialist-courses-section {
-  margin-top: 64px;
-}
-
-@media (min-width: 768px) {
-  .specialist-courses-section {
-    margin-top: 80px;
-  }
-}
-
-@media (min-width: 1024px) {
-  .specialist-courses-section {
-    margin-top: 96px;
-  }
-}
-
-.specialist-courses-section .cta-center {
-  margin-top: 32px;
-}
-
-@media (min-width: 768px) {
-  .specialist-courses-section .cta-center {
-    margin-top: 40px;
-  }
-}
 
 .category-name {
   font-size: 14px;
@@ -2443,20 +2429,23 @@ section .container,
   box-sizing: border-box; /* Include padding in width */
 }
 
-@media (min-width: 768px) {
+/* Desktop: Hide mobile menu and button */
+@media (min-width: 1121px) {
   #mobile-menu {
-    display: none; /* hidden on desktop unless overflow forces it */
+    display: none;
+  }
+  
+  .site-header .mobile-menu-btn,
+  .header-inner-wrapper .mobile-menu-btn {
+    display: none;
   }
 }
 
-/* Show menu when active - higher specificity than base rule */
-#mobile-menu.active {
-  display: block;
-}
-
-/* Allow mobile menu on desktop when header overflows */
-.site-header.header--overflow #mobile-menu.active {
-  display: block;
+/* Mobile/Tablet: Show menu when active */
+@media (max-width: 1120px) {
+  #mobile-menu.active {
+    display: block;
+  }
 }
 
 /* Mobile menu content - matches React version exactly */
@@ -4503,16 +4492,16 @@ input[type="search"]::-ms-clear,
 
 .categories-cta {
   text-align: center;
-  /* Reduced spacing between load-more-wrapper and categories-cta on mobile/tablet */
-  margin-top: var(--spacing-sm); /* 12px - reduced spacing on mobile/tablet */
-  margin-bottom: 0; /* Bottom spacing handled by section padding (D to E) */
+  /* Standardized spacing between categories-grid and categories-cta */
+  margin-top: var(--section-gap-mobile); /* 40px on mobile */
+  margin-bottom: 0; /* Bottom spacing handled by section padding */
   padding: 0;
 }
 
 @media (min-width: 1024px) {
   .categories-cta {
-    /* Match spacing between categories-grid and load-more-wrapper on desktop */
-    margin-top: calc(var(--grid-gap-desktop) * 2); /* 64px */
+    /* Standardized spacing on desktop */
+    margin-top: var(--section-gap-desktop); /* 64px on desktop */
   }
 }
 
@@ -4757,35 +4746,41 @@ input[type="search"]::-ms-clear,
   line-height: 1;
 }
 
-.badge-essential-new {
-  background: var(--gold-primary);
-  color: var(--white);
+/* Category badge colors matching course card badge colors */
+.category-badge-blue {
+  background: linear-gradient(135deg, rgba(219, 234, 254, 0.18) 0%, rgba(191, 219, 254, 0.15) 100%);
+  color: #1e40af;
+  border: 1px solid rgba(30, 64, 175, 0.12);
 }
 
-.badge-life-saving-new {
-  background: linear-gradient(135deg, #b29456 0%, #d4af6a 100%);
-  color: var(--white);
-  box-shadow: 0 2px 6px rgba(178, 148, 86, 0.25);
+.category-badge-red {
+  background: linear-gradient(135deg, rgba(254, 226, 226, 0.18) 0%, rgba(254, 202, 202, 0.15) 100%);
+  color: #991b1b;
+  border: 1px solid rgba(153, 27, 27, 0.12);
 }
 
-.badge-advanced-new {
-  background: #9333EA; /* bg-purple-600 */
-  color: var(--white);
+.category-badge-green {
+  background: linear-gradient(135deg, rgba(220, 252, 231, 0.18) 0%, rgba(187, 247, 208, 0.15) 100%);
+  color: #166534;
+  border: 1px solid rgba(22, 101, 52, 0.12);
 }
 
-.badge-clinical-new {
-  background: #0D9488; /* bg-teal-600 */
-  color: var(--white);
+.category-badge-purple {
+  background: linear-gradient(135deg, rgba(233, 213, 255, 0.18) 0%, rgba(221, 214, 254, 0.15) 100%);
+  color: #6b21a8;
+  border: 1px solid rgba(107, 33, 168, 0.12);
 }
 
-.badge-practical-new {
-  background: #F97316; /* bg-orange-500 */
-  color: var(--white);
+.category-badge-amber {
+  background: linear-gradient(135deg, rgba(254, 243, 199, 0.2) 0%, rgba(253, 230, 138, 0.18) 100%);
+  color: #78350f;
+  border: 1px solid rgba(120, 53, 15, 0.12);
 }
 
-.badge-critical-new {
-  background: #2563EB; /* bg-blue-600 */
-  color: var(--white);
+.category-badge-teal {
+  background: linear-gradient(135deg, rgba(204, 251, 241, 0.18) 0%, rgba(153, 246, 228, 0.15) 100%);
+  color: #134e4a;
+  border: 1px solid rgba(19, 78, 74, 0.12);
 }
 
 .category-content {
@@ -5947,6 +5942,17 @@ input[type="search"]::-ms-clear,
   position: relative;
   overflow: visible; /* Allow card shadows to render fully */
   box-sizing: border-box;
+}
+
+/* Standardized spacing between courses-grid and specialist-courses-section */
+.courses-grid + .specialist-courses-section {
+  margin-top: var(--section-gap-mobile);
+}
+
+@media (min-width: 1024px) {
+  .courses-grid + .specialist-courses-section {
+    margin-top: var(--section-gap-desktop);
+  }
 }
 
 /* Standardized grid - respects container padding naturally */
@@ -10150,6 +10156,18 @@ textarea:focus-visible,
   margin-top: 64px;
   padding-bottom: 40px; /* Allow space for button shadow (24px shadow + 2px translate + buffer) */
   overflow: visible; /* Ensure shadows aren't clipped */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+}
+
+@media (min-width: 768px) {
+  .cta-center {
+    flex-direction: row;
+    justify-content: center;
+    gap: 20px;
+  }
 }
 
 .cta-center.large-spacing {
@@ -11058,10 +11076,10 @@ textarea:focus-visible,
 .course-card-badge-wrapper {
   display: flex;
   align-items: center;
-  justify-content: flex-end;
+  justify-content: flex-start; /* Left align badges */
   flex-wrap: wrap;
   gap: 0.5rem;
-  margin-bottom: 1rem; /* Standardized spacing: badge to title */
+  margin-bottom: 12px; /* Tighter spacing: badge to title (0.75rem) */
   width: 100%;
 }
 
@@ -11088,9 +11106,11 @@ textarea:focus-visible,
 }
 
 .course-card-badge-icon {
-  font-size: 10px;
-  opacity: 0.9;
+  font-size: 11px; /* Increased from 10px for better visibility */
+  opacity: 1; /* Full opacity for better visibility */
   flex-shrink: 0;
+  display: inline-block; /* Ensure icon displays properly */
+  line-height: 1; /* Prevent line-height issues */
 }
 
 .course-card:hover .course-card-badge {
@@ -11163,9 +11183,8 @@ textarea:focus-visible,
   font-size: 20px;
   font-weight: 700;
   color: var(--brown-dark);
-  margin: 0 0 0.75rem 0; /* Standardized spacing: title to description */
+  margin: 0 0 8px 0; /* Tighter spacing: title to description (8px) */
   padding: 0;
-  padding-bottom: 0;
   text-align: left;
   line-height: 1.3;
   letter-spacing: 0.01em;
@@ -11189,7 +11208,7 @@ textarea:focus-visible,
   font-size: 14px;
   color: var(--brown-medium);
   line-height: 1.5; /* Standard line-height for small text */
-  margin: 0 0 1rem 0; /* Standardized spacing: description to meta */
+  margin: 0 0 16px 0; /* Standardized spacing: description to meta (1rem) */
   padding: 0;
   text-align: left;
   display: -webkit-box;
@@ -11197,7 +11216,7 @@ textarea:focus-visible,
   line-clamp: 3;
   -webkit-box-orient: vertical;
   overflow: hidden;
-  min-height: 67px; /* Standardize height for 3 lines (14px * 1.6 * 3) */
+  min-height: 63px; /* Adjusted for tighter spacing (14px * 1.5 * 3) */
 }
 
 .course-card-content {
@@ -11206,7 +11225,7 @@ textarea:focus-visible,
   min-height: 120px; /* Standardize minimum height for meta items */
   position: relative;
   z-index: 1;
-  padding: 16px 24px 0 24px;
+  padding: 0 24px 0 24px; /* Remove top padding - description margin handles spacing */
 }
 
 .course-card-meta {
@@ -11251,6 +11270,7 @@ textarea:focus-visible,
 .course-card-price {
   display: flex;
   flex-direction: column;
+  align-items: flex-start;
 }
 
 .course-card-price-amount {
@@ -11259,7 +11279,9 @@ textarea:focus-visible,
   color: var(--brown-dark);
   margin: 0;
   padding-top: 0;
+  padding-bottom: 2px;
   transition: all 0.3s ease;
+  text-align: left;
 }
 
 .course-card:hover .course-card-price-amount {
@@ -11273,6 +11295,7 @@ textarea:focus-visible,
   margin: 0;
   padding-top: 0;
   padding-bottom: 0;
+  text-align: left;
 }
 
 /* Course View Button - Gold/brown styling matching screenshot */
@@ -12777,13 +12800,15 @@ input[type="email"].contact-form-input {
 }
 
 /* Discount code validation states (shared across contact / group booking / booking modal) */
-.discount-code-valid {
-  border-color: #10b981 !important;
+.discount-code-valid,
+.discount-code-valid:focus {
+  border-color: #10b981;
   background-color: #f0fdf4;
 }
 
-.discount-code-invalid {
-  border-color: #ef4444 !important;
+.discount-code-invalid,
+.discount-code-invalid:focus {
+  border-color: #ef4444;
   background-color: #fef2f2;
 }
 
@@ -18935,6 +18960,7 @@ input[type="email"].contact-form-input {
 .event-card-cta {
   display: inline-flex;
   align-items: center;
+  gap: 6px;
   color: var(--gold-primary);
   font-weight: 600;
   font-size: 14px;
@@ -18942,10 +18968,27 @@ input[type="email"].contact-form-input {
   transition: color 0.2s ease, transform 0.2s ease;
   white-space: nowrap;
   flex-shrink: 0;
+  line-height: 1;
+}
+
+.event-card-cta span {
+  display: inline-block;
+  line-height: 1;
+}
+
+.event-card-cta span:last-child {
+  font-size: 16px;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  transition: transform 0.2s ease;
 }
 
 .event-card-cta:hover {
   color: var(--gold-hover);
+}
+
+.event-card-cta:hover span:last-child {
   transform: translateX(2px);
 }
 
@@ -24575,6 +24618,21 @@ input[type="email"].contact-form-input {
   box-shadow: 0 4px 12px rgba(74, 58, 42, 0.1);
 }
 
+.why-us-blended-icon-4 {
+  background: linear-gradient(135deg, rgba(239, 68, 68, 0.15), rgba(239, 68, 68, 0.25));
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.2);
+}
+
+.why-us-blended-icon-5 {
+  background: linear-gradient(135deg, rgba(124, 58, 237, 0.15), rgba(124, 58, 237, 0.25));
+  box-shadow: 0 4px 12px rgba(124, 58, 237, 0.2);
+}
+
+.why-us-blended-icon-6 {
+  background: linear-gradient(135deg, rgba(8, 145, 178, 0.15), rgba(8, 145, 178, 0.25));
+  box-shadow: 0 4px 12px rgba(8, 145, 178, 0.2);
+}
+
 .why-us-blended-icon {
   width: 28px;
   height: 28px;
@@ -24592,6 +24650,18 @@ input[type="email"].contact-form-input {
 
 .why-us-blended-icon-3 .why-us-blended-icon {
   color: var(--brown-medium);
+}
+
+.why-us-blended-icon-4 .why-us-blended-icon {
+  color: #ef4444;
+}
+
+.why-us-blended-icon-5 .why-us-blended-icon {
+  color: #7c3aed;
+}
+
+.why-us-blended-icon-6 .why-us-blended-icon {
+  color: #0891b2;
 }
 
 .why-us-blended-badge {
@@ -33391,11 +33461,12 @@ input[type="email"].contact-form-input {
   padding-bottom: var(--section-padding-mobile);
   position: relative;
   overflow-x: hidden;
-  overflow-y: visible;
+  overflow-y: visible; /* Allow suggestions dropdown to be visible */
   width: 100%;
   max-width: 100vw;
   text-align: center;
   background: linear-gradient(180deg, #ffffff 0%, #fefcf9 100%);
+  z-index: 1; /* Ensure proper stacking context */
 }
 
 @media (min-width: 768px) {
@@ -33434,7 +33505,7 @@ input[type="email"].contact-form-input {
 
 .group-hero-section .hero-subtitle {
   max-width: 600px;
-  margin: 0 auto;
+  margin: 0 auto 2rem; /* Standard margin-bottom (2rem = 32px) */
 }
 
 .group-hero-cta {
@@ -33817,6 +33888,11 @@ input[type="email"].contact-form-input {
 .group-testimonials-section + .group-how-it-works-section,
 .group-how-it-works-section + .group-faq-section {
   margin-top: 0;
+}
+
+/* Standard spacing: group-hero-section followed by content-section */
+.group-hero-section + .content-section {
+  padding-top: 0; /* Remove top padding - hero section already has bottom padding */
 }
 
 /* Focus visible styles for all interactive elements */
@@ -36580,10 +36656,7 @@ display: inline-flex;
   overflow: hidden;
 }
 
-.course-card-badge-icon {
-font-size: 0.6875rem;
-  opacity: 0.9;
-}
+/* Duplicate removed - using unified styling above */
 
 .course-card-title {
 font-size: 1.25rem;
@@ -36631,13 +36704,16 @@ font-size: 1.5rem;
   font-weight: 700;
   color: var(--brown-dark);
   margin: 0;
+  padding-bottom: 2px;
   transition: all 0.3s ease;
+  text-align: left;
 }
 
 .course-card-price-label {
 font-size: 0.75rem;
   color: var(--brown-medium);
   margin: 0;
+  text-align: left;
 }
 
 .courses-empty-description {
@@ -40560,19 +40636,32 @@ fieldset.booking-modal-field legend.booking-modal-label {
    ============================================ */
 
 .course-detail-content {
-  padding: 0 0 64px 0;
+  padding: var(--section-padding-mobile) 0 64px 0;
   background: var(--white, #ffffff);
+}
+
+/* Fix excessive spacing - use standardized section padding */
+.group-hero-section + .course-detail-content {
+  padding-top: var(--section-padding-mobile);
 }
 
 @media (min-width: 768px) {
   .course-detail-content {
-    padding-top: 0;
+    padding: var(--section-padding-tablet) 0 64px 0;
+  }
+  
+  .group-hero-section + .course-detail-content {
+    padding-top: var(--section-padding-tablet);
   }
 }
 
 @media (min-width: 1024px) {
   .course-detail-content {
-    padding-top: 0;
+    padding: var(--section-padding-desktop) 0 64px 0;
+  }
+  
+  .group-hero-section + .course-detail-content {
+    padding-top: var(--section-padding-desktop);
   }
 }
 
@@ -40604,10 +40693,15 @@ fieldset.booking-modal-field legend.booking-modal-label {
   box-sizing: border-box;
 }
 
-/* Tablet: slightly larger gap */
+/* Tablet: slightly larger gap with proper spacing */
 @media (min-width: 640px) and (max-width: 967px) {
   .course-detail-grid {
     gap: 2.5rem;
+  }
+  
+  /* Add proper spacing between main and sidebar on tablet */
+  .course-detail-main {
+    margin-bottom: 2rem;
   }
 }
 
@@ -41049,6 +41143,10 @@ fieldset.booking-modal-field legend.booking-modal-label {
 
 /* Mobile: full width, sticky positioning */
 @media (max-width: 639px) {
+  .course-detail-grid {
+    gap: 2rem; /* Ensure proper gap on mobile */
+  }
+  
   .course-detail-sidebar {
     position: sticky;
     top: 80px;
@@ -41056,6 +41154,11 @@ fieldset.booking-modal-field legend.booking-modal-label {
     order: -1;
     width: 100%;
     max-width: 100%;
+    margin-bottom: 2rem; /* Add spacing between sidebar and main content */
+  }
+  
+  .course-detail-main {
+    margin-top: 0; /* Remove any top margin */
   }
 }
 
@@ -41152,17 +41255,20 @@ fieldset.booking-modal-field legend.booking-modal-label {
 }
 
 .course-detail-price-line {
-  display: inline-flex;
-  align-items: baseline;
-  gap: 12px;
-  flex-wrap: wrap;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.5rem;
+  width: 100%;
 }
 
 .course-detail-price-original {
   color: #8c8f94;
   text-decoration: line-through;
-  font-size: 18px;
+  font-size: 1rem;
   font-weight: 400;
+  line-height: 1.4;
+  order: 1;
 }
 
 .course-detail-price.is-discounted {
@@ -41174,6 +41280,8 @@ fieldset.booking-modal-field legend.booking-modal-label {
   flex-direction: column;
   align-items: flex-start;
   gap: 0.25rem;
+  order: 2;
+  width: 100%;
 }
 
 .course-detail-price {
@@ -45641,10 +45749,23 @@ a.article-cta-btn:focus-visible {
 @media (max-width: 767px) {
   .about-mission-grid-new {
     gap: var(--spacing-xl);
+    grid-template-columns: 1fr; /* Ensure single column on mobile */
   }
   
   .about-mission-image-new {
     order: -1;
+    width: 100%;
+    max-width: 100%;
+  }
+  
+  .about-mission-image-new img {
+    width: 100%;
+    height: auto;
+    display: block;
+  }
+  
+  .about-mission-text-new {
+    width: 100%;
   }
 }
 
@@ -45677,6 +45798,8 @@ a.article-cta-btn:focus-visible {
 .about-mission-image-new {
   border-radius: var(--radius-lg);
   overflow: hidden;
+  width: 100%;
+  max-width: 100%;
   box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
   position: relative;
 }
@@ -46667,6 +46790,56 @@ a.article-cta-btn:focus-visible {
   gap: 20px;
 }
 
+/* CQC FAQ Content Spacing - Standardized */
+.cqc-faq-wrapper .accordion-content {
+  padding-top: 24px;
+  padding-bottom: 24px;
+}
+
+.cqc-faq-wrapper .accordion-content p {
+  margin: 0 0 16px 0;
+  font-size: 1rem;
+  line-height: 1.7;
+  color: var(--brown-medium);
+}
+
+.cqc-faq-wrapper .accordion-content p:last-child {
+  margin-bottom: 0;
+}
+
+.cqc-faq-wrapper .accordion-content .faq-intro {
+  margin-bottom: 20px;
+}
+
+.cqc-faq-wrapper .accordion-content .faq-outro {
+  margin-top: 20px;
+  margin-bottom: 0;
+}
+
+.cqc-faq-wrapper .accordion-content .faq-answer-list {
+  margin: 20px 0;
+  padding: 0;
+  list-style: none;
+}
+
+.cqc-faq-wrapper .accordion-content .faq-answer-list li {
+  margin-bottom: 12px;
+  padding-left: 0;
+}
+
+.cqc-faq-wrapper .accordion-content .faq-answer-list li:last-child {
+  margin-bottom: 0;
+}
+
+.cqc-faq-wrapper .accordion-content .faq-list-title {
+  font-weight: 600;
+  color: var(--brown-dark);
+}
+
+.cqc-faq-wrapper .accordion-content .faq-list-description {
+  color: var(--brown-medium);
+}
+
 /* CQC Inspection Grid */
 .cqc-inspection-grid {
   display: grid;
@@ -46942,7 +47115,7 @@ a.article-cta-btn:focus-visible {
 .cqc-jump-nav {
   background: var(--white);
   border-bottom: 1px solid var(--cream-border);
-  padding: 0.625rem 0;
+  padding: 0.75rem 0 0.625rem;
   position: sticky;
   top: 0;
   z-index: 100;
@@ -46953,6 +47126,9 @@ a.article-cta-btn:focus-visible {
   max-width: 1280px;
   margin: 0 auto;
   padding: 0 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
 }
 
 .cqc-jump-nav-wrapper {
@@ -46970,7 +47146,9 @@ a.article-cta-btn:focus-visible {
   text-transform: uppercase;
   letter-spacing: 0.5px;
   white-space: nowrap;
-  flex-shrink: 0;
+  text-align: left;
+  margin: 0;
+  padding: 0;
 }
 
 .cqc-jump-nav-list {
@@ -47049,17 +47227,18 @@ a.article-cta-btn:focus-visible {
 
 @media (max-width: 767px) {
   .cqc-jump-nav {
-    padding: 0.625rem 0;
+    padding: 0.75rem 0 0.625rem;
   }
   
   .cqc-jump-nav .container {
     padding: 0 16px;
+    gap: 0.625rem;
   }
   
   .cqc-jump-nav-wrapper {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 0.75rem;
+    flex-direction: row;
+    align-items: center;
+    gap: 0.5rem;
   }
   
   .cqc-jump-nav-list {
@@ -47136,6 +47315,7 @@ a.article-cta-btn:focus-visible {
 .cqc-regulatory-card-footer {
   margin-top: 1.25rem;
   padding-top: 1rem;
+  padding-bottom: 0;
   border-top: 1px solid rgba(0, 0, 0, 0.08);
   display: flex;
   align-items: center;
@@ -47143,6 +47323,16 @@ a.article-cta-btn:focus-visible {
   color: var(--gold-primary, #8B6F3F);
   font-size: 0.9375rem;
   font-weight: 500;
+  min-height: 44px; /* Consistent height regardless of parent */
+  box-sizing: border-box;
+}
+
+/* Ensure consistent footer formatting when inside link wrapper */
+.cqc-regulatory-card-link .cqc-regulatory-card-footer {
+  margin-top: 1.25rem;
+  padding-top: 1rem;
+  padding-bottom: 0;
+  min-height: 44px;
 }
 
 .cqc-regulatory-link-text {
@@ -47165,15 +47355,20 @@ a.article-cta-btn:focus-visible {
 }
 
 .cqc-regulatory-label {
-  display: inline-block;
-  padding: 3px 10px;
-  background: var(--cream-light);
-  color: var(--gold-primary);
-  border-radius: 20px;
-  font-size: 0.6875rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  padding: 6px 12px;
+  border-radius: 12px;
+  font-weight: 600;
+  letter-spacing: 0.2px;
+  text-transform: none;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  transition: all 0.2s ease;
+  position: relative;
+  overflow: hidden;
+  white-space: nowrap;
   line-height: 1.2;
   margin-bottom: 16px;
 }
@@ -47184,34 +47379,40 @@ a.article-cta-btn:focus-visible {
 }
 
 .cqc-regulatory-label-important {
-  background: rgba(220, 110, 130, 0.15);
-  color: #DC6E82;
+  background: linear-gradient(135deg, rgba(254, 226, 226, 0.18) 0%, rgba(254, 202, 202, 0.15) 100%);
+  color: #991b1b;
+  border: 1px solid rgba(153, 27, 27, 0.12);
 }
 
-/* Color-coded labels based on category */
+/* Color-coded labels based on category - matching course card badge colors */
 .cqc-regulatory-label-blue {
-  background: rgba(49, 130, 206, 0.15);
-  color: #3182ce;
+  background: linear-gradient(135deg, rgba(219, 234, 254, 0.18) 0%, rgba(191, 219, 254, 0.15) 100%);
+  color: #1e40af;
+  border: 1px solid rgba(30, 64, 175, 0.12);
 }
 
 .cqc-regulatory-label-teal {
-  background: rgba(56, 178, 172, 0.15);
-  color: #38b2ac;
+  background: linear-gradient(135deg, rgba(204, 251, 241, 0.18) 0%, rgba(153, 246, 228, 0.15) 100%);
+  color: #134e4a;
+  border: 1px solid rgba(19, 78, 74, 0.12);
 }
 
 .cqc-regulatory-label-purple {
-  background: rgba(139, 92, 246, 0.15);
-  color: #8b5cf6;
+  background: linear-gradient(135deg, rgba(233, 213, 255, 0.18) 0%, rgba(221, 214, 254, 0.15) 100%);
+  color: #6b21a8;
+  border: 1px solid rgba(107, 33, 168, 0.12);
 }
 
 .cqc-regulatory-label-amber {
-  background: rgba(217, 119, 6, 0.15);
-  color: #d97706;
+  background: linear-gradient(135deg, rgba(254, 215, 170, 0.2) 0%, rgba(253, 186, 116, 0.18) 100%);
+  color: #9a3412;
+  border: 1px solid rgba(154, 52, 18, 0.12);
 }
 
 .cqc-regulatory-label-gold {
-  background: rgba(178, 148, 86, 0.15);
-  color: var(--gold-primary);
+  background: linear-gradient(135deg, rgba(254, 243, 199, 0.18) 0%, rgba(253, 230, 138, 0.15) 100%);
+  color: #92400e;
+  border: 1px solid rgba(146, 64, 14, 0.12);
 }
 
 .cqc-regulatory-title {
@@ -47300,11 +47501,11 @@ a.article-cta-btn:focus-visible {
   content: '\2022';
   position: absolute;
   left: 0;
-  top: 0;
+  top: 0.1em; /* Align bullet with first line of text */
   color: var(--gold-primary, #8B6F3F);
   font-weight: 700;
   font-size: 1.25rem;
-  line-height: 1.6;
+  line-height: 1;
   display: inline-block;
   width: 1.5rem;
   text-align: left;
@@ -48902,17 +49103,25 @@ a.article-cta-btn:focus-visible {
 
 /* FAQs Search Container */
 .faqs-search-container {
-  margin-top: 40px;
+  margin-top: 32px; /* Match hero-subtitle margin-bottom (2rem) */
   max-width: 700px;
   margin-left: auto;
   margin-right: auto;
+  position: relative; /* Ensure proper positioning context */
+  z-index: 10; /* Higher z-index for search container */
+}
+
+@media (min-width: 768px) {
+  .faqs-search-container {
+    margin-top: 40px;
+  }
 }
 
 .faqs-search-wrapper {
   position: relative;
   display: flex;
   align-items: center;
-  z-index: 1;
+  z-index: 10; /* Higher z-index for search wrapper */
 }
 
 .faqs-search-icon {
@@ -48946,9 +49155,9 @@ a.article-cta-btn:focus-visible {
   opacity: 0.6;
 }
 
-@media (max-width: 768px) {
+@media (max-width: 767px) {
   .faqs-search-container {
-    margin-top: 32px;
+    margin-top: 24px; /* Tighter spacing on mobile */
   }
   
   .faqs-search-input {
@@ -48975,7 +49184,7 @@ a.article-cta-btn:focus-visible {
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
   max-height: 320px;
   overflow-y: auto;
-  z-index: 1000;
+  z-index: 10000; /* Very high z-index to appear above all content */
   display: none;
 }
 
@@ -49039,11 +49248,13 @@ a.article-cta-btn:focus-visible {
   flex-wrap: wrap;
   gap: 0.5rem 0.75rem; /* Match cqc-jump-nav-list gap */
   justify-content: center;
-  margin-top: 64px;
-  margin-bottom: 48px;
-  max-width: 900px;
+  align-items: center; /* Center align items vertically */
+  margin-top: 0; /* Remove top margin - section-header-center already has bottom margin */
+  margin-bottom: 0; /* Remove bottom margin - let content-section padding handle spacing */
+  max-width: 100%; /* Allow full width to prevent awkward wrapping */
   margin-left: auto;
   margin-right: auto;
+  width: 100%; /* Full width to allow better wrapping */
 }
 
 .faqs-filter-btn {
@@ -49124,6 +49335,7 @@ a.article-cta-btn:focus-visible {
   .faqs-filter-group {
     margin-top: 48px;
     gap: 0.5rem; /* Match cqc-jump-nav-list mobile gap */
+    justify-content: flex-start; /* Left align on mobile for better wrapping */
   }
   
   .faqs-filter-btn {
@@ -50786,19 +50998,33 @@ a.article-cta-btn:focus-visible {
 }
 
 .course-date-book {
-  padding: 6px 12px;
-  background: #2271b1;
+  padding: 8px 16px;
+  background: linear-gradient(90deg, var(--gold-primary) 0%, #C5A566 50%, var(--gold-primary) 100%);
+  background-size: 200% 100%;
+  background-position: 0% 0%;
   color: #fff;
   text-decoration: none;
-  border-radius: 4px;
-  font-size: 12px;
-  font-weight: 600;
-  transition: background 0.2s;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 700;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border: 2px solid transparent;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 36px;
 }
 
 .course-date-book:hover {
-  background: #135e96;
+  background: linear-gradient(135deg, var(--gold-hover) 0%, #9a7d47 100%);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  transform: translateY(-1px);
   color: #fff;
+}
+
+.course-date-book:active {
+  transform: translateY(0) scale(0.98);
 }
 
 .course-dates-fallback {
@@ -50932,9 +51158,24 @@ a.article-cta-btn:focus-visible {
   box-shadow: none;
 }
 
+.course-detail-price-prominent .course-detail-price-line {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  width: 100%;
+}
+
+.course-detail-price-prominent .course-detail-price-original {
+  font-size: 1.125rem;
+  margin-bottom: 0;
+}
+
 .course-detail-price-prominent .course-detail-price-container {
   margin-bottom: 0;
-  display: block;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.25rem;
 }
 
 .course-detail-price-prominent .course-detail-price {
@@ -51059,8 +51300,10 @@ a.article-cta-btn:focus-visible {
 
 /* Hide sticky CTA on desktop (sidebar handles it) */
 @media (min-width: 968px) {
-  .course-sticky-cta {
-    display: none !important;
+  .course-sticky-cta,
+  .course-sticky-cta[aria-hidden="false"],
+  .course-sticky-cta.visible {
+    display: none;
   }
 }
 
@@ -51202,7 +51445,7 @@ a.article-cta-btn:focus-visible {
   font-size: clamp(0.875rem, 1.125vw, 0.9375rem);
   color: var(--brown-medium, #4A3A2A);
   line-height: 1.5;
-  padding: 0.5rem 0 0.5rem 1.75rem;
+  padding: 0.5rem 0 0.5rem 2rem; /* Increased left padding for better spacing from icon */
   position: relative;
   font-weight: 500;
 }
@@ -51222,6 +51465,7 @@ a.article-cta-btn:focus-visible {
   justify-content: center;
   background: rgba(91, 168, 160, 0.1);
   border-radius: 50%;
+  margin-right: 0.5rem; /* Add spacing between icon and text */
 }
 
 .course-detail-price-unit {
@@ -51945,19 +52189,6 @@ a.article-cta-btn:focus-visible {
   display: block;
   text-decoration: none;
   color: inherit;
-}
-
-
-.cqc-regulatory-card-footer {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  margin-top: 1rem;
-  padding-top: 1rem;
-  border-top: 1px solid #e2e8f0;
-  color: var(--gold-primary, #8B6F3F);
-  font-weight: 600;
-  font-size: 0.9375rem;
 }
 
 .cqc-regulatory-link-icon {

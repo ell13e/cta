@@ -212,7 +212,7 @@ $trustpilot_stars = cta_get_trustpilot_stars($trustpilot_rating);
             'slug' => 'core-care-skills',
             'name' => 'Core Care',
             'badge' => 'Essential',
-            'badge_class' => 'badge-essential-new',
+            'badge_class' => 'category-badge-blue',
             'icon' => 'fa-heart',
             'description' => 'Essential skills for providing quality care',
             'highlights' => ['Person-centred care principles', 'Professional communication skills', 'Legal frameworks & duty of care'],
@@ -221,7 +221,7 @@ $trustpilot_stars = cta_get_trustpilot_stars($trustpilot_rating);
             'slug' => 'emergency-first-aid',
             'name' => 'First Aid',
             'badge' => 'Life-Saving',
-            'badge_class' => 'badge-life-saving-new',
+            'badge_class' => 'category-badge-red',
             'icon' => 'fa-first-aid',
             'description' => 'Respond confidently in critical moments',
             'highlights' => ['CPR & defibrillator use', 'Emergency scenario management', 'Workplace first aid protocols'],
@@ -230,7 +230,7 @@ $trustpilot_stars = cta_get_trustpilot_stars($trustpilot_rating);
             'slug' => 'health-conditions-specialist-care',
             'name' => 'Specialist Health',
             'badge' => 'Advanced',
-            'badge_class' => 'badge-advanced-new',
+            'badge_class' => 'category-badge-green',
             'icon' => 'fa-stethoscope',
             'description' => 'Expert knowledge for complex conditions',
             'highlights' => ['Dementia & mental health support', 'Learning disabilities awareness', 'End of life care with dignity'],
@@ -239,7 +239,7 @@ $trustpilot_stars = cta_get_trustpilot_stars($trustpilot_rating);
             'slug' => 'medication-management',
             'name' => 'Medication',
             'badge' => 'Clinical',
-            'badge_class' => 'badge-clinical-new',
+            'badge_class' => 'category-badge-purple',
             'icon' => 'fa-pills',
             'description' => 'Safe medication administration practices',
             'highlights' => ['Medication safety protocols', 'Drug interactions & side effects', 'Documentation & record keeping'],
@@ -248,7 +248,7 @@ $trustpilot_stars = cta_get_trustpilot_stars($trustpilot_rating);
             'slug' => 'safety-compliance',
             'name' => 'Safety',
             'badge' => 'Practical',
-            'badge_class' => 'badge-practical-new',
+            'badge_class' => 'category-badge-amber',
             'icon' => 'fa-shield-alt',
             'description' => 'Protect yourself and those in your care',
             'highlights' => ['Hoist operation & positioning', 'Risk assessment techniques', 'Fire safety & evacuation'],
@@ -257,7 +257,7 @@ $trustpilot_stars = cta_get_trustpilot_stars($trustpilot_rating);
             'slug' => 'communication-workplace-culture',
             'name' => 'Communication',
             'badge' => 'Essential',
-            'badge_class' => 'badge-essential-new',
+            'badge_class' => 'category-badge-teal',
             'icon' => 'fa-users',
             'description' => 'Effective and inclusive communication',
             'highlights' => ['Professional communication skills', 'Diversity & inclusion training', 'Team collaboration & culture'],
@@ -271,10 +271,10 @@ $trustpilot_stars = cta_get_trustpilot_stars($trustpilot_rating);
           <div class="category-card-bg-top"></div>
           <div class="category-card-bg-bottom"></div>
           
-          <div class="category-card-header-new">
+              <div class="category-card-header-new">
             <div class="category-header-left">
               <div class="category-icon-title-row">
-                <span class="category-badge-new <?php echo esc_attr($category['badge_class']); ?>"><?php echo esc_html($category['badge']); ?></span>
+                <span class="category-badge-new course-card-badge <?php echo esc_attr($category['badge_class']); ?>"><?php echo esc_html($category['badge']); ?></span>
                 <div class="category-icon-wrapper">
                   <i class="fas <?php echo esc_attr($category['icon']); ?> category-icon-svg" aria-hidden="true"></i>
                 </div>
@@ -488,6 +488,7 @@ $trustpilot_stars = cta_get_trustpilot_stars($trustpilot_rating);
               <?php endif; ?>
               <div class="event-card-cta">
                 <span>Book Now</span>
+                <span aria-hidden="true">→</span>
               </div>
             </div>
           </div>

@@ -196,21 +196,35 @@ $location_schema = cta_get_location_schema($location_data);
           $price = function_exists('get_field') ? get_field('course_price') : '';
           $accreditation = function_exists('get_field') ? get_field('course_accreditation') : '';
           $level = function_exists('get_field') ? get_field('course_level') : '';
-          $terms = get_the_terms(get_the_ID(), 'course_category');
-          $category_slug = $terms && !is_wp_error($terms) ? $terms[0]->slug : '';
-          $category_name = ($terms && !is_wp_error($terms)) ? $terms[0]->name : '';
+          // Use limiting function to get max 2 categories
+          $terms = function_exists('cta_get_course_category_terms') ? cta_get_course_category_terms(get_the_ID()) : get_the_terms(get_the_ID(), 'course_category');
+          $primary_term = $terms && !is_wp_error($terms) && !empty($terms) ? $terms[0] : null;
+          $secondary_term = $terms && !is_wp_error($terms) && count($terms) >= 2 ? $terms[1] : null;
+          $category_slug = $primary_term ? $primary_term->slug : '';
           
-          // Badge colors and short names (matching archive-course.php)
+          // Badge colors, icons, and short names (matching archive-course.php)
           $category_badge_colors = [
             'core-care-skills' => 'course-badge-blue',
-            'communication-workplace-culture' => 'course-badge-green',
+            'communication-workplace-culture' => 'course-badge-teal',
             'nutrition-hygiene' => 'course-badge-orange',
             'emergency-first-aid' => 'course-badge-red',
-            'safety-compliance' => 'course-badge-purple',
-            'medication-management' => 'course-badge-teal',
+            'safety-compliance' => 'course-badge-amber',
+            'medication-management' => 'course-badge-purple',
             'health-conditions-specialist-care' => 'course-badge-pink',
-            'leadership-professional-development' => 'course-badge-gold',
+            'leadership-professional-development' => 'course-badge-indigo',
             'information-data-management' => 'course-badge-indigo',
+          ];
+          
+          $category_icons = [
+            'core-care-skills' => 'fa-heart',
+            'emergency-first-aid' => 'fa-first-aid',
+            'health-conditions-specialist-care' => 'fa-stethoscope',
+            'medication-management' => 'fa-pills',
+            'safety-compliance' => 'fa-shield-alt',
+            'communication-workplace-culture' => 'fa-users',
+            'information-data-management' => 'fa-database',
+            'nutrition-hygiene' => 'fa-apple-alt',
+            'leadership-professional-development' => 'fa-user-tie',
           ];
           
           $category_short_names = [
@@ -226,7 +240,11 @@ $location_schema = cta_get_location_schema($location_data);
           ];
           
           $badge_color = isset($category_badge_colors[$category_slug]) ? $category_badge_colors[$category_slug] : 'course-badge-blue';
-          $short_name = isset($category_short_names[$category_slug]) ? $category_short_names[$category_slug] : ($category_name ?: '');
+          $short_name = isset($category_short_names[$category_slug]) ? $category_short_names[$category_slug] : ($primary_term ? $primary_term->name : '');
+          $primary_icon = isset($category_icons[$category_slug]) ? $category_icons[$category_slug] : 'fa-book';
+          $secondary_icon = $secondary_term && isset($category_icons[$secondary_term->slug]) ? $category_icons[$secondary_term->slug] : 'fa-book';
+          $secondary_badge_color = $secondary_term && isset($category_badge_colors[$secondary_term->slug]) ? $category_badge_colors[$secondary_term->slug] : 'course-badge-blue';
+          $secondary_short_name = $secondary_term && isset($category_short_names[$secondary_term->slug]) ? $category_short_names[$secondary_term->slug] : ($secondary_term ? $secondary_term->name : '');
         ?>
         <article class="course-card" data-category="<?php echo esc_attr($category_slug); ?>" data-title="<?php echo esc_attr(strtolower(get_the_title())); ?>" data-course-id="<?php echo get_the_ID(); ?>" data-course-url="<?php echo esc_url(get_permalink()); ?>">
           <?php if (has_post_thumbnail()) : 
@@ -247,12 +265,20 @@ $location_schema = cta_get_location_schema($location_data);
           <?php endif; ?>
           
           <div class="course-card-header">
-            <?php if ($short_name) : ?>
+            <?php if ($primary_term || $secondary_term) : ?>
             <div class="course-card-badge-wrapper">
+              <?php if ($primary_term) : ?>
               <span class="course-card-badge <?php echo esc_attr($badge_color); ?>">
-                <i class="fas fa-book course-card-badge-icon" aria-hidden="true"></i>
+                <i class="fas <?php echo esc_attr($primary_icon); ?> course-card-badge-icon" aria-hidden="true"></i>
                 <?php echo esc_html($short_name); ?>
               </span>
+              <?php endif; ?>
+              <?php if ($secondary_term) : ?>
+              <span class="course-card-badge <?php echo esc_attr($secondary_badge_color); ?>">
+                <i class="fas <?php echo esc_attr($secondary_icon); ?> course-card-badge-icon" aria-hidden="true"></i>
+                <?php echo esc_html($secondary_short_name); ?>
+              </span>
+              <?php endif; ?>
             </div>
             <?php endif; ?>
             
@@ -443,7 +469,10 @@ $location_schema = cta_get_location_schema($location_data);
               <span class="event-card-price-amount">£<?php echo esc_html(number_format($price, 0)); ?></span>
             </div>
             <?php endif; ?>
-            <span class="event-card-cta">Book Now</span>
+            <span class="event-card-cta">
+              <span>Book Now</span>
+              <span aria-hidden="true">→</span>
+            </span>
           </div>
         </a>
         <?php endwhile; wp_reset_postdata(); ?>

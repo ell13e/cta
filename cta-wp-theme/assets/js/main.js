@@ -17,16 +17,12 @@
     const button = document.getElementById('mobile-menu-button');
     if (!menu || !button) return;
     
-    const isOpen = menu.classList.contains('active') || menu.style.display === 'block';
+    const isOpen = menu.classList.contains('active');
     if (isOpen) {
-      menu.style.display = 'none';
-      menu.style.visibility = 'hidden';
       menu.classList.remove('active');
       button.setAttribute('aria-expanded', 'false');
       document.body.style.overflow = '';
     } else {
-      menu.style.display = 'block';
-      menu.style.visibility = 'visible';
       menu.classList.add('active');
       button.setAttribute('aria-expanded', 'true');
       document.body.style.overflow = 'hidden';
@@ -36,8 +32,6 @@
     const menu = document.getElementById('mobile-menu');
     const button = document.getElementById('mobile-menu-button');
     if (menu) {
-      menu.style.display = 'none';
-      menu.style.visibility = 'hidden';
       menu.classList.remove('active');
       document.body.style.overflow = '';
     }
@@ -49,8 +43,6 @@
     const menu = document.getElementById('mobile-menu');
     const button = document.getElementById('mobile-menu-button');
     if (menu) {
-      menu.style.display = 'block';
-      menu.style.visibility = 'visible';
       menu.classList.add('active');
       document.body.style.overflow = 'hidden';
     }
@@ -848,9 +840,7 @@
     }
     
     state.isMobileMenuOpen = true;
-    // Explicitly set display to block to ensure menu shows (inline style overrides CSS)
-    menu.style.display = 'block';
-    menu.style.visibility = 'visible';
+    // Use class-based approach - CSS handles display logic
     menu.classList.add('active');
     document.body.style.overflow = 'hidden';
     if (button) {
@@ -896,9 +886,7 @@
     state.isMobileMenuOpen = false;
     if (menu) {
       menu.classList.remove('active');
-      // Explicitly hide menu to ensure it closes (inline style overrides CSS)
-      menu.style.display = 'none';
-      menu.style.visibility = 'hidden';
+      // Use class-based approach - CSS handles display logic
       document.body.style.overflow = '';
     }
     if (button) {

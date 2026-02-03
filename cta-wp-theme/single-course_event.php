@@ -647,6 +647,7 @@ while (have_posts()) : the_post();
               <?php endif; ?>
               <div class="event-card-cta">
                 <span>Book Now</span>
+                <span aria-hidden="true">→</span>
               </div>
             </div>
           </div>

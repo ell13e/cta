@@ -274,16 +274,26 @@ echo '<script type="application/ld+json">' . wp_json_encode($schema_data, JSON_U
     </div>
   </section>
   
-  <!-- Opening -->
-  <section class="content-section bg-light-cream">
+  <!-- Hiring Stats Section -->
+  <section class="about-mission-new bg-light-cream" aria-labelledby="hiring-stats-heading">
     <div class="container">
-      <div class="section-header-center">
-        <p class="section-description">
-          Hiring's down 56% year-on-year. One in three providers is considering leaving the sector. You can't fix the funding crisis. But you can keep the team you've got.
-        </p>
-        <p class="section-description">
-          Trained staff feel competent. Competent staff stay longer. That's not marketing speak: it's the only retention strategy that's working right now.
-        </p>
+      <div class="about-mission-grid-new">
+        <div class="about-mission-text-new">
+          <h2 id="hiring-stats-heading">The Retention Challenge</h2>
+          <p>
+            Hiring's down 56% year-on-year. One in three providers is considering leaving the sector. You can't fix the funding crisis. But you can keep the team you've got.
+          </p>
+          <p>
+            Trained staff feel competent. Competent staff stay longer. That's not marketing speak: it's the only retention strategy that's working right now.
+          </p>
+        </div>
+        <div class="about-mission-image-new">
+          <img src="<?php echo esc_url(cta_image('stock_photos/03_ABOUT_US_PAGE/about_page01.webp')); ?>" 
+               alt="Care training team working together"
+               width="1600"
+               height="1200"
+               loading="lazy">
+        </div>
       </div>
     </div>
   </section>
@@ -420,8 +430,8 @@ echo '<script type="application/ld+json">' . wp_json_encode($schema_data, JSON_U
   <section class="content-section" aria-labelledby="uk-locations-heading">
     <div class="container">
       <div class="section-header-center">
-        <h2 id="uk-locations-heading" class="section-title">UK-Wide Training Locations</h2>
-        <p class="section-subtitle">Regional context, hospital discharge pressures, and course priorities for your area</p>
+        <h2 id="uk-locations-heading" class="section-title">UK-Wide Mobile Training Delivery</h2>
+        <p class="section-subtitle">We travel to your venue anywhere in the UK. Our training centre is in Maidstone, Kent—we bring the training to you.</p>
       </div>
       
       <div class="categories-grid">
@@ -430,72 +440,72 @@ echo '<script type="application/ld+json">' . wp_json_encode($schema_data, JSON_U
           [
             'name' => 'Greater Manchester & North West',
             'url' => home_url('/locations/greater-manchester/'),
-            'description' => 'Hospital discharge delays are pushing complex care packages your way. "Home First" assessments mean your team needs to be ready.',
-            'areas' => 'Manchester, Stockport, Salford, Bolton, Bury, Oldham, Rochdale, Wigan',
-            'hook' => '8.3% vacancy rate. Competition for staff is fierce.'
+            'description' => 'We travel to your venue across Greater Manchester and the North West. Hospital discharge delays are pushing complex care packages your way—your team needs current training delivered at your location.',
+            'areas' => 'We deliver on-site in: Manchester, Stockport, Salford, Bolton, Bury, Oldham, Rochdale, Wigan',
+            'hook' => 'Mobile training at your venue. No travel time for your team.'
           ],
           [
             'name' => 'London & Greater London',
             'url' => home_url('/locations/london/'),
-            'description' => 'CQC scrutiny is tightest in London. Your team needs current training to meet the highest standards.',
-            'areas' => 'All London boroughs, Greater London, Home Counties',
-            'hook' => 'Highest inspection standards. Zero margin for error.'
+            'description' => 'We travel to your care facility anywhere in London. CQC scrutiny is tightest here—we bring current training to your venue to meet the highest standards.',
+            'areas' => 'We deliver on-site in: All London boroughs, Greater London, Home Counties',
+            'hook' => 'Mobile delivery to your venue. Zero travel time for staff.'
           ],
           [
             'name' => 'West Yorkshire & Yorkshire',
             'url' => home_url('/locations/west-yorkshire/'),
-            'description' => 'Bed occupancy above 91%. Discharge pressure means sicker patients, more medications, more risk.',
-            'areas' => 'Leeds, Sheffield, Bradford, Wakefield, Huddersfield, York',
-            'hook' => 'Urban markets. Retention depends on competence.'
+            'description' => 'We come to your venue across West Yorkshire. Bed occupancy above 91% means sicker patients, more medications, more risk—we deliver training at your location.',
+            'areas' => 'We deliver on-site in: Leeds, Sheffield, Bradford, Wakefield, Huddersfield, York',
+            'hook' => 'On-site training at your facility. We bring everything to you.'
           ],
           [
             'name' => 'Midlands (Birmingham & Coventry)',
             'url' => home_url('/locations/midlands/'),
-            'description' => 'UHB serves one of the largest populations. When discharge happens, it\'s complex—more meds, more monitoring, more risk.',
-            'areas' => 'Birmingham, Coventry, Solihull, Wolverhampton, Dudley, Walsall',
-            'hook' => '8.3% vacancy rate. Urban competition for staff.'
+            'description' => 'We travel to your venue across the Midlands. When discharge happens, it\'s complex—we deliver training at your location to keep your team current.',
+            'areas' => 'We deliver on-site in: Birmingham, Coventry, Solihull, Wolverhampton, Dudley, Walsall',
+            'hook' => 'Mobile training delivery. No disruption to your rota.'
           ],
           [
             'name' => 'South West (Bristol, Devon & Cornwall)',
             'url' => home_url('/locations/south-west/'),
-            'description' => 'Rural and coastal areas need flexible training. We come to you—no travel time for your team.',
-            'areas' => 'Bristol, Plymouth, Exeter, Truro, Taunton, Bath',
-            'hook' => 'On-site delivery. We bring everything to you.'
+            'description' => 'We travel to your venue across the South West. Rural and coastal areas need flexible training—we come to you, bringing all equipment and materials.',
+            'areas' => 'We deliver on-site in: Bristol, Plymouth, Exeter, Truro, Taunton, Bath',
+            'hook' => 'Mobile delivery anywhere. We bring everything to your venue.'
           ],
           [
             'name' => 'Lancashire & South Cumbria',
             'url' => home_url('/locations/lancashire/'),
-            'description' => 'Budget pressures are real. Training becomes your market advantage when commissioners scrutinise every contract.',
-            'areas' => 'Preston, Blackburn, Lancaster, Burnley, Barrow-in-Furness, Carlisle',
-            'hook' => 'Training as commissioning proof. Quality matters.'
+            'description' => 'We travel to your venue across Lancashire and South Cumbria. Budget pressures are real—we deliver cost-effective training at your location.',
+            'areas' => 'We deliver on-site in: Preston, Blackburn, Lancaster, Burnley, Barrow-in-Furness, Carlisle',
+            'hook' => 'On-site training at your facility. Training tailored to your policies.'
           ],
           [
             'name' => 'East of England (Norfolk, Suffolk, Cambs)',
             'url' => home_url('/locations/east-england/'),
-            'description' => 'Rural and coastal care providers need accessible training. We deliver on-site across the region.',
-            'areas' => 'Norwich, Ipswich, Cambridge, Peterborough, Great Yarmouth, Lowestoft',
-            'hook' => 'Flexible delivery. We work around your rota.'
+            'description' => 'We travel to your venue across the East of England. Rural and coastal care providers need accessible training—we deliver on-site at your location.',
+            'areas' => 'We deliver on-site in: Norwich, Ipswich, Cambridge, Peterborough, Great Yarmouth, Lowestoft',
+            'hook' => 'Mobile delivery. We work around your rota and come to you.'
           ],
           [
             'name' => 'Merseyside & Cheshire',
             'url' => home_url('/locations/merseyside/'),
-            'description' => 'Urban care providers managing high-acuity cases. Your team needs current skills to handle complex discharges.',
-            'areas' => 'Liverpool, Wirral, Chester, Warrington, Birkenhead, Ellesmere Port',
-            'hook' => 'Complex care. Training keeps staff confident.'
+            'description' => 'We travel to your venue across Merseyside and Cheshire. Urban care providers managing high-acuity cases—we deliver current training at your location.',
+            'areas' => 'We deliver on-site in: Liverpool, Wirral, Chester, Warrington, Birkenhead, Ellesmere Port',
+            'hook' => 'On-site training at your facility. Complex care needs current skills.'
           ],
           [
             'name' => 'Scotland',
             'url' => home_url('/locations/scotland/'),
-            'description' => 'Scottish care standards require current training. We deliver on-site across Scotland—from the Borders to the Highlands.',
-            'areas' => 'Glasgow, Edinburgh, Aberdeen, Dundee, Inverness, Perth',
-            'hook' => 'UK-wide delivery. Same quality, same standards.'
+            'description' => 'We travel to your venue anywhere in Scotland. Scottish care standards require current training—we deliver on-site from the Borders to the Highlands.',
+            'areas' => 'We deliver on-site in: Glasgow, Edinburgh, Aberdeen, Dundee, Inverness, Perth',
+            'hook' => 'UK-wide mobile delivery. We come to your venue anywhere.'
           ],
           [
             'name' => 'Wales',
             'url' => home_url('/locations/wales/'),
-            'description' => 'Welsh care providers need CQC-equivalent training. We deliver on-site across Wales—from Cardiff to rural areas.',
-            'areas' => 'Cardiff, Swansea, Newport, Wrexham, Bangor, Carmarthen',
-            'hook' => 'On-site anywhere. We come to you.'
+            'description' => 'We travel to your venue anywhere in Wales. Welsh care providers need CQC-equivalent training—we deliver on-site from Cardiff to rural areas.',
+            'areas' => 'We deliver on-site in: Cardiff, Swansea, Newport, Wrexham, Bangor, Carmarthen',
+            'hook' => 'Mobile delivery to your venue. We come to you anywhere in Wales.'
           ]
         ];
         
@@ -510,7 +520,7 @@ echo '<script type="application/ld+json">' . wp_json_encode($schema_data, JSON_U
           <p class="locations-delivery-address"><?php echo esc_html($location['description']); ?></p>
           
           <ul class="locations-delivery-features">
-            <li><i class="fas fa-map-marker-alt" aria-hidden="true"></i> <strong>Areas:</strong> <?php echo esc_html($location['areas']); ?></li>
+            <li><i class="fas fa-truck" aria-hidden="true"></i> <strong>Service areas:</strong> <?php echo esc_html($location['areas']); ?></li>
             <li><i class="fas fa-info-circle" aria-hidden="true"></i> <strong>Why it matters:</strong> <?php echo esc_html($location['hook']); ?></li>
           </ul>
           
@@ -568,7 +578,7 @@ echo '<script type="application/ld+json">' . wp_json_encode($schema_data, JSON_U
         
         <div class="why-us-blended-card">
           <div class="why-us-blended-card-header">
-            <div class="why-us-blended-icon-wrapper why-us-blended-icon-1">
+            <div class="why-us-blended-icon-wrapper why-us-blended-icon-4">
               <i class="fas fa-clipboard-check why-us-blended-icon" aria-hidden="true"></i>
             </div>
           </div>
@@ -578,7 +588,7 @@ echo '<script type="application/ld+json">' . wp_json_encode($schema_data, JSON_U
         
         <div class="why-us-blended-card">
           <div class="why-us-blended-card-header">
-            <div class="why-us-blended-icon-wrapper why-us-blended-icon-2">
+            <div class="why-us-blended-icon-wrapper why-us-blended-icon-5">
               <i class="fas fa-hands-helping why-us-blended-icon" aria-hidden="true"></i>
             </div>
           </div>
@@ -588,12 +598,12 @@ echo '<script type="application/ld+json">' . wp_json_encode($schema_data, JSON_U
         
         <div class="why-us-blended-card">
           <div class="why-us-blended-card-header">
-            <div class="why-us-blended-icon-wrapper why-us-blended-icon-3">
-              <i class="fas fa-star why-us-blended-icon" aria-hidden="true"></i>
+            <div class="why-us-blended-icon-wrapper why-us-blended-icon-6">
+              <i class="fas fa-users why-us-blended-icon" aria-hidden="true"></i>
             </div>
           </div>
           <h3 class="why-us-blended-title">200+ Providers Trust Us</h3>
-          <p class="why-us-blended-description">4.6★ on Trustpilot. All 5-star reviews. 100% CQC-compliant courses. CPD-accredited. On-site delivery anywhere in the UK.</p>
+          <p class="why-us-blended-description">4.6 on Trustpilot. All 5-star reviews. 100% CQC-compliant courses. CPD-accredited. On-site delivery anywhere in the UK.</p>
         </div>
       </div>
     </div>
@@ -607,204 +617,167 @@ echo '<script type="application/ld+json">' . wp_json_encode($schema_data, JSON_U
         <p class="section-subtitle">Most popular courses right now</p>
       </div>
       
+      <?php
+      // Category mapping for badges and icons (same as archive-course.php)
+      $category_icons = [
+        'core-care-skills' => 'fa-heart',
+        'emergency-first-aid' => 'fa-first-aid',
+        'health-conditions-specialist-care' => 'fa-stethoscope',
+        'medication-management' => 'fa-pills',
+        'safety-compliance' => 'fa-shield-alt',
+        'communication-workplace-culture' => 'fa-users',
+        'information-data-management' => 'fa-database',
+        'nutrition-hygiene' => 'fa-apple-alt',
+        'leadership-professional-development' => 'fa-user-tie',
+      ];
+
+      $category_badge_colors = [
+        'core-care-skills' => 'course-badge-blue',
+        'emergency-first-aid' => 'course-badge-red',
+        'health-conditions-specialist-care' => 'course-badge-green',
+        'medication-management' => 'course-badge-purple',
+        'safety-compliance' => 'course-badge-amber',
+        'communication-workplace-culture' => 'course-badge-teal',
+        'information-data-management' => 'course-badge-indigo',
+        'nutrition-hygiene' => 'course-badge-orange',
+        'leadership-professional-development' => 'course-badge-pink',
+      ];
+
+      $category_short_names = [
+        'core-care-skills' => 'Core Care',
+        'emergency-first-aid' => 'First Aid',
+        'health-conditions-specialist-care' => 'Specialist',
+        'medication-management' => 'Medication',
+        'safety-compliance' => 'Safety',
+        'communication-workplace-culture' => 'Communication',
+        'information-data-management' => 'Data',
+        'nutrition-hygiene' => 'Nutrition',
+        'leadership-professional-development' => 'Leadership',
+      ];
+
+      // Get most popular courses (limit to 6)
+      $popular_courses = get_posts([
+        'post_type' => 'course',
+        'post_status' => 'publish',
+        'posts_per_page' => 6,
+        'orderby' => 'title',
+        'order' => 'ASC',
+      ]);
+      ?>
+      
       <div class="courses-grid">
-        <article class="course-card">
+        <?php if (!empty($popular_courses)) : 
+          foreach ($popular_courses as $course_post) :
+            setup_postdata($course_post);
+            $duration = get_field('course_duration', $course_post->ID);
+            $price = get_field('course_price', $course_post->ID);
+            $accreditation = get_field('course_accreditation', $course_post->ID);
+            $level = get_field('course_level', $course_post->ID);
+            // Use limiting function to get max 2 categories
+            $terms = function_exists('cta_get_course_category_terms') ? cta_get_course_category_terms($course_post->ID) : get_the_terms($course_post->ID, 'course_category');
+            $primary_term = $terms && !is_wp_error($terms) && !empty($terms) ? $terms[0] : null;
+            $secondary_term = $terms && !is_wp_error($terms) && count($terms) >= 2 ? $terms[1] : null;
+            $category_slug = $primary_term ? $primary_term->slug : '';
+            $badge_color = isset($category_badge_colors[$category_slug]) ? $category_badge_colors[$category_slug] : 'course-badge-blue';
+            $short_name = isset($category_short_names[$category_slug]) ? $category_short_names[$category_slug] : ($primary_term ? $primary_term->name : '');
+            $primary_icon = isset($category_icons[$category_slug]) ? $category_icons[$category_slug] : 'fa-book';
+            $secondary_icon = $secondary_term && isset($category_icons[$secondary_term->slug]) ? $category_icons[$secondary_term->slug] : 'fa-book';
+            $secondary_badge_color = $secondary_term && isset($category_badge_colors[$secondary_term->slug]) ? $category_badge_colors[$secondary_term->slug] : 'course-badge-blue';
+            $secondary_short_name = $secondary_term && isset($category_short_names[$secondary_term->slug]) ? $category_short_names[$secondary_term->slug] : ($secondary_term ? $secondary_term->name : '');
+        ?>
+        <article class="course-card" data-category="<?php echo esc_attr($category_slug); ?>" data-title="<?php echo esc_attr(strtolower(get_the_title($course_post->ID))); ?>" data-course-id="<?php echo $course_post->ID; ?>" data-course-url="<?php echo esc_url(get_permalink($course_post->ID)); ?>">
+          <?php if (has_post_thumbnail($course_post->ID)) : 
+            $thumbnail_id = get_post_thumbnail_id($course_post->ID);
+            $image_src = wp_get_attachment_image_src($thumbnail_id, 'medium_large');
+            $image_srcset = wp_get_attachment_image_srcset($thumbnail_id, 'medium_large');
+          ?>
           <div class="course-image-wrapper">
-            <div class="course-image" style="background: linear-gradient(135deg, rgba(239, 68, 68, 0.1), rgba(220, 38, 38, 0.05)); display: flex; align-items: center; justify-content: center;">
-              <i class="fas fa-first-aid" style="font-size: 48px; color: rgba(220, 38, 38, 0.4);" aria-hidden="true"></i>
-            </div>
+            <img srcset="<?php echo esc_attr($image_srcset); ?>"
+                 src="<?php echo esc_url($image_src[0]); ?>"
+                 alt="<?php echo esc_attr(get_the_title($course_post->ID)); ?>"
+                 class="course-image"
+                 loading="lazy"
+                 width="400"
+                 height="225"
+                 sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw">
           </div>
+          <?php endif; ?>
+          
           <div class="course-card-header">
+            <?php if ($primary_term || $secondary_term) : ?>
             <div class="course-card-badge-wrapper">
-              <span class="course-card-badge course-card-badge-red">
-                <i class="fas fa-book course-card-badge-icon" aria-hidden="true"></i>
-                First Aid
+              <?php if ($primary_term) : ?>
+              <span class="course-card-badge <?php echo esc_attr($badge_color); ?>">
+                <i class="fas <?php echo esc_attr($primary_icon); ?> course-card-badge-icon" aria-hidden="true"></i>
+                <?php echo esc_html($short_name); ?>
               </span>
+              <?php endif; ?>
+              <?php if ($secondary_term) : ?>
+              <span class="course-card-badge <?php echo esc_attr($secondary_badge_color); ?>">
+                <i class="fas <?php echo esc_attr($secondary_icon); ?> course-card-badge-icon" aria-hidden="true"></i>
+                <?php echo esc_html($secondary_short_name); ?>
+              </span>
+              <?php endif; ?>
             </div>
-            <h3 class="course-card-title">Emergency First Aid at Work</h3>
-            <p class="course-card-description">Hospital discharge pressures mean your team's the safety net. They need current emergency skills.</p>
+            <?php endif; ?>
+            
+            <h3 class="course-card-title"><?php echo esc_html(get_the_title($course_post->ID)); ?></h3>
+            
+            <?php 
+            $excerpt = get_the_excerpt($course_post->ID);
+            if ($excerpt) : 
+            ?>
+            <p class="course-card-description"><?php echo esc_html($excerpt); ?></p>
+            <?php endif; ?>
           </div>
+          
           <div class="course-card-content">
             <div class="course-card-meta">
+              <?php if ($duration) : ?>
               <div class="course-card-meta-item">
                 <i class="fas fa-clock course-card-meta-icon" aria-hidden="true"></i>
-                <span>1 Day</span>
+                <span><?php echo esc_html($duration); ?></span>
               </div>
+              <?php endif; ?>
+              
+              <?php if ($accreditation) : ?>
               <div class="course-card-meta-item">
                 <i class="fas fa-trophy course-card-meta-icon" aria-hidden="true"></i>
-                <span>Level 3 HSE</span>
+                <span><?php echo esc_html($accreditation); ?></span>
               </div>
+              <?php endif; ?>
+              
+              <?php if ($level) : ?>
+              <div class="course-card-meta-item">
+                <i class="fas fa-chart-line course-card-meta-icon" aria-hidden="true"></i>
+                <span><?php echo esc_html($level); ?></span>
+              </div>
+              <?php endif; ?>
             </div>
-            <div class="course-card-actions">
-              <a href="<?php echo esc_url(add_query_arg('category', 'emergency-first-aid', get_post_type_archive_link('course'))); ?>" class="btn btn-primary btn-block">View Courses</a>
+          </div>
+          
+          <div class="course-card-footer">
+            <?php if ($price) : ?>
+            <div class="course-card-price">
+              <p class="course-card-price-amount">From £<?php echo esc_html(number_format($price, 0)); ?></p>
+              <p class="course-card-price-label">per person</p>
             </div>
+            <?php endif; ?>
+            <a href="<?php echo esc_url(get_permalink($course_post->ID)); ?>" class="course-read-more-btn" aria-label="Read more about <?php echo esc_attr(get_the_title($course_post->ID)); ?>">
+              Read More
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M5 12h14M12 5l7 7-7 7"></path>
+              </svg>
+            </a>
           </div>
         </article>
-        
-        <article class="course-card">
-          <div class="course-image-wrapper">
-            <div class="course-image" style="background: linear-gradient(135deg, rgba(124, 58, 237, 0.1), rgba(124, 58, 237, 0.05)); display: flex; align-items: center; justify-content: center;">
-              <i class="fas fa-pills" style="font-size: 48px; color: rgba(124, 58, 237, 0.4);" aria-hidden="true"></i>
-            </div>
-          </div>
-          <div class="course-card-header">
-            <div class="course-card-badge-wrapper">
-              <span class="course-card-badge course-card-badge-purple">
-                <i class="fas fa-book course-card-badge-icon" aria-hidden="true"></i>
-                Medication
-              </span>
-            </div>
-            <h3 class="course-card-title">Medication Competency & Management</h3>
-            <p class="course-card-description">Medication regimes are getting complex. CQC wants competency frameworks, not just awareness.</p>
-          </div>
-          <div class="course-card-content">
-            <div class="course-card-meta">
-              <div class="course-card-meta-item">
-                <i class="fas fa-clock course-card-meta-icon" aria-hidden="true"></i>
-                <span>1 Day</span>
-              </div>
-              <div class="course-card-meta-item">
-                <i class="fas fa-trophy course-card-meta-icon" aria-hidden="true"></i>
-                <span>Level 3 CPD</span>
-              </div>
-            </div>
-            <div class="course-card-actions">
-              <a href="<?php echo esc_url(add_query_arg('category', 'medication-administration', get_post_type_archive_link('course'))); ?>" class="btn btn-primary btn-block">View Courses</a>
-            </div>
-          </div>
-        </article>
-        
-        <article class="course-card">
-          <div class="course-image-wrapper">
-            <div class="course-image" style="background: linear-gradient(135deg, rgba(245, 158, 11, 0.1), rgba(245, 158, 11, 0.05)); display: flex; align-items: center; justify-content: center;">
-              <i class="fas fa-hands" style="font-size: 48px; color: rgba(245, 158, 11, 0.4);" aria-hidden="true"></i>
-            </div>
-          </div>
-          <div class="course-card-header">
-            <div class="course-card-badge-wrapper">
-              <span class="course-card-badge course-card-badge-orange">
-                <i class="fas fa-book course-card-badge-icon" aria-hidden="true"></i>
-                Manual Handling
-              </span>
-            </div>
-            <h3 class="course-card-title">Moving & Handling (People)</h3>
-            <p class="course-card-description">Bariatric care, specialist positioning, dynamic risk assessment. What your team actually does.</p>
-          </div>
-          <div class="course-card-content">
-            <div class="course-card-meta">
-              <div class="course-card-meta-item">
-                <i class="fas fa-clock course-card-meta-icon" aria-hidden="true"></i>
-                <span>1 Day</span>
-              </div>
-              <div class="course-card-meta-item">
-                <i class="fas fa-trophy course-card-meta-icon" aria-hidden="true"></i>
-                <span>Level 3 CPD</span>
-              </div>
-            </div>
-            <div class="course-card-actions">
-              <a href="<?php echo esc_url(add_query_arg('category', 'moving-handling', get_post_type_archive_link('course'))); ?>" class="btn btn-primary btn-block">View Courses</a>
-            </div>
-          </div>
-        </article>
-        
-        <article class="course-card">
-          <div class="course-image-wrapper">
-            <div class="course-image" style="background: linear-gradient(135deg, rgba(53, 147, 141, 0.1), rgba(74, 168, 161, 0.05)); display: flex; align-items: center; justify-content: center;">
-              <i class="fas fa-certificate" style="font-size: 48px; color: rgba(53, 147, 141, 0.4);" aria-hidden="true"></i>
-            </div>
-          </div>
-          <div class="course-card-header">
-            <div class="course-card-badge-wrapper">
-              <span class="course-card-badge course-card-badge-teal">
-                <i class="fas fa-book course-card-badge-icon" aria-hidden="true"></i>
-                Core Care
-              </span>
-            </div>
-            <h3 class="course-card-title">Care Certificate</h3>
-            <p class="course-card-description">New starters need this within 12 weeks. We deliver all 15 standards in a format that makes sense.</p>
-          </div>
-          <div class="course-card-content">
-            <div class="course-card-meta">
-              <div class="course-card-meta-item">
-                <i class="fas fa-clock course-card-meta-icon" aria-hidden="true"></i>
-                <span>4 Days</span>
-              </div>
-              <div class="course-card-meta-item">
-                <i class="fas fa-trophy course-card-meta-icon" aria-hidden="true"></i>
-                <span>Level 2</span>
-              </div>
-            </div>
-            <div class="course-card-actions">
-              <a href="<?php echo esc_url(add_query_arg('category', 'care-certificate', get_post_type_archive_link('course'))); ?>" class="btn btn-primary btn-block">View Courses</a>
-            </div>
-          </div>
-        </article>
-        
-        <article class="course-card">
-          <div class="course-image-wrapper">
-            <div class="course-image" style="background: linear-gradient(135deg, rgba(5, 150, 105, 0.1), rgba(5, 150, 105, 0.05)); display: flex; align-items: center; justify-content: center;">
-              <i class="fas fa-shield-alt" style="font-size: 48px; color: rgba(5, 150, 105, 0.4);" aria-hidden="true"></i>
-            </div>
-          </div>
-          <div class="course-card-header">
-            <div class="course-card-badge-wrapper">
-              <span class="course-card-badge course-card-badge-green">
-                <i class="fas fa-book course-card-badge-icon" aria-hidden="true"></i>
-                Safeguarding
-              </span>
-            </div>
-            <h3 class="course-card-title">Safeguarding Adults</h3>
-            <p class="course-card-description">Safeguarding protocols are tightening. Keep your team current with updated procedures.</p>
-          </div>
-          <div class="course-card-content">
-            <div class="course-card-meta">
-              <div class="course-card-meta-item">
-                <i class="fas fa-clock course-card-meta-icon" aria-hidden="true"></i>
-                <span>Half Day</span>
-              </div>
-              <div class="course-card-meta-item">
-                <i class="fas fa-trophy course-card-meta-icon" aria-hidden="true"></i>
-                <span>Level 2 CPD</span>
-              </div>
-            </div>
-            <div class="course-card-actions">
-              <a href="<?php echo esc_url(add_query_arg('category', 'safeguarding', get_post_type_archive_link('course'))); ?>" class="btn btn-primary btn-block">View Courses</a>
-            </div>
-          </div>
-        </article>
-        
-        <article class="course-card">
-          <div class="course-image-wrapper">
-            <div class="course-image" style="background: linear-gradient(135deg, rgba(8, 145, 178, 0.1), rgba(8, 145, 178, 0.05)); display: flex; align-items: center; justify-content: center;">
-              <i class="fas fa-brain" style="font-size: 48px; color: rgba(8, 145, 178, 0.4);" aria-hidden="true"></i>
-            </div>
-          </div>
-          <div class="course-card-header">
-            <div class="course-card-badge-wrapper">
-              <span class="course-card-badge course-card-badge-blue">
-                <i class="fas fa-book course-card-badge-icon" aria-hidden="true"></i>
-                Specialist
-              </span>
-            </div>
-            <h3 class="course-card-title">Dementia Care</h3>
-            <p class="course-card-description">Dementia cases are rising. Your staff need practical strategies, not just awareness training.</p>
-          </div>
-          <div class="course-card-content">
-            <div class="course-card-meta">
-              <div class="course-card-meta-item">
-                <i class="fas fa-clock course-card-meta-icon" aria-hidden="true"></i>
-                <span>1 Day</span>
-              </div>
-              <div class="course-card-meta-item">
-                <i class="fas fa-trophy course-card-meta-icon" aria-hidden="true"></i>
-                <span>Specialist CPD</span>
-              </div>
-            </div>
-            <div class="course-card-actions">
-              <a href="<?php echo esc_url(add_query_arg('category', 'dementia-mental-health', get_post_type_archive_link('course'))); ?>" class="btn btn-primary btn-block">View Courses</a>
-            </div>
-          </div>
-        </article>
+        <?php 
+          endforeach;
+          wp_reset_postdata();
+        else : 
+        ?>
+        <p class="no-courses">No courses available at the moment. Please check back soon.</p>
+        <?php endif; ?>
       </div>
       
       <!-- Specialist Courses Section -->

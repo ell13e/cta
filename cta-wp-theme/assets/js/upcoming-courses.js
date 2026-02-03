@@ -530,6 +530,10 @@
                 `}
                 <span class="event-card-price-label">per person</span>
               </div>
+              <div class="event-card-cta">
+                <span>Book Now</span>
+                <span aria-hidden="true">→</span>
+              </div>
             </div>
           </div>
         </article>

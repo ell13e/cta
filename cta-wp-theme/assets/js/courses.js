@@ -1113,6 +1113,32 @@
         const imageSrcset = generateImageSrcset(courseImage);
         const imageSrc = getBaseImageSrc(courseImage);
         
+        // Price handling with sitewide discount support
+        let price = course.price || 0;
+        let originalPrice = course.originalPrice || price; // Use originalPrice if available, otherwise use price as original
+        let hasDiscount = course.hasDiscount || false;
+        let discountPercent = course.discountPercent || 0;
+        
+        // Extract numeric price value
+        const priceNum = typeof price === 'string' ? parseFloat(price.replace(/[£$,\s]/g, '')) : price;
+        const originalPriceNum = typeof originalPrice === 'string' ? parseFloat(originalPrice.replace(/[£$,\s]/g, '')) : originalPrice;
+        
+        // Check for site-wide discount
+        const siteWideDiscount = window.ctaData && window.ctaData.siteWideDiscount ? window.ctaData.siteWideDiscount : null;
+        if (siteWideDiscount && siteWideDiscount.active && siteWideDiscount.percentage > 0) {
+          const siteWidePrice = originalPriceNum * (1 - (siteWideDiscount.percentage / 100));
+          // Use site-wide discount if it's better than existing discount
+          if (!hasDiscount || siteWidePrice < priceNum) {
+            hasDiscount = true;
+            discountPercent = siteWideDiscount.percentage;
+            priceNum = siteWidePrice;
+            price = Math.round(siteWidePrice);
+          }
+        }
+        
+        // Format price for display (ensure it's a number for display)
+        const displayPrice = typeof price === 'number' ? price : priceNum;
+        
         // Get course URL - prioritise course.url, then check cache, then try DOM lookup
         let courseUrl = course.url;
         
@@ -1216,7 +1242,24 @@
             </div>
             <div class="course-card-footer">
               <div class="course-card-price">
-                <p class="course-card-price-amount">From £${course.price}</p>
+                ${hasDiscount ? `
+                  <div style="margin-bottom: 4px;">
+                    <span class="badge badge-discount">Save ${discountPercent}%</span>
+                    ${siteWideDiscount && siteWideDiscount.active ? `
+                      <span class="badge badge-discount-subtle">${siteWideDiscount.label || 'Site-Wide Sale'}</span>
+                    ` : ''}
+                  </div>
+                  <div style="display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap;">
+                    <span style="text-decoration: line-through; color: #8c8f94; font-size: 14px; font-weight: 400;">
+                      £${Math.round(originalPriceNum)}
+                    </span>
+                    <span class="course-card-price-amount" style="color: #dc3232; font-weight: 700;">
+                      From £${displayPrice}
+                    </span>
+                  </div>
+                ` : `
+                  <p class="course-card-price-amount">From £${displayPrice}</p>
+                `}
                 <p class="course-card-price-label">per person</p>
               </div>
               <a href="${courseUrl}" class="course-read-more-btn" aria-label="Read more about ${course.title}">
