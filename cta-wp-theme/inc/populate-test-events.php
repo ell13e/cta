@@ -41,6 +41,99 @@ function cta_has_upcoming_events() {
 }
 
 /**
+ * Populate test discounts
+ * Creates sample site-wide discount, course discounts, and discount codes
+ */
+function cta_populate_test_discounts() {
+    // Check if site-wide discount already exists
+    $existing_site_wide = get_option('cta_site_wide_discount_active', false);
+    
+    if (!$existing_site_wide) {
+        // Create a site-wide discount (15% off, expires in 2 months)
+        $expiry_date = date('Y-m-d', strtotime('+2 months'));
+        update_option('cta_site_wide_discount_active', true);
+        update_option('cta_site_wide_discount_percentage', 15);
+        update_option('cta_site_wide_discount_label', 'Spring Sale');
+        update_option('cta_site_wide_discount_expiry', $expiry_date);
+    }
+    
+    // Check if discount codes exist
+    $existing_codes = cta_get_discount_codes();
+    
+    if (empty($existing_codes)) {
+        // Create some test discount codes
+        $test_codes = [
+            [
+                'code' => 'WELCOME20',
+                'discount' => 20,
+                'active' => true,
+                'expiry_date' => date('Y-m-d', strtotime('+3 months')),
+                'sync_to_eventbrite' => false,
+            ],
+            [
+                'code' => 'EARLYBIRD15',
+                'discount' => 15,
+                'active' => true,
+                'expiry_date' => date('Y-m-d', strtotime('+1 month')),
+                'sync_to_eventbrite' => false,
+            ],
+            [
+                'code' => 'STUDENT10',
+                'discount' => 10,
+                'active' => true,
+                'expiry_date' => date('Y-m-d', strtotime('+6 months')),
+                'sync_to_eventbrite' => false,
+            ],
+        ];
+        
+        cta_save_discount_codes($test_codes);
+    }
+    
+    // Get courses to add discounts to
+    $courses = get_posts([
+        'post_type' => 'course',
+        'posts_per_page' => 5,
+        'post_status' => 'publish',
+        'orderby' => 'rand',
+    ]);
+    
+    if (empty($courses)) {
+        return;
+    }
+    
+    // Add course-specific discounts to some courses
+    $discount_configs = [
+        ['percentage' => 25, 'label' => 'Limited Time Offer', 'requires_code' => false, 'code' => ''],
+        ['percentage' => 20, 'label' => 'Early Bird Special', 'requires_code' => true, 'code' => 'EARLYBIRD'],
+        ['percentage' => 15, 'label' => 'Group Booking Discount', 'requires_code' => false, 'code' => ''],
+    ];
+    
+    $discount_index = 0;
+    foreach ($courses as $course) {
+        // Skip if course already has a discount
+        $existing_discount = get_post_meta($course->ID, '_course_discount_active', true);
+        if ($existing_discount === '1') {
+            continue;
+        }
+        
+        // Apply discount to first 3 courses
+        if ($discount_index < 3) {
+            $config = $discount_configs[$discount_index];
+            $expiry_date = date('Y-m-d', strtotime('+2 months'));
+            
+            update_post_meta($course->ID, '_course_discount_active', true);
+            update_post_meta($course->ID, '_course_discount_percentage', $config['percentage']);
+            update_post_meta($course->ID, '_course_discount_label', $config['label']);
+            update_post_meta($course->ID, '_course_discount_requires_code', $config['requires_code'] ? 1 : 0);
+            update_post_meta($course->ID, '_course_discount_code', $config['code']);
+            update_post_meta($course->ID, '_course_discount_expiry', $expiry_date);
+            
+            $discount_index++;
+        }
+    }
+}
+
+/**
  * Populate test course events
  * Creates 6-8 sample events with dates spread over the next 3 months
  */
@@ -149,6 +242,7 @@ function cta_populate_test_course_events() {
  * Run on theme activation
  */
 function cta_populate_events_on_activation() {
+    cta_populate_test_discounts();
     cta_populate_test_course_events();
 }
 add_action('after_switch_theme', 'cta_populate_events_on_activation');
@@ -162,6 +256,7 @@ function cta_populate_events_on_update() {
     
     // Only run if version has changed
     if (version_compare($stored_version, $current_version, '<')) {
+        cta_populate_test_discounts();
         cta_populate_test_course_events();
         update_option('cta_theme_version', $current_version);
     }
