@@ -1226,13 +1226,13 @@ section .container,
   position: absolute;
   top: 100%;
   left: 50%; /* Center horizontally */
-  transform: translate(-50%, -8px); /* Center horizontally and vertical offset */
+  transform: translate(-50%, 0); /* Center horizontally, no vertical offset */
   margin-top: 8px;
   opacity: 0;
   visibility: hidden;
   pointer-events: none;
   z-index: 1001; /* Higher than header (1000) to appear above it */
-  transition: opacity 0.15s ease, visibility 0.15s ease, transform 0.15s ease;
+  transition: opacity 0.15s ease, visibility 0.15s ease;
   width: 1100px; /* Increased width for better fit */
   max-width: calc(100vw - 32px);
   box-sizing: border-box;
@@ -1251,7 +1251,7 @@ section .container,
   .nav-desktop #courses-mega-menu,
   .nav-desktop #courses-dropdown {
     left: 50%;
-    transform: translate(-50%, -8px);
+    transform: translate(-50%, 0);
   }
 }
 
@@ -1260,7 +1260,7 @@ section .container,
   #courses-mega-menu,
   #courses-dropdown {
     /* Centered with navigation bar */
-    transform: translate(-50%, -8px);
+    transform: translate(-50%, 0);
   }
   
   .nav-dropdown-wrapper:hover #courses-mega-menu,
@@ -1315,7 +1315,7 @@ section .container,
   }
 }
 
-/* When active, slide into view */
+/* When active, appear without sliding */
 .nav-dropdown-wrapper:hover #courses-mega-menu,
 .nav-dropdown-wrapper:hover #courses-dropdown,
 .nav-item-dropdown:hover #courses-mega-menu,
@@ -1327,7 +1327,7 @@ section .container,
   opacity: 1;
   visibility: visible;
   pointer-events: auto;
-  transform: translateY(0); /* Left-aligned, only vertical animation */
+  transform: translate(-50%, 0); /* Center-aligned, no slide animation */
 }
 
 /* Mega menu content - clean modern panel */
@@ -40720,12 +40720,12 @@ fieldset.booking-modal-field legend.booking-modal-label {
   }
 }
 
-/* Apply standardized container padding */
+/* Apply standardized container padding with increased side padding */
 .course-detail-content .container {
   padding: 16px; /* Mobile: 16px - standardized to match base container */
   box-sizing: border-box;
   width: 100%;
-  max-width: 100%;
+  /* Remove max-width: 100% to inherit standard 1280px max-width */
   overflow-x: hidden;
 }
 
@@ -40737,7 +40737,7 @@ fieldset.booking-modal-field legend.booking-modal-label {
 
 @media (min-width: 1024px) {
   .course-detail-content .container {
-    padding: 32px; /* Desktop: 32px - standardized to match base container */
+    padding: 48px; /* Desktop: 48px - increased from 32px for more breathing room */
   }
 }
 
@@ -51115,6 +51115,11 @@ a.article-cta-btn:focus-visible {
   font-weight: 700;
   color: var(--brown-dark, #2B1B0E);
   line-height: 1.3;
+}
+
+.course-next-dates .btn {
+  display: block;
+  margin: 1.5rem auto 0;
 }
 
 .course-dates-list {
