@@ -348,18 +348,13 @@ function cta_create_articles_from_resources() {
 
 /**
  * Add admin page for auto-populating articles
+ * NOTE: Automatic menu removed - use manual trigger in Import CTA Data page
+ * Function kept for manual use only
  */
 function cta_add_auto_populate_articles_page() {
-    add_submenu_page(
-        'edit.php',
-        'Auto-Populate Articles',
-        'Auto-Populate Articles',
-        'edit_posts',
-        'cta-auto-populate-articles',
-        'cta_auto_populate_articles_page'
-    );
+    // Automatic menu disabled - function kept for manual use only
+    return;
 }
-add_action('admin_menu', 'cta_add_auto_populate_articles_page', 25);
 
 /**
  * Admin page for auto-populating articles

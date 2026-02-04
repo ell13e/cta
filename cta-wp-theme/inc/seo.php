@@ -920,10 +920,11 @@ function cta_document_title_parts($title_parts) {
 add_filter('document_title_parts', 'cta_document_title_parts');
 
 /**
- * Custom title separator
+ * Custom title separator (can be overridden by global settings)
  */
 function cta_document_title_separator($sep) {
-    return '|';
+    $custom_sep = cta_safe_get_field('seo_title_separator', 'option', '');
+    return !empty($custom_sep) ? $custom_sep : '–'; // Default: dash (Rank Math recommendation)
 }
 add_filter('document_title_separator', 'cta_document_title_separator');
 
@@ -1010,7 +1011,7 @@ function cta_schema_markup() {
             '@type' => 'AggregateRating',
             'ratingValue' => $rating_value,
             'bestRating' => '5',
-            'worstRating' => '5',
+            'worstRating' => '1',
             'ratingCount' => $review_count,
             'reviewCount' => $review_count,
         ];
@@ -1096,7 +1097,7 @@ function cta_schema_markup() {
             '@type' => 'AggregateRating',
             'ratingValue' => $rating_value,
             'bestRating' => '5',
-            'worstRating' => '5',
+            'worstRating' => '1',
             'ratingCount' => $review_count,
             'reviewCount' => $review_count,
         ];
@@ -1211,8 +1212,30 @@ function cta_schema_markup() {
             ],
         ];
         
+        // Add image with proper ImageObject schema
         if (has_post_thumbnail()) {
-            $course_schema['image'] = get_the_post_thumbnail_url($post->ID, 'large');
+            $image_id = get_post_thumbnail_id($post->ID);
+            $image_url = get_the_post_thumbnail_url($post->ID, 'large');
+            $image_meta = wp_get_attachment_metadata($image_id);
+            
+            $image_schema = [
+                '@type' => 'ImageObject',
+                'url' => $image_url,
+            ];
+            
+            // Add dimensions if available
+            if (!empty($image_meta['width']) && !empty($image_meta['height'])) {
+                $image_schema['width'] = $image_meta['width'];
+                $image_schema['height'] = $image_meta['height'];
+            }
+            
+            // Add alt text
+            $alt_text = get_post_meta($image_id, '_wp_attachment_image_alt', true);
+            if (!empty($alt_text)) {
+                $image_schema['caption'] = $alt_text;
+            }
+            
+            $course_schema['image'] = $image_schema;
         }
         
         echo '<script type="application/ld+json">' . json_encode($course_schema, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT) . '</script>' . "\n";
@@ -1361,6 +1384,39 @@ function cta_schema_markup() {
                 echo '<script type="application/ld+json">' . json_encode($faq_schema, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT) . '</script>' . "\n";
             }
         }
+    }
+    
+    // WebPage schema for regular pages (not already covered by specific schemas)
+    // This ensures ALL pages have WebPage schema, not just permanent pages
+    if (is_page() && !cta_is_permanent_page()) {
+        global $post;
+        $webpage_schema = [
+            '@context' => 'https://schema.org',
+            '@type' => 'WebPage',
+            '@id' => get_permalink() . '#webpage',
+            'url' => get_permalink(),
+            'name' => get_the_title(),
+            'description' => cta_get_meta_description(),
+            'isPartOf' => [
+                '@id' => home_url('/#website'),
+            ],
+            'about' => [
+                '@id' => home_url('/#organization'),
+            ],
+        ];
+        
+        // Add primary image if available
+        if (has_post_thumbnail()) {
+            $image_url = get_the_post_thumbnail_url($post->ID, 'large');
+            if ($image_url) {
+                $webpage_schema['primaryImageOfPage'] = [
+                    '@type' => 'ImageObject',
+                    'url' => $image_url,
+                ];
+            }
+        }
+        
+        echo '<script type="application/ld+json">' . json_encode($webpage_schema, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT) . '</script>' . "\n";
     }
     
     // Breadcrumb schema
@@ -1625,7 +1681,6 @@ function cta_filter_sitemap_entry($entry, $post, $post_type) {
         'location-merseyside',
         'location-greater-manchester',
         'location-east-england',
-        'location-south-west',
         'location-west-yorkshire',
         'locations-index',
         'locations',
@@ -2946,29 +3001,113 @@ function cta_seo_tools_admin_page() {
                     }
                 }
                 
-                // Check widgets (text widgets, custom HTML)
+                // Check widgets (text widgets, custom HTML) - improved with DOMDocument
                 if (function_exists('wp_get_sidebars_widgets')) {
                     $sidebars = wp_get_sidebars_widgets();
                     foreach ($sidebars as $sidebar_id => $widgets) {
                         if (!is_array($widgets)) continue;
+                        $sidebar_has_link = false;
                         foreach ($widgets as $widget_id) {
-                            $widget_data = get_option('widget_' . str_replace('_', '-', explode('-', $widget_id)[0]));
-                            if (is_array($widget_data)) {
-                                foreach ($widget_data as $instance) {
-                                    if (isset($instance['text']) || isset($instance['content'])) {
-                                        $widget_content = $instance['text'] ?? $instance['content'] ?? '';
-                                        if (strpos($widget_content, $page_url) !== false || 
-                                            strpos($widget_content, '/' . $page_slug) !== false) {
-                                            $link_count++;
-                                            $link_sources[] = [
-                                                'type' => 'widget',
-                                                'source' => $sidebar_id,
-                                                'source_id' => 0
-                                            ];
-                                            break 2; // Count once per sidebar
-                                        }
+                            if ($sidebar_has_link) break;
+                            
+                            // Get widget type from widget ID
+                            $widget_parts = explode('-', $widget_id);
+                            $widget_base = $widget_parts[0];
+                            $widget_type = str_replace('_', '-', $widget_base);
+                            
+                            // Try to get widget data
+                            $widget_data = get_option('widget_' . $widget_type);
+                            if (!is_array($widget_data)) continue;
+                            
+                            // Get instance number from widget ID
+                            $instance_num = isset($widget_parts[1]) ? (int) $widget_parts[1] : null;
+                            
+                            foreach ($widget_data as $key => $instance) {
+                                if ($instance_num !== null && $key != $instance_num) continue;
+                                if (!is_array($instance)) continue;
+                                
+                                $widget_content = '';
+                                if (isset($instance['text'])) {
+                                    $widget_content = $instance['text'];
+                                } elseif (isset($instance['content'])) {
+                                    $widget_content = $instance['content'];
+                                } elseif (isset($instance['html'])) {
+                                    $widget_content = $instance['html'];
+                                }
+                                
+                                if (empty($widget_content)) continue;
+                                
+                                // Use DOMDocument to check for actual HTML links
+                                libxml_use_internal_errors(true);
+                                $dom = new DOMDocument();
+                                @$dom->loadHTML('<?xml encoding="utf-8" ?>' . $widget_content, LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD);
+                                libxml_clear_errors();
+                                
+                                $links = $dom->getElementsByTagName('a');
+                                foreach ($links as $link) {
+                                    $href = $link->getAttribute('href');
+                                    if (empty($href)) continue;
+                                    
+                                    $href_clean = rtrim($href, '/');
+                                    if ($href === $page_url || 
+                                        $href_clean === $page_url_clean ||
+                                        strpos($href, $page_url) !== false ||
+                                        strpos($href, '?p=' . $page_id_num) !== false ||
+                                        strpos($href, '/' . $page_slug . '/') !== false ||
+                                        strpos($href, '/' . $page_slug) !== false) {
+                                        $link_count++;
+                                        $link_sources[] = [
+                                            'type' => 'widget',
+                                            'source' => $sidebar_id . ' (' . $widget_type . ')',
+                                            'source_id' => 0
+                                        ];
+                                        $sidebar_has_link = true;
+                                        break 3; // Break out of all loops
                                     }
                                 }
+                                
+                                // Fallback: check for URL in text if no HTML links found
+                                if (!$sidebar_has_link && (strpos($widget_content, $page_url) !== false || 
+                                    strpos($widget_content, '/' . $page_slug) !== false)) {
+                                    $link_count++;
+                                    $link_sources[] = [
+                                        'type' => 'widget',
+                                        'source' => $sidebar_id . ' (' . $widget_type . ')',
+                                        'source_id' => 0
+                                    ];
+                                    $sidebar_has_link = true;
+                                    break 2;
+                                }
+                            }
+                        }
+                    }
+                }
+                
+                // Check footer navigation menus (footer menus are already checked above, but ensure they're counted)
+                // Footer menus are handled by the menu check above, but we can add a specific check for footer location
+                $footer_menus = ['footer-company', 'footer-help'];
+                foreach ($footer_menus as $location) {
+                    $menu_items = wp_get_nav_menu_items($location);
+                    if ($menu_items) {
+                        foreach ($menu_items as $item) {
+                            if ($item->object_id == $page_id) {
+                                // Only count if not already counted in general menu check
+                                $already_counted = false;
+                                foreach ($link_sources as $source) {
+                                    if ($source['type'] === 'menu' && $source['source_id'] == $item->ID) {
+                                        $already_counted = true;
+                                        break;
+                                    }
+                                }
+                                if (!$already_counted) {
+                                    $link_count++;
+                                    $link_sources[] = [
+                                        'type' => 'footer',
+                                        'source' => 'Footer Menu (' . $location . ')',
+                                        'source_id' => 0
+                                    ];
+                                }
+                                break;
                             }
                         }
                     }
@@ -3043,38 +3182,197 @@ function cta_seo_tools_admin_page() {
                 $show_suggestions = true;
             }
         }
+        
+        // Handle applying approved links
+        if (isset($_POST['action']) && $_POST['action'] === 'apply_orphan_links' && check_admin_referer('cta_apply_orphan_links')) {
+            $approved_links = isset($_POST['approved_links']) ? $_POST['approved_links'] : [];
+            $applied_count = 0;
+            $errors = [];
+            
+            foreach ($approved_links as $orphan_id => $sources) {
+                $orphan = get_post(absint($orphan_id));
+                if (!$orphan) continue;
+                
+                $orphan_url = get_permalink($orphan_id);
+                $orphan_title = get_the_title($orphan_id);
+                
+                foreach ($sources as $source_id => $keyword) {
+                    $source = get_post(absint($source_id));
+                    if (!$source) continue;
+                    
+                    $source_content = $source->post_content;
+                    $keyword = sanitize_text_field($keyword);
+                    
+                    // Check if link already exists
+                    if (strpos($source_content, $orphan_url) !== false || 
+                        strpos($source_content, 'href="' . $orphan_url) !== false) {
+                        continue; // Link already exists
+                    }
+                    
+                    // Find keyword in content and add link
+                    $keyword_lower = strtolower($keyword);
+                    $content_lower = strtolower($source_content);
+                    
+                    // Find first occurrence of keyword (not already in a link)
+                    $pos = stripos($source_content, $keyword);
+                    if ($pos !== false) {
+                        // Check if keyword is already inside a link tag
+                        $before_keyword = substr($source_content, 0, $pos);
+                        $last_open_a = strrpos($before_keyword, '<a ');
+                        $last_close_a = strrpos($before_keyword, '</a>');
+                        
+                        // Only add link if keyword is not already inside an <a> tag
+                        if ($last_open_a === false || ($last_close_a !== false && $last_close_a > $last_open_a)) {
+                            $link_html = '<a href="' . esc_url($orphan_url) . '">' . esc_html($keyword) . '</a>';
+                            $source_content = substr_replace($source_content, $link_html, $pos, strlen($keyword));
+                            
+                            // Update post
+                            $updated = wp_update_post([
+                                'ID' => $source_id,
+                                'post_content' => $source_content
+                            ], true);
+                            
+                            if (!is_wp_error($updated)) {
+                                $applied_count++;
+                            } else {
+                                $errors[] = 'Failed to update: ' . get_the_title($source_id);
+                            }
+                        }
+                    }
+                }
+            }
+            
+            if ($applied_count > 0) {
+                echo '<div class="notice notice-success is-dismissible"><p><strong>Success!</strong> ' . $applied_count . ' link(s) added successfully.</p></div>';
+            }
+            if (!empty($errors)) {
+                echo '<div class="notice notice-error is-dismissible"><p><strong>Errors:</strong> ' . implode(', ', $errors) . '</p></div>';
+            }
+            
+            // Refresh orphan pages list
+            $orphan_pages = [];
+            // Re-run detection (simplified - in production, you'd want to cache this)
+        }
         ?>
         
         <?php if (isset($show_suggestions) && $show_suggestions) : ?>
         <div class="card" style="max-width: 1200px; margin-top: 20px;">
             <h2>Link Suggestions for Orphan Pages</h2>
+            <p class="description">Review suggestions and approve links to be added automatically. Links will be inserted in natural positions within the content.</p>
             
             <?php if (isset($all_orphans_with_suggestions)) : ?>
-                <?php foreach (array_slice($all_orphans_with_suggestions, 0, 10) as $item) : 
-                    $orphan = $item['orphan'];
-                    $suggestions = $item['suggestions'];
-                ?>
-                <div style="margin-bottom: 24px; padding: 16px; border: 1px solid #dcdcde; border-radius: 4px;">
-                    <h3><?php echo esc_html($orphan['title']); ?> (<?php echo esc_html($orphan['type']); ?>)</h3>
-                    <p><strong>Current links:</strong> <?php echo $orphan['link_count']; ?></p>
+                <form method="post" id="orphan-links-form" action="<?php echo esc_url(admin_url('admin.php?page=cta-seo-tools&tab=orphan-fixer')); ?>">
+                    <?php wp_nonce_field('cta_apply_orphan_links'); ?>
+                    <input type="hidden" name="action" value="apply_orphan_links" />
                     
-                    <?php if (!empty($suggestions)) : ?>
-                        <h4>Suggested link locations:</h4>
-                        <ul>
-                            <?php foreach (array_slice($suggestions, 0, 5) as $suggestion) : ?>
-                            <li>
-                                <strong><?php echo esc_html($suggestion['source_title']); ?></strong> 
-                                (<?php echo esc_html($suggestion['source_type']); ?>)
-                                - Relevance: <?php echo esc_html($suggestion['relevance_score']); ?>%
-                                <a href="<?php echo esc_url($suggestion['edit_link']); ?>" class="button button-small">Edit</a>
-                            </li>
-                            <?php endforeach; ?>
-                        </ul>
-                    <?php else : ?>
-                        <p class="description">No suggestions found. Consider manually adding links from related content.</p>
+                    <?php foreach (array_slice($all_orphans_with_suggestions, 0, 20) as $item_index => $item) : 
+                        $orphan = $item['orphan'];
+                        $suggestions = $item['suggestions'];
+                    ?>
+                    <div style="margin-bottom: 32px; padding: 20px; border: 1px solid #dcdcde; border-radius: 8px; background: #fff;">
+                        <h3 style="margin-top: 0;">
+                            <a href="<?php echo esc_url($orphan['edit_link']); ?>" target="_blank"><?php echo esc_html($orphan['title']); ?></a>
+                            <span style="font-size: 14px; font-weight: normal; color: #646970;">(<?php echo esc_html($orphan['type']); ?>)</span>
+                        </h3>
+                        <p style="margin: 8px 0 16px 0;">
+                            <strong>Current links:</strong> <?php echo $orphan['link_count']; ?>
+                            <?php if (!empty($orphan['link_sources'])) : ?>
+                                <span style="color: #646970; font-size: 13px;">
+                                    - Sources: <?php echo esc_html(implode(', ', array_column($orphan['link_sources'], 'type'))); ?>
+                                </span>
+                            <?php endif; ?>
+                        </p>
+                        
+                        <?php if (!empty($suggestions)) : ?>
+                            <h4 style="margin: 16px 0 12px 0; font-size: 15px;">Suggested link locations (select to approve):</h4>
+                            <table class="wp-list-table widefat" style="margin-top: 12px;">
+                                <thead>
+                                    <tr>
+                                        <th style="width: 30px;"><input type="checkbox" class="orphan-select-all" data-orphan-index="<?php echo $item_index; ?>"></th>
+                                        <th>Source Page</th>
+                                        <th style="width: 120px;">Relevance</th>
+                                        <th style="width: 100px;">Keyword</th>
+                                        <th style="width: 150px;">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <?php foreach (array_slice($suggestions, 0, 5) as $sug_index => $suggestion) : ?>
+                                    <tr>
+                                        <td>
+                                            <input type="checkbox" 
+                                                   name="approved_links[<?php echo esc_attr($orphan['id']); ?>][<?php echo esc_attr($suggestion['source_id']); ?>]" 
+                                                   value="<?php echo esc_attr($suggestion['suggested_keyword']); ?>"
+                                                   class="orphan-link-checkbox"
+                                                   data-orphan-index="<?php echo $item_index; ?>">
+                                        </td>
+                                        <td>
+                                            <strong><?php echo esc_html($suggestion['source_title']); ?></strong>
+                                            <br>
+                                            <span style="font-size: 12px; color: #646970;"><?php echo esc_html($suggestion['source_type']); ?></span>
+                                        </td>
+                                        <td>
+                                            <span style="display: inline-block; padding: 4px 8px; background: <?php echo $suggestion['relevance_score'] >= 70 ? '#d1e7dd' : ($suggestion['relevance_score'] >= 50 ? '#fff3cd' : '#f8d7da'); ?>; border-radius: 3px; font-weight: 600; font-size: 12px;">
+                                                <?php echo esc_html($suggestion['relevance_score']); ?>%
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <code style="font-size: 12px; background: #f0f0f1; padding: 2px 6px; border-radius: 3px;">
+                                                <?php echo esc_html($suggestion['suggested_keyword']); ?>
+                                            </code>
+                                        </td>
+                                        <td>
+                                            <a href="<?php echo esc_url($suggestion['edit_link']); ?>" class="button button-small" target="_blank">Edit</a>
+                                            <a href="<?php echo esc_url($suggestion['source_url']); ?>" class="button button-small" target="_blank">View</a>
+                                        </td>
+                                    </tr>
+                                    <?php endforeach; ?>
+                                </tbody>
+                            </table>
+                        <?php else : ?>
+                            <p class="description" style="padding: 12px; background: #f0f0f1; border-radius: 4px;">No suggestions found. Consider manually adding links from related content.</p>
+                        <?php endif; ?>
+                    </div>
+                    <?php endforeach; ?>
+                    
+                    <?php if (!empty($all_orphans_with_suggestions)) : ?>
+                    <div style="margin-top: 24px; padding: 20px; background: #f0f6fc; border-left: 4px solid #2271b1; border-radius: 4px;">
+                        <h3 style="margin-top: 0;">Apply Selected Links</h3>
+                        <p>Selected links will be automatically inserted into the source pages at natural positions. This action cannot be undone automatically, so please review your selections carefully.</p>
+                        <button type="submit" class="button button-primary button-large" onclick="return confirm('Are you sure you want to add the selected links? This will modify the content of the source pages.');">
+                            Apply Selected Links
+                        </button>
+                        <span id="selected-count" style="margin-left: 12px; color: #646970; font-size: 13px;"></span>
+                    </div>
                     <?php endif; ?>
-                </div>
-                <?php endforeach; ?>
+                </form>
+                
+                <script>
+                (function() {
+                    function updateSelectedCount() {
+                        var checked = document.querySelectorAll('#orphan-links-form input[type="checkbox"]:checked:not(.orphan-select-all)').length;
+                        var countEl = document.getElementById('selected-count');
+                        if (countEl) {
+                            countEl.textContent = checked > 0 ? checked + ' link(s) selected' : '';
+                        }
+                    }
+                    
+                    // Update count on checkbox change
+                    document.addEventListener('change', function(e) {
+                        if (e.target.classList.contains('orphan-link-checkbox') || e.target.classList.contains('orphan-select-all')) {
+                            if (e.target.classList.contains('orphan-select-all')) {
+                                var orphanIndex = e.target.dataset.orphanIndex;
+                                var checkboxes = document.querySelectorAll('.orphan-link-checkbox[data-orphan-index="' + orphanIndex + '"]');
+                                checkboxes.forEach(function(cb) {
+                                    cb.checked = e.target.checked;
+                                });
+                            }
+                            updateSelectedCount();
+                        }
+                    });
+                    
+                    updateSelectedCount();
+                })();
+                </script>
             <?php endif; ?>
         </div>
         <?php endif; ?>

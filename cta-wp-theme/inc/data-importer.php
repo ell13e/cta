@@ -1257,6 +1257,20 @@ function cta_import_admin_page_content() {
         }
     }
     
+    // Handle article auto-population
+    $articles_result = null;
+    if (isset($_POST['cta_create_articles']) && check_admin_referer('cta_create_articles')) {
+        if (function_exists('cta_create_articles_from_resources')) {
+            $articles_result = cta_create_articles_from_resources();
+        }
+    }
+    
+    // Handle bulk session title updates
+    $session_titles_result = null;
+    if (isset($_POST['cta_update_session_titles']) && check_admin_referer('cta_update_session_titles')) {
+        $session_titles_result = cta_bulk_update_session_titles();
+    }
+    
     ?>
     <div class="wrap">
         <h1 class="wp-heading-inline">
@@ -1513,6 +1527,120 @@ function cta_import_admin_page_content() {
             }
         }
         ?>
+            </div>
+        </div>
+        
+        <div class="postbox">
+            <h2 class="hndle">
+                <span class="dashicons dashicons-admin-post" style="vertical-align: middle; margin-right: 5px;"></span>
+                Auto-Populate Articles from Government Resources
+            </h2>
+            <div class="inside">
+                <p>Create blog articles automatically from government guidance and resources relevant to care providers and CQC compliance.</p>
+                
+                <?php
+                if (function_exists('cta_get_government_resources_for_articles')) {
+                    $resources = cta_get_government_resources_for_articles();
+                    $existing_count = 0;
+                    foreach ($resources as $resource) {
+                        if (get_page_by_title($resource['title'], OBJECT, 'post')) {
+                            $existing_count++;
+                        }
+                    }
+                ?>
+                <p>Found <strong><?php echo count($resources); ?></strong> government resources ready to be converted to articles.</p>
+                <p><?php echo $existing_count; ?> article(s) already exist and will be skipped.</p>
+                
+                <?php if ($articles_result !== null) : ?>
+                    <div class="notice notice-<?php echo ($articles_result['created'] ?? 0) > 0 ? 'success' : 'info'; ?> is-dismissible" style="margin-top: 15px;">
+                        <p><strong>
+                            <?php 
+                            if (isset($articles_result['created']) && isset($articles_result['skipped'])) {
+                                echo sprintf(
+                                    'Created %d article(s), skipped %d existing article(s).',
+                                    $articles_result['created'],
+                                    $articles_result['skipped']
+                                );
+                            } else {
+                                echo 'Operation completed.';
+                            }
+                            ?>
+                        </strong></p>
+                        
+                        <?php if (!empty($articles_result['errors'])) : ?>
+                            <details style="margin-top: 10px;">
+                                <summary style="cursor: pointer; font-weight: bold;">View errors (<?php echo count($articles_result['errors']); ?>)</summary>
+                                <ul style="margin-top: 10px; margin-left: 20px;">
+                                    <?php foreach ($articles_result['errors'] as $error) : ?>
+                                        <li style="color: #d63638;"><?php echo esc_html($error['title'] ?? ''); ?>: <?php echo esc_html($error['error'] ?? ''); ?></li>
+                                    <?php endforeach; ?>
+                                </ul>
+                            </details>
+                        <?php endif; ?>
+                    </div>
+                <?php endif; ?>
+                
+                <form method="post" style="margin-top: 20px;">
+                    <?php wp_nonce_field('cta_create_articles'); ?>
+                    <p>
+                        <button type="submit" name="cta_create_articles" class="button button-primary" onclick="return confirm('This will create new blog articles from government resources. Articles that already exist will be skipped. Continue?');">
+                            <span class="dashicons dashicons-admin-post" style="vertical-align: middle; margin-right: 5px;"></span>
+                            Create Articles from Resources
+                        </button>
+                    </p>
+                </form>
+                <?php } else { ?>
+                    <p class="description">Article auto-population function not available.</p>
+                <?php } ?>
+            </div>
+        </div>
+        
+        <div class="postbox">
+            <h2 class="hndle">
+                <span class="dashicons dashicons-calendar-alt" style="vertical-align: middle; margin-right: 5px;"></span>
+                Update Session Titles from Courses
+            </h2>
+            <div class="inside">
+                <p>Bulk update course event titles to match their linked course titles. This will update all course events that have a linked course.</p>
+                
+                <?php if ($session_titles_result !== null) : ?>
+                    <div class="notice notice-<?php echo $session_titles_result['success'] ? 'success' : 'error'; ?> is-dismissible" style="margin-top: 15px;">
+                        <p><strong><?php echo esc_html($session_titles_result['message'] ?? 'Operation completed.'); ?></strong></p>
+                        <?php if (isset($session_titles_result['updated'])) : ?>
+                            <p>Updated <?php echo intval($session_titles_result['updated']); ?> session title(s), skipped <?php echo intval($session_titles_result['skipped'] ?? 0); ?> event(s).</p>
+                        <?php endif; ?>
+                        
+                        <?php if (!empty($session_titles_result['errors'])) : ?>
+                            <details style="margin-top: 10px;">
+                                <summary style="cursor: pointer; font-weight: bold;">View errors (<?php echo count($session_titles_result['errors']); ?>)</summary>
+                                <ul style="margin-top: 10px; margin-left: 20px;">
+                                    <?php foreach (array_slice($session_titles_result['errors'], 0, 20) as $error) : ?>
+                                        <li style="color: #d63638;"><?php echo esc_html($error['title'] ?? 'Event ID: ' . ($error['event_id'] ?? '')); ?>: <?php echo esc_html($error['error'] ?? ''); ?></li>
+                                    <?php endforeach; ?>
+                                    <?php if (count($session_titles_result['errors']) > 20) : ?>
+                                        <li><em>... and <?php echo count($session_titles_result['errors']) - 20; ?> more errors</em></li>
+                                    <?php endif; ?>
+                                </ul>
+                            </details>
+                        <?php endif; ?>
+                    </div>
+                <?php endif; ?>
+                
+                <?php
+                $total_events = wp_count_posts('course_event');
+                $total_count = ($total_events->publish ?? 0) + ($total_events->draft ?? 0) + ($total_events->private ?? 0);
+                ?>
+                <p class="description">Total course events: <strong><?php echo intval($total_count); ?></strong></p>
+                
+                <form method="post" style="margin-top: 20px;">
+                    <?php wp_nonce_field('cta_update_session_titles'); ?>
+                    <p>
+                        <button type="submit" name="cta_update_session_titles" class="button button-primary" onclick="return confirm('This will update all course event titles to match their linked course titles. Continue?');">
+                            <span class="dashicons dashicons-update" style="vertical-align: middle; margin-right: 5px;"></span>
+                            Update All Session Titles
+                        </button>
+                    </p>
+                </form>
             </div>
         </div>
         

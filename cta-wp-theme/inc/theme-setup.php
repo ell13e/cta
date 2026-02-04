@@ -143,18 +143,31 @@ add_filter('tiny_mce_before_init', 'cta_customize_tinymce');
  * Add helpful guidance above the editor
  */
 function cta_add_editor_help_text($post) {
-    if (!$post || $post->post_type !== 'post') {
+    if (!$post) {
         return;
     }
-    ?>
-    <div class="cta-editor-help" style="background: #f0f6fc; border-left: 4px solid #2271b1; padding: 12px 16px; margin: 10px 0 15px 0; border-radius: 4px;">
-        <p style="margin: 0; font-size: 13px; color: #1d2327; line-height: 1.6;">
-            <strong>💡 Writing Tips:</strong> Use <strong>H2</strong> for main sections, <strong>H3</strong> for subsections. 
-            The post title above is already your H1, so H1 is not available in the editor. 
-            Keep paragraphs short (2-3 sentences) for better readability.
-        </p>
-    </div>
-    <?php
+    
+    // Show different help text for articles vs FAQs
+    if ($post->post_type === 'post') {
+        ?>
+        <div class="cta-editor-help" style="background: #f0f6fc; border-left: 4px solid #2271b1; padding: 12px 16px; margin: 10px 0 15px 0; border-radius: 4px;">
+            <p style="margin: 0; font-size: 13px; color: #1d2327; line-height: 1.6;">
+                <strong>💡 Writing Tips:</strong> Use <strong>H2</strong> for main sections, <strong>H3</strong> for subsections. 
+                The post title above is already your H1, so H1 is not available in the editor. 
+                Keep paragraphs short (2-3 sentences) for better readability.
+            </p>
+        </div>
+        <?php
+    } elseif ($post->post_type === 'faq') {
+        ?>
+        <div class="cta-editor-help" style="background: #f0f6fc; border-left: 4px solid #2271b1; padding: 12px 16px; margin: 10px 0 15px 0; border-radius: 4px;">
+            <p style="margin: 0; font-size: 13px; color: #1d2327; line-height: 1.6;">
+                <strong>💡 FAQ Writing Tips:</strong> The title above is your question. Use the <strong>Answer</strong> field below to write a clear, helpful response. 
+                Keep answers concise and focused. Use formatting tools to add emphasis, lists, or links when helpful.
+            </p>
+        </div>
+        <?php
+    }
 }
 add_action('edit_form_after_title', 'cta_add_editor_help_text');
 
@@ -162,11 +175,17 @@ add_action('edit_form_after_title', 'cta_add_editor_help_text');
  * Remove unnecessary meta boxes to reduce clutter
  */
 function cta_remove_unnecessary_meta_boxes() {
-    // Remove comments meta box (if not using comments)
+    // Remove comments meta box for posts (if not using comments)
     remove_meta_box('commentstatusdiv', 'post', 'normal');
     remove_meta_box('commentsdiv', 'post', 'normal');
     remove_meta_box('trackbacksdiv', 'post', 'normal');
     remove_meta_box('slugdiv', 'post', 'normal');
+    
+    // Remove unnecessary meta boxes for FAQs (same as articles)
+    remove_meta_box('commentstatusdiv', 'faq', 'normal');
+    remove_meta_box('commentsdiv', 'faq', 'normal');
+    remove_meta_box('trackbacksdiv', 'faq', 'normal');
+    remove_meta_box('slugdiv', 'faq', 'normal');
 }
 add_action('admin_menu', 'cta_remove_unnecessary_meta_boxes');
 

@@ -79,3 +79,682 @@
         min-width: auto;
     }
 }
+
+/* ============================================
+   Newsletter Admin Global Styles
+   ============================================ */
+
+/* Apply to all newsletter admin pages */
+body[class*="newsletter"] .wrap,
+body[class*="cta-newsletter"] .wrap {
+    max-width: 1400px;
+}
+
+/* Proper padding for postbox containers */
+body[class*="newsletter"] .postbox,
+body[class*="cta-newsletter"] .postbox {
+    padding: var(--admin-spacing-lg);
+    margin-bottom: var(--admin-spacing-lg);
+}
+
+body[class*="newsletter"] .postbox .inside,
+body[class*="cta-newsletter"] .postbox .inside {
+    padding: var(--admin-spacing-md);
+    margin: 0;
+}
+
+/* Typography hierarchy */
+body[class*="newsletter"] .wrap h1,
+body[class*="cta-newsletter"] .wrap h1 {
+    font-size: 28px;
+    font-weight: 600;
+    margin-bottom: var(--admin-spacing-md);
+    line-height: 1.3;
+}
+
+body[class*="newsletter"] .wrap h2,
+body[class*="cta-newsletter"] .wrap h2 {
+    font-size: 20px;
+    font-weight: 600;
+    margin-top: var(--admin-spacing-lg);
+    margin-bottom: var(--admin-spacing-md);
+    line-height: 1.4;
+}
+
+body[class*="newsletter"] .wrap h3,
+body[class*="cta-newsletter"] .wrap h3 {
+    font-size: 16px;
+    font-weight: 600;
+    margin-top: var(--admin-spacing-md);
+    margin-bottom: var(--admin-spacing-sm);
+    line-height: 1.4;
+}
+
+body[class*="newsletter"] .wrap p.description,
+body[class*="cta-newsletter"] .wrap p.description {
+    font-size: 14px;
+    color: #646970;
+    margin-bottom: var(--admin-spacing-md);
+    line-height: 1.5;
+}
+
+/* Card styling for statistics and quick actions */
+.cta-statistics-card,
+.cta-quick-actions {
+    background: #fff;
+    border: 1px solid #dcdcde;
+    border-radius: 8px;
+    padding: var(--admin-spacing-lg);
+    margin-bottom: var(--admin-spacing-lg);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.cta-statistics-card h2,
+.cta-quick-actions h2 {
+    margin-top: 0;
+    margin-bottom: var(--admin-spacing-md);
+    font-size: 18px;
+    font-weight: 600;
+    color: #1d2327;
+}
+
+/* Spacing between sections */
+body[class*="newsletter"] .wrap > * + *,
+body[class*="cta-newsletter"] .wrap > * + * {
+    margin-top: var(--admin-spacing-lg);
+}
+
+/* Form field spacing */
+body[class*="newsletter"] .form-table th,
+body[class*="cta-newsletter"] .form-table th {
+    padding: var(--admin-spacing-md) var(--admin-spacing-md) var(--admin-spacing-md) 0;
+    font-weight: 600;
+}
+
+body[class*="newsletter"] .form-table td,
+body[class*="cta-newsletter"] .form-table td {
+    padding: var(--admin-spacing-md);
+}
+
+/* Button spacing */
+body[class*="newsletter"] .button,
+body[class*="cta-newsletter"] .button {
+    margin-right: var(--admin-spacing-sm);
+    margin-bottom: var(--admin-spacing-sm);
+}
+
+/* Table improvements */
+body[class*="newsletter"] .wp-list-table,
+body[class*="cta-newsletter"] .wp-list-table {
+    margin-top: var(--admin-spacing-md);
+}
+
+body[class*="newsletter"] .wp-list-table th,
+body[class*="cta-newsletter"] .wp-list-table th {
+    padding: var(--admin-spacing-md);
+    font-weight: 600;
+}
+
+body[class*="newsletter"] .wp-list-table td,
+body[class*="cta-newsletter"] .wp-list-table td {
+    padding: var(--admin-spacing-md);
+    vertical-align: middle;
+}
+
+/* Action buttons container */
+.cta-action-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--admin-spacing-md);
+    margin-top: var(--admin-spacing-md);
+}
+
+.cta-action-btn {
+    display: flex;
+    align-items: center;
+    gap: var(--admin-spacing-sm);
+    padding: var(--admin-spacing-md) var(--admin-spacing-lg);
+    background: #2271b1;
+    color: #fff;
+    text-decoration: none;
+    border-radius: 4px;
+    font-weight: 500;
+    transition: background-color 0.2s ease;
+}
+
+.cta-action-btn:hover {
+    background: #135e96;
+    color: #fff;
+}
+
+.cta-action-btn .dashicons {
+    font-size: 18px;
+    width: 18px;
+    height: 18px;
+}
+
+/* ============================================
+   Newsletter Calendar Redesign
+   ============================================ */
+
+.cta-calendar-container {
+    background: #fff;
+    border: 1px solid #dcdcde;
+    border-radius: 8px;
+    padding: var(--admin-spacing-lg);
+    margin-top: var(--admin-spacing-lg);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.cta-calendar-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--admin-spacing-lg);
+    padding-bottom: var(--admin-spacing-md);
+    border-bottom: 2px solid #f0f0f1;
+}
+
+.cta-calendar-title {
+    font-size: 24px;
+    font-weight: 600;
+    color: #1d2327;
+}
+
+.cta-calendar-nav {
+    display: flex;
+    gap: var(--admin-spacing-sm);
+}
+
+.cta-calendar-nav .button {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--admin-spacing-xs);
+}
+
+/* Calendar grid - 7 columns for days of week */
+.cta-calendar-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 2px;
+    background: #f0f0f1;
+    border: 1px solid #dcdcde;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+/* Day headers */
+.cta-calendar-day-header {
+    background: #f6f7f7;
+    padding: var(--admin-spacing-md);
+    text-align: center;
+    font-weight: 600;
+    font-size: 13px;
+    color: #50575e;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border-bottom: 2px solid #dcdcde;
+}
+
+/* Calendar day cells */
+.cta-calendar-day {
+    background: #fff;
+    min-height: 120px;
+    padding: var(--admin-spacing-sm);
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    transition: background-color 0.2s ease, box-shadow 0.2s ease;
+    cursor: pointer;
+}
+
+.cta-calendar-day:hover {
+    background: #f6f7f7;
+    box-shadow: inset 0 0 0 2px #2271b1;
+    z-index: 1;
+}
+
+.cta-calendar-day.other-month {
+    background: #fafafa;
+    color: #a7aaad;
+}
+
+.cta-calendar-day.today {
+    background: #e7f5fe;
+    border: 2px solid #2271b1;
+}
+
+.cta-calendar-day-number {
+    font-weight: 600;
+    font-size: 16px;
+    color: #1d2327;
+    margin-bottom: var(--admin-spacing-xs);
+    display: flex;
+    align-items: center;
+    gap: var(--admin-spacing-xs);
+}
+
+.cta-calendar-day.other-month .cta-calendar-day-number {
+    color: #a7aaad;
+    font-weight: 400;
+}
+
+.cta-calendar-today-badge {
+    font-size: 10px;
+    font-weight: 600;
+    background: #2271b1;
+    color: #fff;
+    padding: 2px 6px;
+    border-radius: 3px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* Calendar events */
+.cta-calendar-event {
+    font-size: 12px;
+    padding: 4px 6px;
+    margin-bottom: 4px;
+    border-radius: 3px;
+    background: #2271b1;
+    color: #fff;
+    cursor: pointer;
+    transition: background-color 0.2s ease, transform 0.1s ease;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.cta-calendar-event:hover {
+    background: #135e96;
+    transform: translateX(2px);
+}
+
+.cta-calendar-event strong {
+    font-weight: 600;
+    margin-right: 4px;
+}
+
+.cta-calendar-event.scheduled {
+    background: #2271b1;
+}
+
+/* More events indicator */
+.cta-calendar-more {
+    font-size: 11px;
+    color: #646970;
+    font-weight: 600;
+    margin-top: 4px;
+    padding: 2px 6px;
+    background: #f0f0f1;
+    border-radius: 3px;
+    text-align: center;
+}
+
+/* Schedule button */
+.cta-calendar-schedule-wrapper {
+    margin-top: auto;
+    padding-top: var(--admin-spacing-xs);
+}
+
+.cta-calendar-schedule-btn {
+    width: 100%;
+    text-align: center;
+    padding: 6px;
+    font-size: 12px;
+    opacity: 0.7;
+    transition: opacity 0.2s ease, background-color 0.2s ease;
+}
+
+.cta-calendar-day:hover .cta-calendar-schedule-btn {
+    opacity: 1;
+    background: #2271b1;
+    color: #fff;
+}
+
+/* Calendar legend */
+.cta-calendar-legend {
+    display: flex;
+    align-items: center;
+    gap: var(--admin-spacing-lg);
+    margin-top: var(--admin-spacing-lg);
+    padding-top: var(--admin-spacing-md);
+    border-top: 1px solid #dcdcde;
+    flex-wrap: wrap;
+}
+
+.cta-calendar-legend strong {
+    font-weight: 600;
+    color: #1d2327;
+    margin-right: var(--admin-spacing-sm);
+}
+
+.cta-calendar-legend-item {
+    display: flex;
+    align-items: center;
+    gap: var(--admin-spacing-xs);
+    font-size: 13px;
+    color: #646970;
+}
+
+.cta-calendar-legend-color {
+    width: 16px;
+    height: 16px;
+    border-radius: 3px;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.cta-calendar-legend-color.scheduled {
+    background: #2271b1;
+}
+
+.cta-calendar-legend-color.today {
+    background: #e7f5fe;
+    border-color: #2271b1;
+}
+
+.cta-calendar-legend-note {
+    margin-left: auto;
+    font-size: 12px;
+    color: #a7aaad;
+    font-style: italic;
+}
+
+/* Responsive calendar */
+@media screen and (max-width: 782px) {
+    .cta-calendar-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: var(--admin-spacing-md);
+    }
+    
+    .cta-calendar-nav {
+        width: 100%;
+        justify-content: space-between;
+    }
+    
+    .cta-calendar-day {
+        min-height: 80px;
+        padding: var(--admin-spacing-xs);
+    }
+    
+    .cta-calendar-day-number {
+        font-size: 14px;
+    }
+    
+    .cta-calendar-event {
+        font-size: 11px;
+        padding: 3px 4px;
+    }
+    
+    .cta-calendar-legend {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: var(--admin-spacing-sm);
+    }
+    
+    .cta-calendar-legend-note {
+        margin-left: 0;
+    }
+}
+
+/* ============================================
+   Newsletter Compose, Campaigns, Subscribers, Tags Pages
+   ============================================ */
+
+/* Compose page form improvements */
+body[class*="newsletter"] .form-table input[type="text"],
+body[class*="newsletter"] .form-table input[type="email"],
+body[class*="newsletter"] .form-table input[type="date"],
+body[class*="newsletter"] .form-table input[type="time"],
+body[class*="newsletter"] .form-table select,
+body[class*="newsletter"] .form-table textarea {
+    width: 100%;
+    max-width: 600px;
+    padding: 8px 12px;
+    border: 1px solid #8c8f94;
+    border-radius: 4px;
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+body[class*="newsletter"] .form-table textarea {
+    min-height: 120px;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
+}
+
+body[class*="newsletter"] .form-table input[type="text"]:focus,
+body[class*="newsletter"] .form-table input[type="email"]:focus,
+body[class*="newsletter"] .form-table input[type="date"]:focus,
+body[class*="newsletter"] .form-table input[type="time"]:focus,
+body[class*="newsletter"] .form-table select:focus,
+body[class*="newsletter"] .form-table textarea:focus {
+    border-color: #2271b1;
+    box-shadow: 0 0 0 1px #2271b1;
+    outline: none;
+}
+
+/* Better spacing for form sections */
+body[class*="newsletter"] .postbox + .postbox {
+    margin-top: var(--admin-spacing-lg);
+}
+
+/* Statistics cards */
+.cta-statistics-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: var(--admin-spacing-md);
+    margin-bottom: var(--admin-spacing-lg);
+}
+
+.cta-stat-card {
+    background: #fff;
+    border: 1px solid #dcdcde;
+    border-radius: 8px;
+    padding: var(--admin-spacing-lg);
+    text-align: center;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    transition: box-shadow 0.2s ease, transform 0.1s ease;
+}
+
+.cta-stat-card:hover {
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+    transform: translateY(-2px);
+}
+
+.cta-stat-card-value {
+    font-size: 32px;
+    font-weight: 700;
+    color: #2271b1;
+    margin-bottom: var(--admin-spacing-xs);
+    line-height: 1.2;
+}
+
+.cta-stat-card-label {
+    font-size: 14px;
+    color: #646970;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* Improved table layouts */
+body[class*="newsletter"] .wp-list-table {
+    border: 1px solid #dcdcde;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+body[class*="newsletter"] .wp-list-table thead th {
+    background: #f6f7f7;
+    border-bottom: 2px solid #dcdcde;
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 12px;
+    letter-spacing: 0.5px;
+    color: #50575e;
+}
+
+body[class*="newsletter"] .wp-list-table tbody tr {
+    transition: background-color 0.15s ease;
+}
+
+body[class*="newsletter"] .wp-list-table tbody tr:hover {
+    background: #f6f7f7;
+}
+
+body[class*="newsletter"] .wp-list-table tbody tr:nth-child(even) {
+    background: #fafafa;
+}
+
+body[class*="newsletter"] .wp-list-table tbody tr:nth-child(even):hover {
+    background: #f0f0f1;
+}
+
+/* Pagination styling */
+body[class*="newsletter"] .tablenav {
+    margin: var(--admin-spacing-md) 0;
+    padding: var(--admin-spacing-md);
+    background: #f6f7f7;
+    border-radius: 4px;
+}
+
+body[class*="newsletter"] .tablenav-pages {
+    margin: 0;
+}
+
+body[class*="newsletter"] .tablenav-pages .button {
+    margin: 0 2px;
+}
+
+/* Filter/search UI improvements */
+body[class*="newsletter"] .tablenav .alignleft {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--admin-spacing-sm);
+    align-items: center;
+}
+
+body[class*="newsletter"] .tablenav .alignleft select,
+body[class*="newsletter"] .tablenav .alignleft input[type="search"] {
+    padding: 6px 10px;
+    border: 1px solid #8c8f94;
+    border-radius: 4px;
+    font-size: 13px;
+}
+
+body[class*="newsletter"] .tablenav .alignleft input[type="search"] {
+    min-width: 200px;
+}
+
+/* Notice improvements */
+body[class*="newsletter"] .notice {
+    margin: var(--admin-spacing-md) 0;
+    padding: var(--admin-spacing-md) var(--admin-spacing-lg);
+    border-left-width: 4px;
+    border-radius: 4px;
+}
+
+body[class*="newsletter"] .notice p {
+    margin: 0;
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+/* Tags page improvements */
+.cta-tags-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: var(--admin-spacing-md);
+    margin-top: var(--admin-spacing-lg);
+}
+
+.cta-tag-card {
+    background: #fff;
+    border: 1px solid #dcdcde;
+    border-radius: 8px;
+    padding: var(--admin-spacing-md);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    transition: box-shadow 0.2s ease;
+}
+
+.cta-tag-card:hover {
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+}
+
+.cta-tag-name {
+    font-weight: 600;
+    color: #1d2327;
+    font-size: 15px;
+}
+
+.cta-tag-color {
+    width: 24px;
+    height: 24px;
+    border-radius: 4px;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    margin-left: var(--admin-spacing-sm);
+}
+
+/* Campaign status badges */
+.cta-campaign-status {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.cta-campaign-status.sent {
+    background: #d1e7dd;
+    color: #0f5132;
+}
+
+.cta-campaign-status.scheduled {
+    background: #cfe2ff;
+    color: #084298;
+}
+
+.cta-campaign-status.queued {
+    background: #fff3cd;
+    color: #856404;
+}
+
+.cta-campaign-status.draft {
+    background: #f8d7da;
+    color: #842029;
+}
+
+/* Responsive improvements */
+@media screen and (max-width: 782px) {
+    .cta-statistics-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .cta-tags-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    body[class*="newsletter"] .form-table input[type="text"],
+    body[class*="newsletter"] .form-table input[type="email"],
+    body[class*="newsletter"] .form-table input[type="date"],
+    body[class*="newsletter"] .form-table input[type="time"],
+    body[class*="newsletter"] .form-table select,
+    body[class*="newsletter"] .form-table textarea {
+        max-width: 100%;
+    }
+    
+    body[class*="newsletter"] .tablenav .alignleft {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    body[class*="newsletter"] .tablenav .alignleft > * {
+        width: 100%;
+    }
+}

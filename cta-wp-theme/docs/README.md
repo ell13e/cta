@@ -16,27 +16,19 @@
 ### Feature Documentation
 - **[RESOURCE_SYSTEM_COMPLETE.md](RESOURCE_SYSTEM_COMPLETE.md)** - Resource download system
 - **[FEATURES_LOG.md](FEATURES_LOG.md)** - Feature implementation log
-- **[SEO_IMPLEMENTATION_COMPLETE.md](SEO_IMPLEMENTATION_COMPLETE.md)** - SEO implementation guide
 
 ### Operational Documentation
 - **[COMPLIANCE.md](COMPLIANCE.md)** - Legal compliance framework
 - **[POLICY_TEMPLATES.md](POLICY_TEMPLATES.md)** - Policy content templates
 - **[eventbrite-api-complete.md](eventbrite-api-complete.md)** - Eventbrite API reference
+- **[EVENTBRITE_AI_CONTEXT_ASSESSMENT.md](EVENTBRITE_AI_CONTEXT_ASSESSMENT.md)** - Eventbrite AI context analysis & recommendations
 
 ### Analysis & Planning
 - **[FOLDER_STRUCTURE_ANALYSIS.md](FOLDER_STRUCTURE_ANALYSIS.md)** - Folder structure analysis
-- **[REORGANIZATION_PLAN.md](REORGANIZATION_PLAN.md)** - Reorganization plan
-- **[DOCUMENTATION_CONSOLIDATION.md](DOCUMENTATION_CONSOLIDATION.md)** - Documentation consolidation
-- **[SITE_CONFIG_MOVE_VERIFICATION.md](SITE_CONFIG_MOVE_VERIFICATION.md)** - File move verification
 
 ### Other
 - **[marketing/](marketing/)** - Marketing content (Email-copy.md)
 - **[legacy-wordpress-md/](legacy-wordpress-md/)** - Historical documentation
-
-### Planning & Status
-- **[OUTSTANDING_PLANS.md](OUTSTANDING_PLANS.md)** - Future work and optional improvements
-- **[REFACTORING-ROADMAP.md](REFACTORING-ROADMAP.md)** - Code refactoring strategy
-- **[REORGANIZATION_PLAN.md](REORGANIZATION_PLAN.md)** - Folder structure improvements
 
 ---
 

@@ -10,6 +10,90 @@ get_header();
 $contact = cta_get_contact_info();
 
 /**
+ * Sanitize SVG and icon HTML for FAQ categories
+ * Allows full SVG markup with all necessary attributes
+ */
+function cta_sanitize_faq_icon($icon_html) {
+    if (empty($icon_html)) {
+        return '';
+    }
+    
+    // If it's an SVG, use a more permissive wp_kses configuration
+    if (strpos($icon_html, '<svg') !== false) {
+        $allowed_svg = [
+            'svg' => [
+                'width' => true,
+                'height' => true,
+                'viewbox' => true,
+                'viewBox' => true,
+                'fill' => true,
+                'class' => true,
+                'aria-hidden' => true,
+                'xmlns' => true,
+                'xmlns:xlink' => true,
+                'role' => true,
+                'preserveAspectRatio' => true,
+            ],
+            'path' => [
+                'd' => true,
+                'fill' => true,
+                'stroke' => true,
+                'stroke-width' => true,
+                'stroke-linecap' => true,
+                'stroke-linejoin' => true,
+                'class' => true,
+            ],
+            'circle' => [
+                'cx' => true,
+                'cy' => true,
+                'r' => true,
+                'fill' => true,
+                'stroke' => true,
+                'stroke-width' => true,
+            ],
+            'rect' => [
+                'x' => true,
+                'y' => true,
+                'width' => true,
+                'height' => true,
+                'rx' => true,
+                'ry' => true,
+                'fill' => true,
+                'stroke' => true,
+            ],
+            'line' => [
+                'x1' => true,
+                'y1' => true,
+                'x2' => true,
+                'y2' => true,
+                'stroke' => true,
+                'stroke-width' => true,
+            ],
+            'polyline' => [
+                'points' => true,
+                'fill' => true,
+                'stroke' => true,
+                'stroke-width' => true,
+            ],
+            'polygon' => [
+                'points' => true,
+                'fill' => true,
+                'stroke' => true,
+            ],
+            'g' => [
+                'fill' => true,
+                'stroke' => true,
+                'transform' => true,
+            ],
+        ];
+        return wp_kses($icon_html, $allowed_svg);
+    }
+    
+    // For Font Awesome icons
+    return wp_kses($icon_html, ['i' => ['class' => true, 'aria-hidden' => true]]);
+}
+
+/**
  * Format FAQ answer text, converting semicolon-separated lists to HTML lists
  * 
  * @param string $text The FAQ answer text
@@ -368,7 +452,7 @@ foreach ($faqs as $faq) {
             $filter_slug = str_replace(':', '-', $cat_slug);
         ?>
         <button type="button" class="faqs-filter-btn" data-category="<?php echo esc_attr($filter_slug); ?>" aria-pressed="false">
-          <span class="faq-filter-icon" aria-hidden="true"><?php echo wp_kses($cat_data['icon'], ['svg' => ['width' => true, 'height' => true, 'viewbox' => true, 'fill' => true, 'class' => true, 'aria-hidden' => true], 'path' => ['d' => true, 'fill' => true], 'i' => ['class' => true, 'aria-hidden' => true]]); ?></span> <?php echo esc_html($cat_data['name']); ?>
+          <span class="faq-filter-icon" aria-hidden="true"><?php echo cta_sanitize_faq_icon($cat_data['icon']); ?></span> <?php echo esc_html($cat_data['name']); ?>
         </button>
         <?php endif; endforeach; ?>
       </div>
@@ -381,7 +465,7 @@ foreach ($faqs as $faq) {
         ?>
         <div class="faqs-category-section" data-category="<?php echo esc_attr($filter_slug); ?>">
           <h3 class="faqs-category-title">
-            <span class="faqs-category-icon" aria-hidden="true"><?php echo wp_kses($cat_data['icon'], ['svg' => ['width' => true, 'height' => true, 'viewbox' => true, 'fill' => true, 'class' => true, 'aria-hidden' => true, 'xmlns' => true], 'path' => ['d' => true, 'fill' => true, 'stroke' => true, 'stroke-width' => true], 'i' => ['class' => true, 'aria-hidden' => true]]); ?></span>
+            <span class="faqs-category-icon" aria-hidden="true"><?php echo cta_sanitize_faq_icon($cat_data['icon']); ?></span>
             <?php echo esc_html($cat_data['name']); ?>
           </h3>
           <div class="group-faq-list">

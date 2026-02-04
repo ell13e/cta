@@ -65,7 +65,7 @@ function cta_get_organization_schema() {
             'ratingValue' => $rating_value,
             'reviewCount' => $review_count,
             'bestRating' => '5',
-            'worstRating' => '5',
+            'worstRating' => '1',
         ],
     ];
 }
@@ -584,13 +584,123 @@ function cta_get_faq_page_schema() {
         'breadcrumb' => ['@id' => $page_url . '#breadcrumb'],
     ];
     
-    // Try to extract FAQ items from page content
-    // This is a basic implementation - can be enhanced to parse actual FAQ structure
+    // Extract FAQ items from multiple sources
     $mainEntity = [];
-    $content = get_the_content();
     
-    // Look for FAQ patterns in content (can be enhanced based on actual FAQ structure)
-    // For now, we'll just add the basic FAQPage schema
+    // Priority 1: Check ACF repeater field 'faqs'
+    if (function_exists('get_field')) {
+        $acf_faqs = get_field('faqs', get_the_ID());
+        if (!empty($acf_faqs) && is_array($acf_faqs)) {
+            foreach ($acf_faqs as $faq) {
+                if (is_array($faq) && isset($faq['question']) && isset($faq['answer'])) {
+                    $question = trim($faq['question']);
+                    $answer = is_array($faq['answer']) ? '' : trim(strip_tags($faq['answer']));
+                    
+                    // If answer is empty, try to get from WYSIWYG field
+                    if (empty($answer) && isset($faq['answer'])) {
+                        $answer = wp_strip_all_tags($faq['answer']);
+                    }
+                    
+                    if (!empty($question) && !empty($answer)) {
+                        $mainEntity[] = [
+                            '@type' => 'Question',
+                            'name' => $question,
+                            'acceptedAnswer' => [
+                                '@type' => 'Answer',
+                                'text' => $answer,
+                            ],
+                        ];
+                    }
+                }
+            }
+        }
+    }
+    
+    // Priority 2: Check for FAQ custom post type (for FAQs page)
+    if (empty($mainEntity) && get_post_type() === 'page') {
+        $page_slug = get_post()->post_name;
+        if ($page_slug === 'faqs') {
+            $faq_posts = get_posts([
+                'post_type' => 'faq',
+                'posts_per_page' => -1,
+                'post_status' => 'publish',
+                'orderby' => 'menu_order',
+                'order' => 'ASC',
+            ]);
+            
+            foreach ($faq_posts as $faq_post) {
+                $question = trim($faq_post->post_title);
+                $answer = '';
+                
+                // Try ACF field first
+                if (function_exists('get_field')) {
+                    $answer = get_field('faq_answer', $faq_post->ID);
+                }
+                
+                // Fallback to post content
+                if (empty($answer)) {
+                    $answer = $faq_post->post_content;
+                }
+                
+                $answer = wp_strip_all_tags($answer);
+                
+                if (!empty($question) && !empty($answer)) {
+                    $mainEntity[] = [
+                        '@type' => 'Question',
+                        'name' => $question,
+                        'acceptedAnswer' => [
+                            '@type' => 'Answer',
+                            'text' => $answer,
+                        ],
+                    ];
+                }
+            }
+        }
+    }
+    
+    // Priority 3: Parse HTML content for FAQ patterns (accordion structure)
+    if (empty($mainEntity)) {
+        global $post;
+        $content = get_the_content();
+        
+        // Look for accordion FAQ patterns
+        // Pattern: <button>Question</button> followed by <div>Answer</div>
+        // Or: <h3>Question</h3> followed by <p>Answer</p>
+        if (!empty($content)) {
+            // Try to extract from accordion structure
+            preg_match_all(
+                '/<button[^>]*class="[^"]*accordion-trigger[^"]*"[^>]*>\s*<span[^>]*>(.*?)<\/span>/is',
+                $content,
+                $questions
+            );
+            
+            preg_match_all(
+                '/<div[^>]*class="[^"]*accordion-content[^"]*"[^>]*>(.*?)<\/div>/is',
+                $content,
+                $answers
+            );
+            
+            if (!empty($questions[1]) && !empty($answers[1]) && count($questions[1]) === count($answers[1])) {
+                for ($i = 0; $i < count($questions[1]); $i++) {
+                    $question = wp_strip_all_tags($questions[1][$i]);
+                    $answer = wp_strip_all_tags($answers[1][$i]);
+                    
+                    if (!empty($question) && !empty($answer) && strlen($answer) > 20) {
+                        $mainEntity[] = [
+                            '@type' => 'Question',
+                            'name' => $question,
+                            'acceptedAnswer' => [
+                                '@type' => 'Answer',
+                                'text' => $answer,
+                            ],
+                        ];
+                    }
+                }
+            }
+        }
+    }
+    
+    // Add mainEntity if we found FAQs
     if (!empty($mainEntity)) {
         $faq_schema['mainEntity'] = $mainEntity;
     }

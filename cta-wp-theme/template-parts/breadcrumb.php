@@ -24,7 +24,7 @@ $items = get_query_var('breadcrumb_items', []);
     <?php foreach ($items as $index => $item) : 
       $is_last = ($index === count($items) - 1);
     ?>
-    <li class="breadcrumb-separator" aria-hidden="true">/</li>
+    <li class="breadcrumb-separator" aria-hidden="true">»</li>
     <li class="breadcrumb-item">
       <?php if (!$is_last && !empty($item['url'])) : ?>
         <a href="<?php echo esc_url($item['url']); ?>" class="breadcrumb-link"><?php echo esc_html($item['label']); ?></a>

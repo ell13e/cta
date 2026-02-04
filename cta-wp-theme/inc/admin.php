@@ -386,119 +386,81 @@ add_action('admin_footer-post-new.php', 'cta_prefill_session_course');
 
 /**
  * Auto-populate session title from selected course
+ * NOTE: Automatic behavior removed - use manual trigger in Import CTA Data page
+ * This function is kept for manual bulk operations
  */
 function cta_auto_populate_session_title() {
-    global $pagenow, $post_type;
-    
-    // Only on course_event edit screens
-    if ($post_type !== 'course_event') {
-        return;
+    // Automatic behavior disabled - function kept for manual use only
+    return;
+}
+
+/**
+ * Bulk update session titles from linked courses
+ * Manual trigger function for Import CTA Data page
+ * 
+ * @return array Result with 'updated', 'skipped', and 'errors' counts
+ */
+function cta_bulk_update_session_titles() {
+    if (!current_user_can('edit_posts')) {
+        return ['success' => false, 'message' => 'You do not have permission to perform this action.'];
     }
     
-    ?>
-    <script>
-    jQuery(document).ready(function($) {
-        function updateTitleFromCourse(courseId, forceUpdate) {
-            if (!courseId) return;
-            
-            var $titleField = $('#title');
-            if (!$titleField.length) return;
-            
-            var currentTitle = $titleField.val() || '';
-            var isNewPost = !$titleField.data('has-value') && (currentTitle === '' || currentTitle === 'Auto Draft' || currentTitle.trim() === '');
-            
-            // Always update for new posts, or if forceUpdate is true
-            // For existing posts, only update if title matches old course pattern (contains " - " with date)
-            if (!forceUpdate && !isNewPost) {
-                // Check if title looks like it was auto-generated (contains " - " and date pattern)
-                var datePattern = /\d{1,2}\s+(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s+\d{4}/;
-                if (!currentTitle.match(/ - /) || !datePattern.test(currentTitle)) {
-                    return; // Title was manually edited, don't overwrite
-                }
-            }
-            
-            // Get course title via AJAX
-            $.ajax({
-                url: ajaxurl,
-                type: 'POST',
-                data: {
-                    action: 'cta_get_course_title',
-                    course_id: courseId,
-                    nonce: '<?php echo wp_create_nonce('cta_get_course_title'); ?>'
-                },
-                success: function(response) {
-                    if (response.success && response.data && response.data.title) {
-                        $titleField.val(response.data.title);
-                        $titleField.data('has-value', true);
-                        
-                        // Clear placeholder and trigger focus/blur to update UI
-                        if ($titleField.attr('placeholder')) {
-                            $titleField.attr('placeholder', '');
-                        }
-                        
-                        // Trigger events to update WordPress UI
-                        $titleField.trigger('input').trigger('change');
-                        
-                        // Hide the placeholder prompt if it exists
-                        $('#title-prompt-text').hide();
-                    }
-                }
-            });
+    $updated = 0;
+    $skipped = 0;
+    $errors = [];
+    
+    // Get all course events
+    $events = get_posts([
+        'post_type' => 'course_event',
+        'posts_per_page' => -1,
+        'post_status' => 'any',
+    ]);
+    
+    foreach ($events as $event) {
+        // Get linked course
+        $course_id = function_exists('get_field') ? get_field('linked_course', $event->ID) : null;
+        
+        if (!$course_id) {
+            $skipped++;
+            continue;
         }
         
-        // Track if title field has been manually edited
-        $('#title').on('input', function() {
-            $(this).data('has-value', true);
-        });
-        
-        // Method 1: Use ACF's field change event (preferred)
-        if (typeof acf !== 'undefined') {
-            acf.addAction('ready_field/type=post_object', function(field) {
-                // Only for linked_course field
-                if (field.get('key') === 'field_linked_course') {
-                    // Listen for changes to the course field
-                    field.on('change', function() {
-                        var courseId = field.val();
-                        if (courseId) {
-                            // Force update when course changes
-                            updateTitleFromCourse(courseId, true);
-                        }
-                    });
-                    
-                    // Also check if field already has a value (for editing existing posts)
-                    var existingValue = field.val();
-                    if (existingValue) {
-                        updateTitleFromCourse(existingValue);
-                    }
-                }
-            });
+        $course = get_post($course_id);
+        if (!$course || $course->post_type !== 'course') {
+            $skipped++;
+            continue;
         }
         
-        // Method 2: Fallback for Select2 change events
-        $(document).on('change', '[data-key="field_linked_course"] select, [data-name="linked_course"] select', function() {
-            var courseId = $(this).val();
-            if (courseId) {
-                // Force update when course changes
-                updateTitleFromCourse(courseId, true);
-            }
-        });
+        // Update title to match course title
+        $new_title = $course->post_title;
+        $result = wp_update_post([
+            'ID' => $event->ID,
+            'post_title' => $new_title,
+        ]);
         
-        // Method 3: Handle Select2 select events (ACF uses Select2 for post_object fields)
-        $(document).on('select2:select', '[data-key="field_linked_course"] select, [data-name="linked_course"] select', function(e) {
-            var courseId = e.params.data.id;
-            if (courseId) {
-                // Force update when course changes
-                updateTitleFromCourse(courseId, true);
-            }
-        });
-    });
-    </script>
-    <?php
+        if (is_wp_error($result)) {
+            $errors[] = [
+                'event_id' => $event->ID,
+                'title' => $event->post_title,
+                'error' => $result->get_error_message()
+            ];
+        } else {
+            $updated++;
+        }
+    }
+    
+    return [
+        'success' => true,
+        'updated' => $updated,
+        'skipped' => $skipped,
+        'errors' => $errors,
+        'message' => sprintf('Updated %d session title(s), skipped %d event(s).', $updated, $skipped)
+    ];
 }
-add_action('admin_footer', 'cta_auto_populate_session_title');
 
 /**
  * AJAX handler to get course title
+ * NOTE: Kept for manual bulk operations in Import CTA Data page
  */
 function cta_get_course_title_ajax() {
     check_ajax_referer('cta_get_course_title', 'nonce');
@@ -1022,7 +984,7 @@ add_action('wp_ajax_cta_save_inline_field', 'cta_save_inline_field');
 function cta_improve_post_editor_ux() {
     global $post_type;
     
-    if ($post_type !== 'post') {
+    if ($post_type !== 'post' && $post_type !== 'faq') {
         return;
     }
     ?>
@@ -1091,23 +1053,24 @@ add_action('admin_head-post-new.php', 'cta_improve_post_editor_ux');
  * Improve FAQ page editor UX with similar styling to blog posts
  */
 function cta_improve_faq_editor_ux() {
-    global $post;
+    global $post, $post_type;
     
     if (!$post) {
         return;
     }
     
-    // Check if this is a page using FAQ template
+    // Apply to FAQ post type OR pages using FAQ template
     $template = get_page_template_slug($post->ID);
     $is_faq_page = ($template === 'page-templates/page-faqs.php' || 
                     $template === 'page-templates/page-cqc-hub.php' ||
                     strpos($template, 'faq') !== false);
     
-    if (!$is_faq_page && get_post_type() !== 'page') {
+    // Check if this is FAQ post type or FAQ page template
+    if ($post_type !== 'faq' && (!$is_faq_page || get_post_type() !== 'page')) {
         return;
     }
     
-    // Only apply if page has FAQ fields
+    // Only apply if ACF is available
     if (!function_exists('get_field')) {
         return;
     }
@@ -1129,16 +1092,34 @@ function cta_improve_faq_editor_ux() {
         
         /* Make FAQ sections more prominent */
         .acf-field-group[data-key="group_resources_faqs_page"],
-        .acf-field-group[data-key="group_resources_cqc_hub"] {
+        .acf-field-group[data-key="group_resources_cqc_hub"],
+        .acf-field-group[data-key="group_faq_content"] {
             border-top: 2px solid #2271b1;
         }
         
         .acf-field-group[data-key="group_resources_faqs_page"] .acf-label,
-        .acf-field-group[data-key="group_resources_cqc_hub"] .acf-label {
+        .acf-field-group[data-key="group_resources_cqc_hub"] .acf-label,
+        .acf-field-group[data-key="group_faq_content"] .acf-label {
             font-size: 16px;
             padding-bottom: 12px;
             border-bottom: 1px solid #e0e0e0;
             margin-bottom: 16px;
+        }
+        
+        /* Style FAQ Answer field for FAQ post type */
+        .acf-field[data-name="faq_answer"] {
+            margin-top: 16px;
+        }
+        
+        .acf-field[data-name="faq_answer"] .acf-label {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 12px;
+        }
+        
+        .acf-field[data-name="faq_answer"] .wp-editor-container {
+            border: 1px solid #d1d5db;
+            border-radius: 4px;
         }
         
         /* Improve FAQ repeater UI - similar to blog sections */

@@ -3406,7 +3406,7 @@ input[type="search"]::-ms-clear,
 /* Standard Primary Button - matches contact-form-submit styling */
 .btn-primary {
   position: relative;
-  overflow: visible; /* Changed from hidden to allow shadow to render outside button */
+  overflow: visible; /* Allow shadow to render outside button */
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -3439,11 +3439,11 @@ input[type="search"]::-ms-clear,
   height: 100%;
   background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
   transition: left 0.5s ease;
-  border-radius: inherit; /* Use button's border-radius to clip shimmer */
-  overflow: hidden; /* Contain the shine effect within button bounds */
+  border-radius: inherit; /* Match button's border-radius */
   z-index: 1; /* Ensure it's above button background but below text */
   pointer-events: none; /* Don't interfere with button clicks */
-  clip-path: inset(0 round var(--radius-sm)); /* Force clipping to button's border-radius */
+  /* Clip shimmer to button bounds using border-radius */
+  clip-path: inset(0);
 }
 
 .btn-primary:hover::before {
@@ -4654,6 +4654,8 @@ input[type="search"]::-ms-clear,
   width: 100%; /* Ensure full width for right-aligned badge */
   padding-top: 0; /* Remove top padding */
   margin-top: 0; /* Remove top margin */
+  padding-right: 0; /* Ensure no right padding that would offset badge */
+  overflow: visible; /* Allow badge to extend if needed */
 }
 
 .category-name-wrapper {
@@ -4767,6 +4769,7 @@ input[type="search"]::-ms-clear,
   position: absolute;
   top: 0;
   right: 0;
+  left: auto; /* Explicitly set left to auto to prevent any left alignment */
   flex-shrink: 0;
   display: inline-flex;
   align-items: center;
@@ -4781,6 +4784,9 @@ input[type="search"]::-ms-clear,
   height: fit-content;
   line-height: 1;
   text-align: center; /* Center text inside badge */
+  z-index: 10; /* Ensure badge appears above other content */
+  margin-left: auto; /* Push to right if flex context affects it */
+  margin-right: 0; /* Ensure no right margin */
 }
 
 /* Ensure course-badge-* colors override category-badge-* colors when both classes are present */
@@ -10459,11 +10465,23 @@ textarea:focus-visible,
 }
 
 .course-card-title {
-  font-size: 1.0625rem;
+  font-size: 1.25rem;
   font-weight: 700;
-  line-height: 1.35;
-  margin: 0 0 0.75rem 0; /* Standardized spacing: title to description */
   color: var(--brown-dark);
+  margin: 0 0 8px 0;
+  padding: 0;
+  padding-right: 0;
+  text-align: left;
+  line-height: 1.3;
+  letter-spacing: 0.01em;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  min-height: 0px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
 }
 
 .course-card-title a {
@@ -11270,7 +11288,6 @@ textarea:focus-visible,
 }
 
 .course-card:hover .course-card-badge {
-  transform: scale(1.05);
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
 }
 
@@ -11343,11 +11360,12 @@ textarea:focus-visible,
 }
 
 .course-card-title {
-  font-size: 20px;
+  font-size: 1.25rem;
   font-weight: 700;
   color: var(--brown-dark);
-  margin: 0 0 12px 0; /* Consistent spacing: title to description (0.75rem) */
+  margin: 0 0 8px 0;
   padding: 0;
+  padding-right: 0;
   text-align: left;
   line-height: 1.3;
   letter-spacing: 0.01em;
@@ -11356,7 +11374,7 @@ textarea:focus-visible,
   line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
-  min-height: 52px;
+  min-height: 0px;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   position: relative;
 }
@@ -18977,7 +18995,7 @@ input[type="email"].contact-form-input {
   flex-direction: column;
   flex-shrink: 1;
   min-width: 0;
-  justify-content: center; /* Center price content vertically */
+  justify-content: flex-end; /* Bottom align price content to match CTA */
 }
 
 .event-card-price-amount {
@@ -26472,6 +26490,7 @@ input[type="email"].contact-form-input {
 .cta-centered-benefits {
   display: flex;
   flex-direction: column;
+  align-items: center; /* Center badges horizontally */
   gap: 12px;
   /* B.3 to B.4 spacing handled by description margin-bottom */
   margin-top: 0;
@@ -36801,10 +36820,10 @@ display: inline-flex;
 /* Duplicate removed - using unified styling above */
 
 .course-card-title {
-font-size: 1.25rem;
+  font-size: 1.25rem;
   font-weight: 700;
   color: var(--brown-dark);
-  margin: 0 0 0.75rem 0; /* Standardized spacing: title to description */
+  margin: 0 0 8px 0;
   padding: 0;
   padding-right: 0;
   text-align: left;
@@ -36815,7 +36834,7 @@ font-size: 1.25rem;
   line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
-  min-height: 52px;
+  min-height: 0px;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   position: relative;
 }
@@ -41350,7 +41369,9 @@ fieldset.booking-modal-field legend.booking-modal-label {
     order: -1; /* Show sidebar first on mobile */
     width: 100%;
     max-width: 100%;
+    margin-top: 0; /* Remove any top margin on mobile */
     margin-bottom: var(--spacing-lg); /* 24px spacing */
+    padding-top: 0; /* Remove any top padding on mobile */
     box-sizing: border-box;
   }
   
@@ -41365,7 +41386,7 @@ fieldset.booking-modal-field legend.booking-modal-label {
   
   .course-detail-section-heading {
     font-size: 1.5rem; /* Smaller on mobile */
-    margin: 0 0 var(--spacing-base) 0; /* 0 top, 16px bottom - remove top margin on mobile */
+    margin: 0 0 var(--spacing-xs) 0; /* 0 top, 4px bottom - reduced spacing on mobile */
     line-height: 1.2;
   }
   
@@ -41375,11 +41396,14 @@ fieldset.booking-modal-field legend.booking-modal-label {
   
   .course-detail-subheading {
     font-size: 1.125rem; /* 18px */
-    margin-bottom: var(--spacing-base); /* 16px */
+    margin-top: var(--spacing-xs); /* 4px top - reduced spacing on mobile */
+    margin-bottom: var(--spacing-sm); /* 8px bottom - reduced spacing on mobile */
   }
   
   .course-detail-booking-card {
     padding: var(--spacing-base); /* 16px - reduced padding on mobile */
+    padding-top: var(--spacing-base); /* Ensure consistent top padding */
+    margin-top: 0; /* Remove any top margin on mobile */
     border-radius: 8px; /* Smaller radius on mobile */
   }
   
@@ -41388,6 +41412,7 @@ fieldset.booking-modal-field legend.booking-modal-label {
   .course-detail-description-section,
   .course-detail-audience-section,
   .course-detail-requirements-section {
+    margin-top: var(--spacing-xs); /* 4px top - reduced spacing on mobile */
     margin-bottom: var(--spacing-lg); /* 24px */
   }
   
@@ -41439,7 +41464,8 @@ fieldset.booking-modal-field legend.booking-modal-label {
   /* Phone section on mobile */
   .course-detail-phone {
     flex-direction: column;
-    align-items: flex-start;
+    align-items: center; /* Center on mobile */
+    justify-content: center; /* Center on mobile */
     gap: var(--spacing-sm); /* 8px */
     padding-top: var(--spacing-base); /* 16px */
   }
@@ -41459,7 +41485,8 @@ fieldset.booking-modal-field legend.booking-modal-label {
   /* Discount badges on mobile */
   .course-detail-discount-badges {
     flex-direction: column; /* Stack badges on mobile */
-    align-items: stretch;
+    align-items: flex-start; /* Align to start instead of stretch */
+    width: fit-content; /* Fit content on mobile too */
   }
   
   /* Price display on mobile */
@@ -41477,6 +41504,7 @@ fieldset.booking-modal-field legend.booking-modal-label {
   /* Learn grid on mobile */
   .course-detail-learn-grid {
     gap: var(--spacing-sm); /* 8px - tighter spacing */
+    padding-left: var(--spacing-base); /* 16px indent on mobile */
   }
   
   .course-detail-learn-item {
@@ -41514,10 +41542,24 @@ fieldset.booking-modal-field legend.booking-modal-label {
   .course-detail-section-heading {
     font-size: 2rem; /* Slightly smaller on tablet */
     margin-top: 0; /* Remove top margin on tablet */
+    margin-bottom: var(--spacing-xs); /* 4px bottom - reduced spacing on tablet */
   }
   
   .course-detail-section-heading:first-of-type {
     margin-top: 0; /* Ensure first heading has no top margin */
+  }
+  
+  .course-detail-subheading {
+    margin-top: var(--spacing-xs); /* 4px top - reduced spacing on tablet */
+    margin-bottom: var(--spacing-sm); /* 8px bottom - reduced spacing on tablet */
+  }
+  
+  .course-detail-learn-section {
+    margin-top: var(--spacing-xs); /* 4px top - reduced spacing on tablet */
+  }
+  
+  .course-detail-learn-grid {
+    padding-left: var(--spacing-base); /* 16px indent on tablet */
   }
   
   .course-detail-booking-card {
@@ -41541,12 +41583,19 @@ fieldset.booking-modal-field legend.booking-modal-label {
   
   /* Phone section on tablet */
   .course-detail-phone {
-    flex-direction: row; /* Keep inline on tablet */
-    justify-content: space-between;
+    flex-direction: column; /* Stack on tablet for centering */
+    align-items: center; /* Center on tablet */
+    justify-content: center; /* Center on tablet */
+    gap: var(--spacing-sm); /* 8px */
+  }
+  
+  .course-detail-phone-link {
+    justify-content: center; /* Center link on tablet */
   }
   
   .course-detail-phone-hours {
-    text-align: right; /* Right align on tablet */
+    text-align: center; /* Center on tablet */
+    width: 100%;
   }
 }
 
@@ -41597,10 +41646,11 @@ fieldset.booking-modal-field legend.booking-modal-label {
 }
 
 .course-detail-discount-badges {
-  display: flex;
+  display: inline-flex;
   flex-wrap: wrap;
   gap: var(--spacing-sm); /* 8px - standardized spacing */
   margin-bottom: var(--spacing-sm); /* 8px - standardized spacing (10px rounded to closest standard) */
+  width: fit-content; /* Fit content instead of full width */
 }
 
 .course-detail-discount-callout {
@@ -47768,25 +47818,46 @@ a.article-cta-btn:focus-visible {
 .cqc-regulatory-label {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
-  font-size: 14px;
-  padding: 8px 16px;
-  border-radius: 16px;
-  font-weight: 600;
-  letter-spacing: 0.3px;
+  gap: 6px;
+  font-size: 16px; /* Increased from 14px */
+  padding: 12px 20px; /* Increased from 8px 16px */
+  border-radius: 20px; /* Slightly larger radius */
+  font-weight: 700; /* Increased from 600 */
+  letter-spacing: 0.4px;
   text-transform: none;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.12);
   transition: all 0.2s ease;
   position: relative;
   align-self: flex-end; /* Right-align labels */
-  margin-bottom: 18px;
+  margin-bottom: 20px; /* Increased from 18px */
   overflow: hidden;
   white-space: nowrap;
-  line-height: 1.2;
+  line-height: 1.3;
   /* Default styling (cream) - for labels without color class */
-  background: linear-gradient(135deg, rgba(254, 243, 199, 0.18) 0%, rgba(253, 230, 138, 0.15) 100%);
+  background: linear-gradient(135deg, rgba(254, 243, 199, 0.35) 0%, rgba(253, 230, 138, 0.3) 100%);
   color: #92400e;
-  border: 1px solid rgba(146, 64, 14, 0.12);
+  border: 1.5px solid rgba(146, 64, 14, 0.2);
+}
+
+/* Ensure labels in .cqc-regulatory-grid have consistent styling */
+.cqc-regulatory-grid .cqc-regulatory-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 16px;
+  padding: 12px 20px;
+  border-radius: 20px;
+  font-weight: 700;
+  letter-spacing: 0.4px;
+  text-transform: none;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.12);
+  transition: all 0.2s ease;
+  position: relative;
+  align-self: flex-end;
+  margin-bottom: 20px;
+  overflow: hidden;
+  white-space: nowrap;
+  line-height: 1.3;
 }
 
 /* Ensure labels inside card links have the same alignment as labels directly in cards */
@@ -47801,24 +47872,24 @@ a.article-cta-btn:focus-visible {
   /* Apply all the same styling as labels inside card links */
   display: inline-flex;
   align-items: center;
-  gap: 4px;
-  font-size: 14px;
-  padding: 8px 16px;
-  border-radius: 16px;
-  font-weight: 600;
-  letter-spacing: 0.3px;
+  gap: 6px;
+  font-size: 16px; /* Increased from 14px */
+  padding: 12px 20px; /* Increased from 8px 16px */
+  border-radius: 20px; /* Slightly larger radius */
+  font-weight: 700; /* Increased from 600 */
+  letter-spacing: 0.4px;
   text-transform: none;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.12);
   transition: all 0.2s ease;
   position: relative;
   align-self: flex-end;
-  margin-bottom: 18px;
+  margin-bottom: 20px; /* Increased from 18px */
   overflow: hidden;
   white-space: nowrap;
-  line-height: 1.2;
-  background: linear-gradient(135deg, rgba(254, 243, 199, 0.18) 0%, rgba(253, 230, 138, 0.15) 100%);
+  line-height: 1.3;
+  background: linear-gradient(135deg, rgba(254, 243, 199, 0.35) 0%, rgba(253, 230, 138, 0.3) 100%);
   color: #92400e;
-  border: 1px solid rgba(146, 64, 14, 0.12);
+  border: 1.5px solid rgba(146, 64, 14, 0.2);
 }
 
 .cqc-regulatory-label span {
@@ -47827,87 +47898,108 @@ a.article-cta-btn:focus-visible {
   color: inherit;
 }
 
-/* Color-coded labels based on category - matching course card badge colors */
+/* Color-coded labels based on category - Enhanced vibrant colors with better contrast */
 
-/* Important (Pink) - Statutory/Legal requirements */
+/* Important (Pink/Red) - Statutory/Legal requirements - HIGHEST PRIORITY */
 .cqc-regulatory-label-important {
-  background: linear-gradient(135deg, rgba(252, 231, 243, 0.18) 0%, rgba(251, 207, 232, 0.15) 100%);
+  background: linear-gradient(135deg, rgba(252, 231, 243, 0.45) 0%, rgba(251, 207, 232, 0.4) 100%);
   color: #9f1239;
-  border: 1px solid rgba(159, 18, 57, 0.12);
+  border: 2px solid rgba(159, 18, 57, 0.25);
+  box-shadow: 0 3px 8px rgba(159, 18, 57, 0.15);
 }
 
 /* Teal - Training/Educational content */
 .cqc-regulatory-label-teal {
-  background: linear-gradient(135deg, rgba(204, 251, 241, 0.18) 0%, rgba(153, 246, 228, 0.15) 100%);
-  color: #134e4a;
-  border: 1px solid rgba(19, 78, 74, 0.12);
+  background: linear-gradient(135deg, rgba(204, 251, 241, 0.45) 0%, rgba(153, 246, 228, 0.4) 100%);
+  color: #0f766e; /* Darker teal for better contrast */
+  border: 2px solid rgba(15, 118, 110, 0.25);
+  box-shadow: 0 3px 8px rgba(15, 118, 110, 0.15);
 }
 
 /* Purple - Timeline/Updates/Regulatory changes */
 .cqc-regulatory-label-purple {
-  background: linear-gradient(135deg, rgba(233, 213, 255, 0.18) 0%, rgba(221, 214, 254, 0.15) 100%);
+  background: linear-gradient(135deg, rgba(233, 213, 255, 0.45) 0%, rgba(221, 214, 254, 0.4) 100%);
   color: #6b21a8;
-  border: 1px solid rgba(107, 33, 168, 0.12);
+  border: 2px solid rgba(107, 33, 168, 0.25);
+  box-shadow: 0 3px 8px rgba(107, 33, 168, 0.15);
 }
 
 /* Amber - Compliance/Standards */
 .cqc-regulatory-label-amber {
-  background: linear-gradient(135deg, rgba(254, 243, 199, 0.2) 0%, rgba(253, 230, 138, 0.18) 100%);
+  background: linear-gradient(135deg, rgba(254, 243, 199, 0.5) 0%, rgba(253, 230, 138, 0.45) 100%);
   color: #78350f;
-  border: 1px solid rgba(120, 53, 15, 0.12);
+  border: 2px solid rgba(120, 53, 15, 0.25);
+  box-shadow: 0 3px 8px rgba(120, 53, 15, 0.15);
 }
 
 /* Blue - Framework/New systems */
 .cqc-regulatory-label-blue {
-  background: linear-gradient(135deg, rgba(219, 234, 254, 0.18) 0%, rgba(191, 219, 254, 0.15) 100%);
+  background: linear-gradient(135deg, rgba(219, 234, 254, 0.45) 0%, rgba(191, 219, 254, 0.4) 100%);
   color: #1e40af;
-  border: 1px solid rgba(30, 64, 175, 0.12);
+  border: 2px solid rgba(30, 64, 175, 0.25);
+  box-shadow: 0 3px 8px rgba(30, 64, 175, 0.15);
 }
 
-/* Gold - Commitment/CTA */
+/* Gold - Commitment/CTA - PROMINENT for company commitments */
 .cqc-regulatory-label-gold {
-  background: linear-gradient(135deg, rgba(254, 243, 199, 0.25) 0%, rgba(253, 230, 138, 0.22) 100%);
-  color: #8B6F3F;
-  border: 1px solid rgba(139, 111, 63, 0.15);
+  background: linear-gradient(135deg, rgba(254, 243, 199, 0.6) 0%, rgba(253, 230, 138, 0.55) 100%);
+  color: #92400e; /* Rich brown-gold for better readability */
+  border: 2px solid rgba(178, 148, 86, 0.3); /* Use theme gold */
+  box-shadow: 0 4px 12px rgba(178, 148, 86, 0.2); /* More prominent shadow */
+  font-weight: 800; /* Extra bold for commitments */
 }
 
-/* Override inherited color when label is inside card-link or highlight card */
+/* Override inherited color when label is inside card-link or highlight card - maintain enhanced colors */
 .cqc-regulatory-card-link .cqc-regulatory-label-important,
 .cqc-regulatory-card-highlight .cqc-regulatory-label-important {
   color: #9f1239;
+  background: linear-gradient(135deg, rgba(252, 231, 243, 0.45) 0%, rgba(251, 207, 232, 0.4) 100%);
+  border: 2px solid rgba(159, 18, 57, 0.25);
 }
 
 .cqc-regulatory-card-link .cqc-regulatory-label-teal,
 .cqc-regulatory-card-highlight .cqc-regulatory-label-teal {
-  color: #134e4a;
+  color: #0f766e;
+  background: linear-gradient(135deg, rgba(204, 251, 241, 0.45) 0%, rgba(153, 246, 228, 0.4) 100%);
+  border: 2px solid rgba(15, 118, 110, 0.25);
 }
 
 .cqc-regulatory-card-link .cqc-regulatory-label-purple,
 .cqc-regulatory-card-highlight .cqc-regulatory-label-purple {
   color: #6b21a8;
+  background: linear-gradient(135deg, rgba(233, 213, 255, 0.45) 0%, rgba(221, 214, 254, 0.4) 100%);
+  border: 2px solid rgba(107, 33, 168, 0.25);
 }
 
 .cqc-regulatory-card-link .cqc-regulatory-label-amber,
 .cqc-regulatory-card-highlight .cqc-regulatory-label-amber {
   color: #78350f;
+  background: linear-gradient(135deg, rgba(254, 243, 199, 0.5) 0%, rgba(253, 230, 138, 0.45) 100%);
+  border: 2px solid rgba(120, 53, 15, 0.25);
 }
 
 .cqc-regulatory-card-link .cqc-regulatory-label-blue,
 .cqc-regulatory-card-highlight .cqc-regulatory-label-blue {
   color: #1e40af;
+  background: linear-gradient(135deg, rgba(219, 234, 254, 0.45) 0%, rgba(191, 219, 254, 0.4) 100%);
+  border: 2px solid rgba(30, 64, 175, 0.25);
 }
 
 .cqc-regulatory-card-link .cqc-regulatory-label-gold,
 .cqc-regulatory-card-highlight .cqc-regulatory-label-gold {
-  color: #8B6F3F;
+  color: #92400e;
+  background: linear-gradient(135deg, rgba(254, 243, 199, 0.6) 0%, rgba(253, 230, 138, 0.55) 100%);
+  border: 2px solid rgba(178, 148, 86, 0.3);
+  font-weight: 800;
 }
 
 .cqc-regulatory-title {
-  font-size: 1.4rem;
-  font-weight: 700;
+  font-size: clamp(1.375rem, 2vw + 0.25rem, 1.75rem); /* Responsive: 22px (mobile) to 28px (desktop) */
+  font-weight: 800; /* Increased from 700 for better hierarchy */
   color: var(--brown-dark);
-  margin: 0 0 16px 0;
-  line-height: 1.3;
+  margin: 0 0 20px 0; /* Increased bottom margin for better spacing */
+  line-height: 1.25; /* Tighter line-height for headings */
+  letter-spacing: -0.01em; /* Slight letter-spacing adjustment for better readability */
 }
 
 .cqc-regulatory-card > div {
@@ -47973,8 +48065,17 @@ a.article-cta-btn:focus-visible {
 /* Responsive adjustments for regulatory label */
 @media (max-width: 767px) {
   .cqc-regulatory-label {
-    font-size: 12px;
-    padding: 6px 12px;
+    font-size: 15px; /* Slightly smaller on mobile but still bigger than before */
+    padding: 10px 18px; /* Slightly reduced padding on mobile */
+    border-width: 2px; /* Maintain border thickness */
+  }
+  
+  .cqc-regulatory-card > .cqc-regulatory-label,
+  .cqc-regulatory-card-highlight > .cqc-regulatory-label,
+  .cqc-regulatory-card-cta > .cqc-regulatory-label {
+    font-size: 15px;
+    padding: 10px 18px;
+    border-width: 2px;
   }
 }
 
@@ -48224,6 +48325,8 @@ a.article-cta-btn:focus-visible {
 /* Content Section Spacing */
 .content-section {
   padding: var(--section-padding-mobile) 0;
+  overflow: visible; /* Ensure no scrollbar on content sections */
+  max-height: none; /* Remove any height restrictions */
 }
 
 @media (min-width: 768px) {
@@ -49679,6 +49782,8 @@ a.article-cta-btn:focus-visible {
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
   z-index: 10000; /* Very high z-index to appear above all content */
   display: none;
+  overflow: visible; /* Ensure no scrollbar on suggestions dropdown */
+  max-height: none; /* Remove any height restrictions - let it expand naturally */
 }
 
 .faq-suggestion-item {
@@ -49847,6 +49952,8 @@ a.article-cta-btn:focus-visible {
 .faqs-content-wrapper {
   max-width: 900px;
   margin: 0 auto;
+  overflow: visible; /* Ensure no scrollbar on this container */
+  max-height: none; /* Remove any height restrictions */
 }
 
 /* FAQs Category Section */
@@ -49857,6 +49964,8 @@ a.article-cta-btn:focus-visible {
   border-radius: 16px;
   border: 1px solid var(--cream-border);
   box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
+  overflow: visible; /* Ensure no scrollbar on category sections */
+  max-height: none; /* Remove any height restrictions */
 }
 
 .faqs-category-section:last-child {
@@ -52044,7 +52153,7 @@ a.article-cta-btn:focus-visible {
 
 .course-audience-text p {
   margin-bottom: 1rem;
-  text-align: justify;
+  text-align: left; /* Left align instead of justify */
 }
 
 .course-audience-text p:last-child {
