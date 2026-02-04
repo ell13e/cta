@@ -311,7 +311,7 @@ $category_names = [
             <?php if ($price) : ?>
             <div class="course-card-price">
               <?php if ($has_discount) : ?>
-                <div style="display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; margin-bottom: 4px;">
+                <div style="display: flex; flex-direction: column; gap: 4px; margin-bottom: 4px;">
                   <span style="text-decoration: line-through; color: #8c8f94; font-size: 14px; font-weight: 400;">
                     £<?php echo esc_html(number_format($original_price, 0)); ?>
                   </span>

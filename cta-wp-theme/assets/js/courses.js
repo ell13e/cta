@@ -1249,7 +1249,7 @@
                       <span class="badge badge-discount-subtle">${siteWideDiscount.label || 'Site-Wide Sale'}</span>
                     ` : ''}
                   </div>
-                  <div style="display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap;">
+                  <div style="display: flex; flex-direction: column; gap: 4px;">
                     <span style="text-decoration: line-through; color: #8c8f94; font-size: 14px; font-weight: 400;">
                       £${Math.round(originalPriceNum)}
                     </span>

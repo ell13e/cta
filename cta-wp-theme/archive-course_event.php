@@ -269,6 +269,9 @@ if ($site_wide_active && function_exists('cta_get_site_wide_discount')) {
               <?php endif; ?>
               <div class="event-card-cta">
                 <span>Book Now</span>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M5 12h14M12 5l7 7-7 7"></path>
+                </svg>
               </div>
             </div>
           </div>

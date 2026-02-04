@@ -1225,8 +1225,8 @@ section .container,
 #courses-dropdown {
   position: absolute;
   top: 100%;
-  left: 0; /* Left-align with navigation start (Home) - positioned relative to .nav-desktop */
-  transform: translateY(-8px); /* Only vertical offset, no horizontal centering */
+  left: 50%; /* Center horizontally */
+  transform: translate(-50%, -8px); /* Center horizontally and vertical offset */
   margin-top: 8px;
   opacity: 0;
   visibility: hidden;
@@ -1240,17 +1240,18 @@ section .container,
   overflow: visible;
 }
 
-/* Position mega menu relative to nav-desktop container to align with Home */
+/* Position mega menu relative to nav-desktop container - centered with nav bar */
 @media (min-width: 1121px) {
   .nav-desktop {
     position: relative;
   }
   
-  /* Shift mega menu left to align with Home (first nav item) */
-  /* Home link width (~60-70px) + gap (0.5rem = 8px) = ~70px offset needed */
-  .nav-item-dropdown #courses-mega-menu,
-  .nav-item-dropdown #courses-dropdown {
-    left: calc(-70px - 0.5rem);
+  /* Center mega menu with navigation bar */
+  /* Position relative to nav-desktop, not nav-item-dropdown */
+  .nav-desktop #courses-mega-menu,
+  .nav-desktop #courses-dropdown {
+    left: 50%;
+    transform: translate(-50%, -8px);
   }
 }
 
@@ -1258,8 +1259,8 @@ section .container,
 @media (min-width: 1121px) and (max-width: 1400px) {
   #courses-mega-menu,
   #courses-dropdown {
-    /* Left-aligned with navigation start */
-    transform: translateY(-8px);
+    /* Centered with navigation bar */
+    transform: translate(-50%, -8px);
   }
   
   .nav-dropdown-wrapper:hover #courses-mega-menu,
@@ -1270,7 +1271,7 @@ section .container,
   #courses-dropdown.active,
   #courses-mega-menu:hover,
   #courses-dropdown:hover {
-    transform: translateY(0);
+    transform: translate(-50%, 0); /* Maintain horizontal centering on hover */
   }
 }
 
@@ -11136,7 +11137,7 @@ textarea:focus-visible,
   width: 100%;
   position: relative;
   z-index: 1;
-  padding: 24px 24px 0 24px;
+  padding: 24px 24px 16px 24px;
 }
 
 .course-card-badge-wrapper {
@@ -11303,10 +11304,11 @@ textarea:focus-visible,
 .course-card-content {
   flex: 1;
   margin-bottom: 0;
+  margin-top: 0;
   min-height: 120px; /* Standardize minimum height for meta items */
   position: relative;
   z-index: 1;
-  padding: 0 24px; /* Consistent horizontal padding */
+  padding: 0 24px 24px 24px; /* Consistent horizontal padding, bottom padding to match header top */
 }
 
 .course-card-meta {
@@ -19001,15 +19003,18 @@ input[type="email"].contact-form-input {
 .event-card-cta {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  justify-content: flex-end;
+  gap: 8px;
   color: var(--gold-primary);
-  font-weight: 600;
-  font-size: 14px;
+  font-weight: 700;
+  font-size: 16px;
   text-decoration: none;
   transition: color 0.2s ease, transform 0.2s ease;
   white-space: nowrap;
   flex-shrink: 0;
   line-height: 1;
+  align-self: center;
+  margin-left: auto;
 }
 
 .event-card-cta span {
@@ -19017,11 +19022,10 @@ input[type="email"].contact-form-input {
   line-height: 1;
 }
 
-.event-card-cta span:last-child {
-  font-size: 16px;
-  line-height: 1;
-  display: inline-flex;
-  align-items: center;
+.event-card-cta svg {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
   transition: transform 0.2s ease;
 }
 
@@ -19029,7 +19033,7 @@ input[type="email"].contact-form-input {
   color: var(--gold-hover);
 }
 
-.event-card-cta:hover span:last-child {
+.event-card-cta:hover svg {
   transform: translateX(2px);
 }
 
@@ -25177,8 +25181,8 @@ input[type="email"].contact-form-input {
 }
 
 .course-detail-booking-card .primary-cta-button {
-  margin-top: 1rem;
-  margin-bottom: 1rem;
+  margin-top: var(--spacing-base); /* 16px - standardized spacing */
+  margin-bottom: var(--spacing-base); /* 16px - standardized spacing */
 }
 
 .primary-cta-button::before {
@@ -40687,7 +40691,7 @@ fieldset.booking-modal-field legend.booking-modal-label {
    ============================================ */
 
 .course-detail-content {
-  padding: var(--section-padding-mobile) 0 64px 0;
+  padding: var(--section-padding-mobile) 0;
   background: var(--white, #ffffff);
 }
 
@@ -40698,7 +40702,7 @@ fieldset.booking-modal-field legend.booking-modal-label {
 
 @media (min-width: 768px) {
   .course-detail-content {
-    padding: var(--section-padding-tablet) 0 64px 0;
+    padding: var(--section-padding-tablet) 0;
   }
   
   .group-hero-section + .course-detail-content {
@@ -40708,7 +40712,7 @@ fieldset.booking-modal-field legend.booking-modal-label {
 
 @media (min-width: 1024px) {
   .course-detail-content {
-    padding: var(--section-padding-desktop) 0 64px 0;
+    padding: var(--section-padding-desktop) 0;
   }
   
   .group-hero-section + .course-detail-content {
@@ -41224,8 +41228,8 @@ fieldset.booking-modal-field legend.booking-modal-label {
 /* Mobile: full width, sticky positioning */
 @media (max-width: 639px) {
   .course-detail-grid {
-    gap: 2rem;
-    padding: 0 16px;
+    gap: var(--spacing-xl); /* 32px - standardized spacing */
+    padding: 0;
     box-sizing: border-box;
   }
   
@@ -41236,7 +41240,7 @@ fieldset.booking-modal-field legend.booking-modal-label {
     order: -1;
     width: 100%;
     max-width: 100%;
-    margin-bottom: 2rem;
+    margin-bottom: var(--spacing-xl); /* 32px - standardized spacing */
     box-sizing: border-box;
   }
   
@@ -41250,18 +41254,18 @@ fieldset.booking-modal-field legend.booking-modal-label {
   
   .course-detail-section-heading {
     font-size: 1.75rem;
-    margin: 1.5rem 0 1rem 0;
+    margin: var(--spacing-lg) 0 var(--spacing-base) 0; /* 24px top, 16px bottom - standardized spacing */
   }
   
   .course-detail-booking-card {
-    padding: 1.25rem;
+    padding: var(--spacing-lg); /* 24px - standardized spacing (20px = 1.25rem, using closest standard) */
   }
 }
 
 /* Tablet: full width, sticky positioning */
 @media (min-width: 640px) and (max-width: 967px) {
   .course-detail-grid {
-    padding: 0 24px;
+    padding: 0;
     box-sizing: border-box;
   }
   
@@ -41294,7 +41298,7 @@ fieldset.booking-modal-field legend.booking-modal-label {
   background: #fff;
   border: 1px solid rgba(0, 0, 0, 0.08);
   border-radius: 12px;
-  padding: 1.5rem;
+  padding: var(--spacing-lg); /* 24px - standardized spacing */
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.06);
   width: 100%; /* Ensure cards fill their grid cell */
   max-width: 100%; /* Prevent cards from exceeding container */
@@ -41303,42 +41307,42 @@ fieldset.booking-modal-field legend.booking-modal-label {
 
 @media (min-width: 640px) {
   .course-detail-booking-card {
-    padding: 1.75rem;
+    padding: var(--spacing-xl); /* 32px - standardized spacing (28px = 1.75rem, using closest standard) */
   }
 }
 
 @media (min-width: 968px) {
   .course-detail-booking-card {
-    padding: 2rem;
+    padding: var(--spacing-2xl); /* 48px - standardized spacing (32px = 2rem, but using 2xl for better visual hierarchy) */
   }
 }
 
 /* Price Styles */
 .course-detail-price-wrapper {
-  margin-bottom: 2rem;
+  margin-bottom: var(--spacing-xl); /* 32px - standardized spacing */
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: var(--spacing-base); /* 16px - standardized spacing */
 }
 
 .course-detail-discount-badges {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
-  margin-bottom: 10px;
+  gap: var(--spacing-sm); /* 8px - standardized spacing */
+  margin-bottom: var(--spacing-sm); /* 8px - standardized spacing (10px rounded to closest standard) */
 }
 
 .course-detail-discount-callout {
-  margin: 0 0 12px 0;
-  padding: 12px;
+  margin: 0 0 var(--spacing-md) 0; /* 12px - standardized spacing */
+  padding: var(--spacing-md); /* 12px - standardized spacing */
   background: rgba(252, 241, 210, 0.6);
   border: 1px solid rgba(232, 227, 214, 0.9);
-  border-left: 4px solid var(--gold-primary);
+  border-left: var(--spacing-xs) solid var(--gold-primary); /* 4px - standardized spacing */
   border-radius: 8px;
 }
 
 .course-detail-discount-callout-title {
-  margin: 0 0 6px 0;
+  margin: 0 0 var(--spacing-sm) 0; /* 8px - standardized spacing (6px rounded to closest standard) */
   font-weight: 700;
   color: var(--brown-dark);
   font-size: 13px;
@@ -41749,8 +41753,8 @@ fieldset.booking-modal-field legend.booking-modal-label {
 
 /* Enquire Now button in course detail sidebar */
 .course-detail-booking-card .primary-cta-button {
-  margin-top: 1rem;
-  margin-bottom: 1rem;
+  margin-top: var(--spacing-base); /* 16px - standardized spacing */
+  margin-bottom: var(--spacing-base); /* 16px - standardized spacing */
 }
 
 
@@ -47413,6 +47417,8 @@ a.article-cta-btn:focus-visible {
   box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
   transition: all 0.3s ease;
   position: relative;
+  display: flex;
+  flex-direction: column;
 }
 
 .cqc-regulatory-card-link {
@@ -47488,14 +47494,12 @@ a.article-cta-btn:focus-visible {
   text-transform: none;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   transition: all 0.2s ease;
-  position: absolute;
-  top: 24px;
-  right: 24px;
+  position: relative;
+  align-self: flex-end;
+  margin-bottom: 12px;
   overflow: hidden;
   white-space: nowrap;
   line-height: 1.2;
-  z-index: 1;
-  margin-bottom: 0;
   /* Default styling (cream) - for labels without color class */
   background: linear-gradient(135deg, rgba(254, 243, 199, 0.18) 0%, rgba(253, 230, 138, 0.15) 100%);
   color: #92400e;
@@ -47505,9 +47509,83 @@ a.article-cta-btn:focus-visible {
 .cqc-regulatory-label span {
   display: inline-block;
   line-height: 1.2;
+  color: inherit;
 }
 
 /* Color-coded labels based on category - matching course card badge colors */
+
+/* Important (Pink) - Statutory/Legal requirements */
+.cqc-regulatory-label-important {
+  background: linear-gradient(135deg, rgba(252, 231, 243, 0.18) 0%, rgba(251, 207, 232, 0.15) 100%);
+  color: #9f1239;
+  border: 1px solid rgba(159, 18, 57, 0.12);
+}
+
+/* Teal - Training/Educational content */
+.cqc-regulatory-label-teal {
+  background: linear-gradient(135deg, rgba(204, 251, 241, 0.18) 0%, rgba(153, 246, 228, 0.15) 100%);
+  color: #134e4a;
+  border: 1px solid rgba(19, 78, 74, 0.12);
+}
+
+/* Purple - Timeline/Updates/Regulatory changes */
+.cqc-regulatory-label-purple {
+  background: linear-gradient(135deg, rgba(233, 213, 255, 0.18) 0%, rgba(221, 214, 254, 0.15) 100%);
+  color: #6b21a8;
+  border: 1px solid rgba(107, 33, 168, 0.12);
+}
+
+/* Amber - Compliance/Standards */
+.cqc-regulatory-label-amber {
+  background: linear-gradient(135deg, rgba(254, 243, 199, 0.2) 0%, rgba(253, 230, 138, 0.18) 100%);
+  color: #78350f;
+  border: 1px solid rgba(120, 53, 15, 0.12);
+}
+
+/* Blue - Framework/New systems */
+.cqc-regulatory-label-blue {
+  background: linear-gradient(135deg, rgba(219, 234, 254, 0.18) 0%, rgba(191, 219, 254, 0.15) 100%);
+  color: #1e40af;
+  border: 1px solid rgba(30, 64, 175, 0.12);
+}
+
+/* Gold - Commitment/CTA */
+.cqc-regulatory-label-gold {
+  background: linear-gradient(135deg, rgba(254, 243, 199, 0.25) 0%, rgba(253, 230, 138, 0.22) 100%);
+  color: #8B6F3F;
+  border: 1px solid rgba(139, 111, 63, 0.15);
+}
+
+/* Override inherited color when label is inside card-link or highlight card */
+.cqc-regulatory-card-link .cqc-regulatory-label-important,
+.cqc-regulatory-card-highlight .cqc-regulatory-label-important {
+  color: #9f1239;
+}
+
+.cqc-regulatory-card-link .cqc-regulatory-label-teal,
+.cqc-regulatory-card-highlight .cqc-regulatory-label-teal {
+  color: #134e4a;
+}
+
+.cqc-regulatory-card-link .cqc-regulatory-label-purple,
+.cqc-regulatory-card-highlight .cqc-regulatory-label-purple {
+  color: #6b21a8;
+}
+
+.cqc-regulatory-card-link .cqc-regulatory-label-amber,
+.cqc-regulatory-card-highlight .cqc-regulatory-label-amber {
+  color: #78350f;
+}
+
+.cqc-regulatory-card-link .cqc-regulatory-label-blue,
+.cqc-regulatory-card-highlight .cqc-regulatory-label-blue {
+  color: #1e40af;
+}
+
+.cqc-regulatory-card-link .cqc-regulatory-label-gold,
+.cqc-regulatory-card-highlight .cqc-regulatory-label-gold {
+  color: #8B6F3F;
+}
 
 .cqc-regulatory-title {
   font-size: 1.4rem;
@@ -47515,7 +47593,6 @@ a.article-cta-btn:focus-visible {
   color: var(--brown-dark);
   margin: 0 0 16px 0;
   line-height: 1.3;
-  padding-right: 120px; /* Make room for the label on the right */
 }
 
 .cqc-regulatory-card > div {
@@ -47583,12 +47660,6 @@ a.article-cta-btn:focus-visible {
   .cqc-regulatory-label {
     font-size: 12px;
     padding: 6px 12px;
-    top: 16px;
-    right: 16px;
-  }
-  
-  .cqc-regulatory-title {
-    padding-right: 100px;
   }
 }
 
@@ -51211,8 +51282,8 @@ a.article-cta-btn:focus-visible {
 .course-detail-description-section,
 .course-detail-audience-section,
 .course-detail-requirements-section {
-  margin-bottom: 2rem;
-  padding-bottom: 1rem;
+  margin-bottom: var(--spacing-xl); /* 32px - standardized spacing */
+  padding-bottom: var(--spacing-base); /* 16px - standardized spacing */
   border-bottom: 1px solid #e5e5e5;
   width: 100%;
   max-width: 100%;
@@ -51224,8 +51295,8 @@ a.article-cta-btn:focus-visible {
   .course-detail-requirements-section,
   .course-detail-learn-section,
   .course-detail-description-section {
-    margin-bottom: 1.5rem;
-    padding-bottom: 0.75rem;
+    margin-bottom: var(--spacing-lg); /* 24px - standardized spacing */
+    padding-bottom: var(--spacing-md); /* 12px - standardized spacing */
   }
 }
 
@@ -51241,20 +51312,20 @@ a.article-cta-btn:focus-visible {
   font-size: clamp(1.125rem, 2vw, 1.5rem);
   font-weight: 600;
   color: var(--brown-medium, #4A3A2A);
-  margin: 0.25rem 0 1rem 0;
+  margin: var(--spacing-xs) 0 var(--spacing-base) 0; /* 4px top, 16px bottom - standardized spacing */
   line-height: 1.4;
   letter-spacing: -0.01em;
 }
 
 .course-detail-description-section .course-detail-subheading {
-  margin-bottom: 1rem;
+  margin-bottom: var(--spacing-base); /* 16px - standardized spacing */
 }
 
 .course-detail-text {
   font-size: clamp(1rem, 1.5vw, 1.125rem);
   line-height: 1.7;
   color: var(--brown-medium, #4A3A2A);
-  margin-bottom: 1rem;
+  margin-bottom: var(--spacing-base); /* 16px - standardized spacing */
   width: 100%;
   max-width: 100%;
   box-sizing: border-box;
