@@ -3406,7 +3406,7 @@ input[type="search"]::-ms-clear,
 /* Standard Primary Button - matches contact-form-submit styling */
 .btn-primary {
   position: relative;
-  overflow: visible; /* Allow shadow to render outside button */
+  overflow: hidden;
   display: inline-flex;
   align-items: center;
   justify-content: center;
