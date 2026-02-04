@@ -282,7 +282,6 @@ $hero_subtitle = get_field('hero_subtitle') ?: "Book a course, arrange group tra
                     aria-invalid="false"
                     style="text-transform: uppercase;"
                   />
-                  <i class="fas fa-tag contact-form-input-icon" aria-hidden="true"></i>
                   <i class="fas fa-check-circle contact-form-success-icon" aria-hidden="true"></i>
                   <i class="fas fa-exclamation-circle contact-form-error-icon" aria-hidden="true"></i>
                 </div>

@@ -85,7 +85,6 @@ $contact = cta_get_contact_info();
             </label>
             <div class="contact-form-input-wrapper">
               <input type="text" id="booking-discount-code" name="discount_code" class="booking-form-input contact-form-input" placeholder="Enter code" autocomplete="off" aria-describedby="booking-discount-code-error" aria-invalid="false" style="text-transform: uppercase;">
-              <i class="fas fa-tag contact-form-input-icon" aria-hidden="true"></i>
               <i class="fas fa-check-circle contact-form-success-icon" aria-hidden="true"></i>
               <i class="fas fa-exclamation-circle contact-form-error-icon" aria-hidden="true"></i>
             </div>
