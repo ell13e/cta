@@ -3405,7 +3405,7 @@ input[type="search"]::-ms-clear,
 /* Standard Primary Button - matches contact-form-submit styling */
 .btn-primary {
   position: relative;
-  overflow: hidden;
+  overflow: visible; /* Changed from hidden to allow shadow to render outside button */
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -3438,6 +3438,8 @@ input[type="search"]::-ms-clear,
   height: 100%;
   background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
   transition: left 0.5s ease;
+  border-radius: var(--radius-sm); /* Match button border radius to contain shine effect */
+  overflow: hidden; /* Contain the shine effect within button bounds */
 }
 
 .btn-primary:hover::before {
