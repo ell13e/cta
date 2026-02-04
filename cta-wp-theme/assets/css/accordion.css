@@ -181,7 +181,7 @@
   max-height: 2000px;
   opacity: 1;
   padding: 20px 24px 20px 24px;
-  padding-top: 20px;
+  padding-top: 4px; /* Reduced from 12px for tighter spacing on mobile */
   padding-bottom: 20px;
   transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1), 
               opacity 0.3s ease 0.1s, 
@@ -191,7 +191,7 @@
 @media (min-width: 768px) {
   .accordion-content[aria-hidden="false"] {
     padding: 22px 24px 22px 24px;
-    padding-top: 22px;
+    padding-top: 8px; /* Reduced from 22px for tighter spacing on tablet */
     padding-bottom: 22px;
   }
 }
@@ -242,6 +242,9 @@
     font-size: 16px;
     line-height: 1.85;
     margin: 0 0 20px 0;
+    text-align: justify;
+    text-justify: inter-word;
+    text-align-last: left;
   }
 }
 
@@ -326,6 +329,17 @@
   font-size: 15px;
   line-height: 1.75;
   color: #5a4a3a;
+}
+
+/* Reduce spacing between trigger and first content element on responsive */
+@media (max-width: 1023px) {
+  .accordion-content[aria-hidden="false"] > *:first-child {
+    margin-top: 0; /* Remove any top margin on first element */
+  }
+  
+  .accordion-content[aria-hidden="false"] .faq-paragraph:first-child {
+    margin-top: 0; /* Ensure first paragraph has no top margin */
+  }
 }
 
 .accordion-content .faq-paragraph:last-child {

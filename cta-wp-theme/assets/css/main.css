@@ -4755,15 +4755,86 @@ input[type="search"]::-ms-clear,
   flex-shrink: 0;
   display: inline-flex;
   align-items: center;
-  padding: 8px 16px; /* 6px→8px, 14px→16px (4px grid) */
-  border-radius: 16px; /* 20px→16px (design system standard) */
-  font-size: 0.75rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
+  padding: 6px 0 6px 12px; /* Match course-card-badge padding, no right padding for right alignment */
+  border-radius: 12px; /* Match course-card-badge border-radius */
+  font-size: 11px; /* Match course-card-badge font-size */
+  font-weight: 600; /* Match course-card-badge font-weight */
+  text-transform: none; /* Match course-card-badge text-transform */
+  letter-spacing: 0.2px; /* Match course-card-badge letter-spacing */
   width: fit-content;
   height: fit-content;
   line-height: 1;
+}
+
+/* Ensure course-badge-* colors override category-badge-* colors when both classes are present */
+.category-badge-new.course-badge-blue,
+.category-badge-new.course-card-badge.course-badge-blue {
+  background: linear-gradient(135deg, rgba(219, 234, 254, 0.18) 0%, rgba(191, 219, 254, 0.15) 100%);
+  color: #1e40af;
+  border: 1px solid rgba(30, 64, 175, 0.12);
+}
+
+.category-badge-new.course-badge-red,
+.category-badge-new.course-card-badge.course-badge-red {
+  background: linear-gradient(135deg, rgba(254, 226, 226, 0.18) 0%, rgba(254, 202, 202, 0.15) 100%);
+  color: #991b1b;
+  border: 1px solid rgba(153, 27, 27, 0.12);
+}
+
+.category-badge-new.course-badge-green,
+.category-badge-new.course-card-badge.course-badge-green {
+  background: linear-gradient(135deg, rgba(220, 252, 231, 0.18) 0%, rgba(187, 247, 208, 0.15) 100%);
+  color: #166534;
+  border: 1px solid rgba(22, 101, 52, 0.12);
+}
+
+.category-badge-new.course-badge-purple,
+.category-badge-new.course-card-badge.course-badge-purple {
+  background: linear-gradient(135deg, rgba(233, 213, 255, 0.18) 0%, rgba(221, 214, 254, 0.15) 100%);
+  color: #6b21a8;
+  border: 1px solid rgba(107, 33, 168, 0.12);
+}
+
+.category-badge-new.course-badge-amber,
+.category-badge-new.course-card-badge.course-badge-amber {
+  background: linear-gradient(135deg, rgba(254, 243, 199, 0.2) 0%, rgba(253, 230, 138, 0.18) 100%);
+  color: #78350f;
+  border: 1px solid rgba(120, 53, 15, 0.12);
+}
+
+.category-badge-new.course-badge-teal,
+.category-badge-new.course-card-badge.course-badge-teal {
+  background: linear-gradient(135deg, rgba(204, 251, 241, 0.18) 0%, rgba(153, 246, 228, 0.15) 100%);
+  color: #134e4a;
+  border: 1px solid rgba(19, 78, 74, 0.12);
+}
+
+.category-badge-new.course-badge-orange,
+.category-badge-new.course-card-badge.course-badge-orange {
+  background: linear-gradient(135deg, rgba(254, 215, 170, 0.2) 0%, rgba(253, 186, 116, 0.18) 100%);
+  color: #9a3412;
+  border: 1px solid rgba(154, 52, 18, 0.12);
+}
+
+.category-badge-new.course-badge-indigo,
+.category-badge-new.course-card-badge.course-badge-indigo {
+  background: linear-gradient(135deg, rgba(224, 231, 255, 0.18) 0%, rgba(199, 210, 254, 0.15) 100%);
+  color: #4338ca;
+  border: 1px solid rgba(67, 56, 202, 0.12);
+}
+
+.category-badge-new.course-badge-pink,
+.category-badge-new.course-card-badge.course-badge-pink {
+  background: linear-gradient(135deg, rgba(252, 231, 243, 0.18) 0%, rgba(251, 207, 232, 0.15) 100%);
+  color: #9f1239;
+  border: 1px solid rgba(159, 18, 57, 0.12);
+}
+
+.category-badge-new.course-badge-slate,
+.category-badge-new.course-card-badge.course-badge-slate {
+  background: linear-gradient(135deg, rgba(226, 232, 240, 0.18) 0%, rgba(203, 213, 225, 0.15) 100%);
+  color: #334155;
+  border: 1px solid rgba(51, 65, 85, 0.12);
 }
 
 /* Category badge colors matching course card badge colors */
@@ -10422,23 +10493,14 @@ textarea:focus-visible,
 
 .course-card-footer {
   display: flex;
-  flex-direction: column;
-  align-items: stretch;
-  padding: 20px 24px 24px 24px;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 24px 24px 24px;
   border-top: 1px solid rgba(232, 227, 214, 0.3);
   margin-top: auto;
-  gap: 12px;
+  gap: 16px;
   background: none;
-}
-
-@media (min-width: 640px) {
-  .course-card-footer {
-    flex-direction: row;
-    align-items: center;
-    justify-content: space-between;
-    padding-top: 24px;
-    gap: 24px;
-  }
 }
 
 .course-card-footer .btn {
@@ -11168,7 +11230,7 @@ textarea:focus-visible,
   align-items: center;
   gap: 4px;
   font-size: 11px;
-  padding: 6px 12px;
+  padding: 6px 0 6px 12px;
   border-radius: 12px; /* 20px→12px (design system standard for badges) */
   font-weight: 600;
   letter-spacing: 0.2px;
@@ -11356,6 +11418,8 @@ textarea:focus-visible,
   display: flex;
   flex-direction: column;
   align-items: flex-start;
+  flex: 1;
+  min-width: 0; /* Allow price to shrink if needed */
 }
 
 .course-card-price-amount {
@@ -18895,6 +18959,7 @@ input[type="email"].contact-form-input {
   flex-direction: column;
   flex-shrink: 1;
   min-width: 0;
+  justify-content: center; /* Center price content vertically */
 }
 
 .event-card-price-amount {
@@ -19012,8 +19077,8 @@ input[type="email"].contact-form-input {
   transition: color 0.2s ease, transform 0.2s ease;
   white-space: nowrap;
   flex-shrink: 0;
-  line-height: 1;
-  align-self: center;
+  line-height: 1.2; /* Match price label line-height for better alignment */
+  align-self: center; /* Ensure vertical centering with price section */
   margin-left: auto;
 }
 
@@ -26414,7 +26479,7 @@ input[type="email"].contact-form-input {
 }
 
 .cta-centered-benefit {
-  display: flex;
+  display: inline-flex;
   align-items: center;
   gap: 12px;
   font-size: 15px;
@@ -26425,6 +26490,8 @@ input[type="email"].contact-form-input {
   border-radius: 16px; /* 20px→16px (design system standard) */
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06); /* Replace colored shadow with neutral black */
   transition: all 0.2s ease; /* Standardize transition duration */
+  width: fit-content;
+  white-space: nowrap;
 }
 
 .cta-centered-benefit:hover {
@@ -35356,12 +35423,21 @@ body {
   
   .course-card-btn,
   .course-card-footer .course-read-more-btn {
-    min-height: 48px;
-    padding: 14px 16px;
-    font-size: 15px;
+    min-height: 44px;
+    padding: 12px 14px;
+    font-size: 14px;
+    min-width: 120px;
     max-width: 160px; /* Slightly smaller max-width on mobile */
     justify-content: center; /* Centered text with inline arrow */
     gap: 4px; /* Tight gap between text and arrow */
+  }
+  
+  .course-card-price-amount {
+    font-size: 20px; /* Slightly smaller on mobile to maintain layout */
+  }
+  
+  .course-card-price-label {
+    font-size: 11px; /* Slightly smaller on mobile */
   }
   
   .courses-filter-btn {
@@ -35410,13 +35486,15 @@ body {
 .course-card-footer .course-read-more-btn {
   position: relative;
   overflow: hidden;
-  width: 50%;
+  flex-shrink: 0; /* Prevent button from shrinking */
+  width: auto;
+  min-width: 140px;
   max-width: 180px;
   justify-content: center; /* Centered text with inline arrow */
   gap: 2px; /* Minimal gap between text and arrow */
   padding-left: 16px;
   padding-right: 16px;
-  margin-top: 16px; /* Match spacing between course-card-meta and course-card-footer (16px margin-bottom + 16px padding-top = 32px total, so 16px padding-top + 16px margin-top = 32px) */
+  margin-top: 0; /* Remove margin-top to maintain alignment */
   /* Inherit btn-primary styles */
   display: inline-flex;
   align-items: center;
@@ -40737,7 +40815,7 @@ fieldset.booking-modal-field legend.booking-modal-label {
 
 @media (min-width: 1024px) {
   .course-detail-content .container {
-    padding: 48px; /* Desktop: 48px - increased from 32px for more breathing room */
+    padding: 32px; /* Desktop: 32px - match standard container padding */
   }
 }
 
@@ -45297,6 +45375,9 @@ a.article-cta-btn:focus-visible {
 
 .team-modal-bio p {
   margin-bottom: var(--spacing-base);
+  text-align: justify;
+  text-justify: inter-word;
+  text-align-last: left;
 }
 
 .team-modal-bio p:last-child {
@@ -45899,6 +45980,9 @@ a.article-cta-btn:focus-visible {
 @media (min-width: 640px) {
   .about-mission-text-new p {
     font-size: 1.125rem;
+    text-align: justify;
+    text-justify: inter-word;
+    text-align-last: left;
   }
 }
 
@@ -46826,7 +46910,7 @@ a.article-cta-btn:focus-visible {
 .cqc-accordion-wrapper .accordion-content ul {
   list-style: none;
   padding: 0;
-  margin: 0;
+  margin: 16px 0;
   display: grid;
   grid-template-columns: 1fr;
   gap: 4px;
@@ -46868,7 +46952,7 @@ a.article-cta-btn:focus-visible {
 @media (min-width: 768px) {
   .list-two-column-gold,
   .cqc-accordion-wrapper .accordion-content ul {
-    margin: 0;
+    margin: 18px 0;
     gap: 4px 28px;
   }
   
@@ -46904,8 +46988,14 @@ a.article-cta-btn:focus-visible {
 
 /* CQC FAQ Content Spacing - Standardized */
 .cqc-faq-wrapper .accordion-content {
-  padding-top: 24px;
+  padding-top: 12px;
   padding-bottom: 24px;
+}
+
+@media (min-width: 768px) {
+  .cqc-faq-wrapper .accordion-content {
+    padding-top: 24px;
+  }
 }
 
 /* Ensure closed accordions in CQC FAQ wrapper are properly hidden */
@@ -47495,12 +47585,44 @@ a.article-cta-btn:focus-visible {
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   transition: all 0.2s ease;
   position: relative;
-  align-self: flex-end;
-  margin-bottom: 12px;
+  align-self: flex-end; /* Right-align labels */
+  margin-bottom: 18px;
   overflow: hidden;
   white-space: nowrap;
   line-height: 1.2;
   /* Default styling (cream) - for labels without color class */
+  background: linear-gradient(135deg, rgba(254, 243, 199, 0.18) 0%, rgba(253, 230, 138, 0.15) 100%);
+  color: #92400e;
+  border: 1px solid rgba(146, 64, 14, 0.12);
+}
+
+/* Ensure labels inside card links have the same alignment as labels directly in cards */
+.cqc-regulatory-card-link .cqc-regulatory-label {
+  align-self: flex-end; /* Right-align labels */
+}
+
+/* Ensure labels directly in cards (not in links) match labels inside card links */
+.cqc-regulatory-card > .cqc-regulatory-label,
+.cqc-regulatory-card-highlight > .cqc-regulatory-label,
+.cqc-regulatory-card-cta > .cqc-regulatory-label {
+  /* Apply all the same styling as labels inside card links */
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 14px;
+  padding: 8px 16px;
+  border-radius: 16px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  text-transform: none;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  transition: all 0.2s ease;
+  position: relative;
+  align-self: flex-end;
+  margin-bottom: 18px;
+  overflow: hidden;
+  white-space: nowrap;
+  line-height: 1.2;
   background: linear-gradient(135deg, rgba(254, 243, 199, 0.18) 0%, rgba(253, 230, 138, 0.15) 100%);
   color: #92400e;
   border: 1px solid rgba(146, 64, 14, 0.12);
@@ -52388,11 +52510,7 @@ a.article-cta-btn:focus-visible {
 
 
 /* Regulatory Cards - Enhanced Clickability */
-.cqc-regulatory-card-link {
-  display: block;
-  text-decoration: none;
-  color: inherit;
-}
+/* Note: .cqc-regulatory-card-link is defined above with flex layout to maintain label alignment */
 
 .cqc-regulatory-link-icon {
   width: 16px;

@@ -207,17 +207,17 @@ $trustpilot_stars = cta_get_trustpilot_stars($trustpilot_rating);
       </div>
       <div class="categories-grid">
         <?php
-        // Use same badge color mapping as archive-course.php
+        // Use same badge color mapping as course cards
         $category_badge_colors = [
-          'core-care-skills' => 'category-badge-blue',
-          'emergency-first-aid' => 'category-badge-red',
-          'health-conditions-specialist-care' => 'category-badge-green',
-          'medication-management' => 'category-badge-purple',
-          'safety-compliance' => 'category-badge-amber',
-          'communication-workplace-culture' => 'category-badge-teal',
-          'information-data-management' => 'category-badge-indigo',
-          'nutrition-hygiene' => 'category-badge-orange',
-          'leadership-professional-development' => 'category-badge-pink',
+          'core-care-skills' => 'course-badge-blue',
+          'emergency-first-aid' => 'course-badge-red',
+          'health-conditions-specialist-care' => 'course-badge-green',
+          'medication-management' => 'course-badge-purple',
+          'safety-compliance' => 'course-badge-amber',
+          'communication-workplace-culture' => 'course-badge-teal',
+          'information-data-management' => 'course-badge-indigo',
+          'nutrition-hygiene' => 'course-badge-orange',
+          'leadership-professional-development' => 'course-badge-pink',
         ];
         
         $categories = [
