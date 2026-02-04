@@ -539,18 +539,14 @@ add_action('admin_init', 'cta_handle_seo_fix_actions');
 
 /**
  * Add SEO verification admin page
+ * NOTE: Now in SEO admin section, but keeping function for backward compatibility
  */
 function cta_add_seo_verification_page() {
-    add_submenu_page(
-        'tools.php',
-        'SEO Verification',
-        'SEO Verification',
-        'manage_options',
-        'cta-seo-verification',
-        'cta_seo_verification_page'
-    );
+    // Removed from Tools menu - now in SEO section
+    // Function still available for use in SEO admin section
 }
-add_action('admin_menu', 'cta_add_seo_verification_page');
+// Removed action - menu now in SEO section
+// add_action('admin_menu', 'cta_add_seo_verification_page');
 
 /**
  * SEO verification page content

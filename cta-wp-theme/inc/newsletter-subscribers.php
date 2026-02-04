@@ -1895,10 +1895,10 @@ function cta_newsletter_subscribers_page() {
         <?php cta_render_newsletter_navigation('cta-newsletter-subscribers'); ?>
 
         <!-- Modern Import UI with Drag & Drop -->
-        <div class="postbox" style="margin-bottom: 24px;">
+        <div class="postbox" style="margin-bottom: var(--admin-spacing-lg);">
             <div class="postbox-header">
                 <h2>
-                    <span class="dashicons dashicons-upload" style="vertical-align: middle;"></span>
+                    <span class="dashicons dashicons-upload" style="vertical-align: middle;" aria-hidden="true"></span>
                     Import Subscribers
                 </h2>
             </div>
@@ -1906,75 +1906,75 @@ function cta_newsletter_subscribers_page() {
                 <form method="post" enctype="multipart/form-data" id="cta-import-form">
                     <?php wp_nonce_field('cta_import_newsletter_csv'); ?>
                     
-                    <div class="cta-import-dropzone" id="cta-import-dropzone">
-                        <div class="cta-import-icon">
+                    <div class="cta-import-dropzone" id="cta-import-dropzone" role="button" tabindex="0" aria-label="Upload CSV file">
+                        <div class="cta-import-icon" aria-hidden="true">
                             <span class="dashicons dashicons-upload"></span>
                         </div>
                         <div class="cta-import-text">Drag & drop your CSV file here</div>
                         <div class="cta-import-hint">or click to browse</div>
-                        <input type="file" name="csv_file" accept=".csv" required class="cta-import-file-input" id="cta-import-file-input" />
+                        <input type="file" name="csv_file" accept=".csv" required class="cta-import-file-input" id="cta-import-file-input" aria-label="Select CSV file" />
                     </div>
                     
-                    <div class="cta-import-progress" id="cta-import-progress">
+                    <div class="cta-import-progress" id="cta-import-progress" role="status" aria-live="polite" aria-label="Import progress">
                         <div class="cta-progress-bar">
-                            <div class="cta-progress-fill" style="width: 0%;"></div>
+                            <div class="cta-progress-fill" style="width: 0%;" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
                         </div>
                         <p style="text-align: center; color: #646970; font-size: 13px;">Processing...</p>
                     </div>
                     
                     <button type="submit" name="cta_import_newsletter_csv" class="button button-primary" style="display: none;" id="cta-import-submit">
-                        <span class="dashicons dashicons-upload" style="vertical-align: middle;"></span> Import CSV
+                        <span class="dashicons dashicons-upload" style="vertical-align: middle;" aria-hidden="true"></span> Import CSV
                     </button>
                 </form>
                 
-                <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #f0f0f1;">
-                    <p style="margin: 0 0 12px 0; font-weight: 500; color: #1d2327;">
-                        <span class="dashicons dashicons-info" style="color: #2271b1; vertical-align: middle;"></span>
-                        CSV Format Requirements
+                <div style="margin-top: var(--admin-spacing-lg); padding-top: var(--admin-spacing-lg); border-top: 1px solid #f0f0f1;">
+                    <p style="margin: 0 0 var(--admin-spacing-sm); font-weight: 500; color: #1d2327; display: flex; align-items: center; gap: var(--admin-spacing-xs);">
+                        <span class="dashicons dashicons-info" style="color: #2271b1; font-size: 18px; width: 18px; height: 18px;" aria-hidden="true"></span>
+                        <span>CSV Format Requirements</span>
                     </p>
-                    <p class="description" style="margin: 0 0 8px 0;">
+                    <p class="description" style="margin: 0 0 var(--admin-spacing-sm);">
                         Your CSV file should include these columns:
                     </p>
-                    <ul style="margin: 0 0 12px 20px; color: #646970; font-size: 13px;">
+                    <ul style="margin: 0 0 var(--admin-spacing-md) var(--admin-spacing-lg); color: #646970; font-size: 13px; line-height: 1.8;">
                         <li><code>email</code> (required) - Email address</li>
                         <li><code>first name</code> (optional) - First name</li>
                         <li><code>last name</code> (optional) - Last name</li>
                         <li><code>date of birth</code> (optional) - Format: YYYY-MM-DD</li>
                     </ul>
-                    <p class="description" style="margin: 0;">
-                        <a href="#" class="button button-small" id="cta-download-sample-csv" style="margin-right: 8px;">
-                            <span class="dashicons dashicons-download" style="vertical-align: middle; font-size: 14px;"></span> Download Sample CSV
+                    <div style="display: flex; gap: var(--admin-spacing-sm); flex-wrap: wrap;">
+                        <a href="#" class="button button-small" id="cta-download-sample-csv">
+                            <span class="dashicons dashicons-download" style="vertical-align: middle; font-size: 14px;" aria-hidden="true"></span> Download Sample CSV
                         </a>
                         <a href="<?php echo esc_url(admin_url('admin.php?page=cta-newsletter-subscribers&action=export')); ?>" class="button button-small" id="cta-export-subscribers">
-                            <span class="dashicons dashicons-download" style="vertical-align: middle; font-size: 14px;"></span> Export Current List
+                            <span class="dashicons dashicons-download" style="vertical-align: middle; font-size: 14px;" aria-hidden="true"></span> Export Current List
                         </a>
-                    </p>
+                    </div>
                 </div>
             </div>
         </div>
 
         <div class="tablenav top">
             <div class="alignleft actions">
-                <form method="get">
+                <form method="get" class="cta-filter-form">
                     <input type="hidden" name="page" value="cta-newsletter-subscribers" />
-                    <label for="status_filter" class="screen-reader-text">Status</label>
+                    <label for="status_filter" class="screen-reader-text">Filter by status</label>
                     <select id="status_filter" name="status_filter" class="postform">
-                        <option value="all" <?php selected($status_filter, 'all'); ?>>All</option>
+                        <option value="all" <?php selected($status_filter, 'all'); ?>>All Status</option>
                         <option value="active" <?php selected($status_filter, 'active'); ?>>Active</option>
                         <option value="unsubscribed" <?php selected($status_filter, 'unsubscribed'); ?>>Unsubscribed</option>
                     </select>
-                    <label for="tag_filter" class="screen-reader-text">Tag</label>
+                    <label for="tag_filter" class="screen-reader-text">Filter by tag</label>
                     <select id="tag_filter" name="tag_filter" class="postform">
-                        <option value="0">All tags</option>
+                        <option value="0">All Tags</option>
                         <?php foreach ($all_tags as $t) : ?>
                             <option value="<?php echo esc_attr($t->id); ?>" <?php selected($tag_filter, (int) $t->id); ?>><?php echo esc_html($t->name); ?></option>
                         <?php endforeach; ?>
                     </select>
                     <label for="date_from" class="screen-reader-text">From date</label>
-                    <input type="date" id="date_from" name="date_from" value="<?php echo esc_attr($date_from); ?>" />
+                    <input type="date" id="date_from" name="date_from" value="<?php echo esc_attr($date_from); ?>" placeholder="From date" />
                     <label for="date_to" class="screen-reader-text">To date</label>
-                    <input type="date" id="date_to" name="date_to" value="<?php echo esc_attr($date_to); ?>" />
-                    <button type="submit" class="button">Apply</button>
+                    <input type="date" id="date_to" name="date_to" value="<?php echo esc_attr($date_to); ?>" placeholder="To date" />
+                    <button type="submit" class="button button-primary">Apply Filters</button>
                     <a class="button" href="<?php echo esc_url($base_url); ?>">Clear</a>
                 </form>
             </div>
@@ -1984,17 +1984,18 @@ function cta_newsletter_subscribers_page() {
             <?php wp_nonce_field('cta_newsletter_bulk_action'); ?>
 
             <div class="tablenav top">
-                <div class="alignleft actions">
+                <div class="alignleft actions bulkactions">
                     <label class="screen-reader-text" for="bulk_action">Bulk actions</label>
-                    <select name="bulk_action" id="bulk_action">
-                        <option value="">Bulk actions</option>
+                    <select name="bulk_action" id="bulk_action" aria-label="Select bulk action">
+                        <option value="">Bulk Actions</option>
                         <option value="unsubscribe">Unsubscribe</option>
                         <option value="reactivate">Reactivate</option>
                         <option value="delete">Delete</option>
                         <option value="add_tag">Add tag…</option>
                         <option value="remove_tag">Remove tag…</option>
                     </select>
-                    <select name="bulk_tag_id" id="bulk_tag_id" class="postform" style="display:none;">
+                    <label for="bulk_tag_id" class="screen-reader-text">Select tag</label>
+                    <select name="bulk_tag_id" id="bulk_tag_id" class="postform" style="display:none;" aria-label="Select tag">
                         <option value="">Choose tag…</option>
                         <?php foreach ($all_tags as $t) : ?>
                             <option value="<?php echo esc_attr($t->id); ?>"><?php echo esc_html($t->name); ?></option>
@@ -2051,7 +2052,13 @@ function cta_newsletter_subscribers_page() {
                                 <td><?php echo $name !== '' ? esc_html($name) : '—'; ?></td>
                                 <td><?php echo !empty($sub->date_of_birth) ? esc_html(wp_date('j M Y', strtotime($sub->date_of_birth))) : '—'; ?></td>
                                 <td><?php echo !empty($sub->subscribed_at) ? esc_html(wp_date('j M Y, g:i a', strtotime($sub->subscribed_at))) : '—'; ?></td>
-                                <td><?php echo esc_html((string) $sub->status); ?></td>
+                                <td>
+                                    <?php
+                                    $status = (string) $sub->status;
+                                    $badge_class = $status === 'active' ? 'cta-badge success' : 'cta-badge';
+                                    ?>
+                                    <span class="<?php echo esc_attr($badge_class); ?>"><?php echo esc_html(ucfirst($status)); ?></span>
+                                </td>
                                 <td>
                                     <?php if (empty($tag_ids)) : ?>
                                         —
@@ -2066,10 +2073,12 @@ function cta_newsletter_subscribers_page() {
                                     <?php endif; ?>
                                 </td>
                                 <td>
-                                    <?php if ((string) $sub->status === 'active') : ?>
-                                        <a class="button button-small" href="<?php echo esc_url($unsubscribe_url); ?>">Unsubscribe</a>
-                                    <?php endif; ?>
-                                    <a class="button button-small button-link-delete" href="<?php echo esc_url($delete_url); ?>" onclick="return confirm('Delete this subscriber? This cannot be undone.');">Delete</a>
+                                    <div style="display: flex; gap: var(--admin-spacing-xs); flex-wrap: wrap;">
+                                        <?php if ((string) $sub->status === 'active') : ?>
+                                            <a class="button button-small" href="<?php echo esc_url($unsubscribe_url); ?>" aria-label="Unsubscribe <?php echo esc_attr($sub->email); ?>">Unsubscribe</a>
+                                        <?php endif; ?>
+                                        <a class="button button-small button-link-delete" href="<?php echo esc_url($delete_url); ?>" onclick="return confirm('Delete this subscriber? This cannot be undone.');" aria-label="Delete <?php echo esc_attr($sub->email); ?>">Delete</a>
+                                    </div>
                                 </td>
                             </tr>
                         <?php endforeach; ?>
@@ -2553,18 +2562,18 @@ function cta_newsletter_render_overview_screen($active_count, $total_count, $uns
         </div>
 
         <!-- Recent Campaigns -->
-        <div style="background: #fff; border: 1px solid #dcdcde; border-radius: 8px; padding: 24px; margin-top: 24px;">
-            <h2 style="margin: 0 0 20px 0; font-size: 18px; font-weight: 600;">Recent Campaigns</h2>
+        <div class="cta-recent-campaigns">
+            <h2>Recent Campaigns</h2>
             
             <?php if (empty($recent_campaigns)) : ?>
                 <div class="cta-empty-state">
-                    <div class="cta-empty-icon">
+                    <div class="cta-empty-icon" aria-hidden="true">
                         <span class="dashicons dashicons-email-alt"></span>
                     </div>
-                    <div class="cta-empty-title">No campaigns yet</div>
-                    <div class="cta-empty-text">
+                    <h3 class="cta-empty-title">No campaigns yet</h3>
+                    <p class="cta-empty-text">
                         Create your first newsletter to get started!
-                    </div>
+                    </p>
                     <a href="<?php echo esc_url(admin_url('admin.php?page=cta-newsletter-compose')); ?>" class="button button-primary button-large">
                         <span class="dashicons dashicons-plus-alt" style="vertical-align: middle;"></span> Create First Campaign
                     </a>
@@ -2626,11 +2635,11 @@ function cta_newsletter_render_overview_screen($active_count, $total_count, $uns
                 </table>
                 
                 <?php if (count($recent_campaigns) >= 5) : ?>
-                    <p style="text-align: center; margin: 20px 0 0;">
+                    <div style="text-align: center; margin-top: var(--admin-spacing-lg); padding-top: var(--admin-spacing-lg); border-top: 1px solid #f0f0f1;">
                         <a href="<?php echo esc_url(admin_url('admin.php?page=cta-newsletter-campaigns')); ?>" class="button">
                             View All Campaigns
                         </a>
-                    </p>
+                    </div>
                 <?php endif; ?>
             <?php endif; ?>
         </div>

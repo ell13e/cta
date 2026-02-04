@@ -2022,27 +2022,14 @@ add_action('init', function() {
 
 /**
  * Add admin menu for sitemap viewer
+ * NOTE: These are now in the SEO admin section, but keeping functions for backward compatibility
  */
 function cta_add_sitemap_admin_menu() {
-    add_submenu_page(
-        'tools.php',
-        'Sitemap Monitor',
-        'Sitemap Monitor',
-        'manage_options',
-        'cta-sitemap',
-        'cta_sitemap_admin_page'
-    );
-    
-    add_submenu_page(
-        'tools.php',
-        'SEO Tools',
-        'SEO Tools',
-        'manage_options',
-        'cta-seo-tools',
-        'cta_seo_tools_admin_page'
-    );
+    // Removed from Tools menu - now in SEO section
+    // Functions still available for use in SEO admin section
 }
-add_action('admin_menu', 'cta_add_sitemap_admin_menu', 20);
+// Removed action - menus now in SEO section
+// add_action('admin_menu', 'cta_add_sitemap_admin_menu', 20);
 
 /**
  * Sitemap admin page

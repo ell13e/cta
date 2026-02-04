@@ -33617,6 +33617,8 @@ input[type="email"].contact-form-input {
   text-align: center;
   background: linear-gradient(180deg, #ffffff 0%, #fefcf9 100%);
   z-index: 1; /* Ensure proper stacking context */
+  height: auto; /* Allow natural height - prevents overflow-y from being forced to auto */
+  min-height: 0; /* Allow shrinking if needed */
 }
 
 @media (min-width: 768px) {
@@ -33634,6 +33636,14 @@ input[type="email"].contact-form-input {
 }
 
 /* Removed .group-hero-section .container padding override - using standard container padding for alignment */
+
+/* Ensure containers in hero sections can grow naturally - prevents overflow-y from being forced to auto */
+.group-hero-section .container,
+.group-hero-section .container.ai-style-change-1 {
+  height: auto;
+  min-height: 0;
+  max-height: none;
+}
 
 /* Events listing section follows standard section padding - no special override needed */
 

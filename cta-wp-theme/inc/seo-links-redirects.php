@@ -493,17 +493,14 @@ add_filter('views_upload', 'cta_add_bulk_alt_text_button');
 
 /**
  * Add redirects admin page
+ * NOTE: Now in SEO admin section, but keeping function for backward compatibility
  */
 function cta_add_redirects_admin_page() {
-    add_management_page(
-        'Redirects',
-        'Redirects',
-        'manage_options',
-        'cta-redirects',
-        'cta_redirects_admin_page'
-    );
+    // Removed from Tools menu - now in SEO section
+    // Function still available for use in SEO admin section
 }
-add_action('admin_menu', 'cta_add_redirects_admin_page');
+// Removed action - menu now in SEO section
+// add_action('admin_menu', 'cta_add_redirects_admin_page');
 
 /**
  * Redirects admin page

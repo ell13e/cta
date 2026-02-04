@@ -90,6 +90,7 @@ require_once CTA_THEME_DIR . '/inc/seo-verification.php';
 require_once CTA_THEME_DIR . '/inc/page-editor-enhancements.php';
 require_once CTA_THEME_DIR . '/inc/seo-links-redirects.php';
 require_once CTA_THEME_DIR . '/inc/seo-global-settings.php';
+require_once CTA_THEME_DIR . '/inc/seo-admin.php';
 require_once CTA_THEME_DIR . '/inc/facebook-conversions-api.php';
 require_once CTA_THEME_DIR . '/inc/facebook-lead-ads-webhook.php';
 require_once CTA_THEME_DIR . '/inc/performance-helpers.php';
