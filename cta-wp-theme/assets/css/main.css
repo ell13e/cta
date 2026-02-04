@@ -11147,6 +11147,14 @@ textarea:focus-visible,
   gap: 0.5rem;
   margin-bottom: 16px; /* Consistent spacing: badge to title (1rem) */
   width: 100%;
+  position: relative; /* Ensure absolute positioned badges align correctly */
+}
+
+/* Override absolute positioning for category-badge-new when used in course cards */
+.course-card-badge-wrapper .category-badge-new {
+  position: relative;
+  top: auto;
+  right: auto;
 }
 
 .course-card-icon {
