@@ -33610,8 +33610,8 @@ input[type="email"].contact-form-input {
   padding-top: var(--section-padding-mobile);
   padding-bottom: var(--section-padding-mobile);
   position: relative;
-  overflow-x: auto;
-  overflow-y: auto;
+  overflow-x: visible;
+  overflow-y: visible;
   width: 100%;
   max-width: 100vw;
   text-align: center;
@@ -33650,9 +33650,9 @@ section.group-hero-section .container,
   height: auto;
   min-height: 0;
   max-height: none;
-  /* Explicitly set overflow to auto to enable scrollbars when needed */
-  overflow-y: auto;
-  overflow-x: auto;
+  /* Explicitly set overflow to visible to allow content to overflow */
+  overflow-y: visible;
+  overflow-x: visible;
   /* Ensure container can expand with content */
   box-sizing: border-box;
 }
@@ -49812,8 +49812,8 @@ a.article-cta-btn:focus-visible {
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
   z-index: 10000; /* Very high z-index to appear above all content */
   display: none;
-  overflow-x: auto;
-  overflow-y: auto;
+  overflow-x: visible;
+  overflow-y: visible;
   max-height: none; /* Remove any height restrictions - let it expand naturally */
 }
 

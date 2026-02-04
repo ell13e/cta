@@ -490,6 +490,21 @@
     }
   }
 
+  // Helper function to position resources dropdown below header (aligned with resources button)
+  function updateResourcesDropdownPosition() {
+    if (!resourcesDropdownRef || !resourcesButtonRef) return;
+    const header = document.querySelector('.site-header');
+    if (header) {
+      const headerRect = header.getBoundingClientRect();
+      const headerHeight = headerRect.height;
+      const buttonRect = resourcesButtonRef.getBoundingClientRect();
+      
+      // Position dropdown 8px below header, aligned with the left edge of the button
+      resourcesDropdownRef.style.top = `${headerHeight + 8}px`;
+      resourcesDropdownRef.style.left = `${buttonRect.left}px`;
+    }
+  }
+
   // These functions create a better UX by preventing accidental dropdown closures
   // When mouse enters: clear any pending close timeout and open immediately
   // When mouse leaves: wait 150ms before closing (gives user time to move mouse to dropdown)
@@ -767,6 +782,9 @@
     if (resourcesDropdownRef) {
       resourcesDropdownRef.classList.add('active');
       resourcesDropdownRef.setAttribute('aria-hidden', 'false');
+      
+      // Position dropdown below header (aligned with resources button)
+      updateResourcesDropdownPosition();
     }
   }
 
@@ -1358,6 +1376,10 @@
     // Update mega menu position if it's open (header height might change)
     if (state.isCoursesOpen && coursesDropdownRef) {
       updateMegaMenuPosition();
+    }
+    // Update resources dropdown position if it's open (header height might change)
+    if (state.isResourcesOpen && resourcesDropdownRef) {
+      updateResourcesDropdownPosition();
     }
   });
 

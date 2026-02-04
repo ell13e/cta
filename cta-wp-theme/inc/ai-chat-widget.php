@@ -12,9 +12,15 @@ defined('ABSPATH') || exit;
  * Add the AI Chat Widget to admin footer
  */
 function cta_ai_chat_widget() {
-    // Only show on post editing screens
+    // Show on post and page editing screens
     $screen = get_current_screen();
     if (!$screen || $screen->base !== 'post') {
+        return;
+    }
+    
+    // Allow on pages, posts, courses, and events
+    $allowed_types = ['page', 'post', 'course', 'course_event'];
+    if (!in_array($screen->post_type, $allowed_types)) {
         return;
     }
     
@@ -259,29 +265,33 @@ function cta_ai_chat_widget() {
             <div class="cta-chat-header">
                 <div class="cta-chat-header-icon">🤖</div>
                 <div class="cta-chat-header-info">
-                    <h3>Content Assistant</h3>
-                    <p>Ask me anything about your article</p>
+                    <h3>SEO & Content Assistant</h3>
+                    <p>Ask me anything about your <?php echo esc_html($screen->post_type); ?></p>
                 </div>
             </div>
             
             <div class="cta-chat-messages" id="cta-chat-messages">
                 <div class="cta-chat-message assistant">
-                    👋 Hi! I'm your content assistant. I can help you:
+                    👋 Hi! I'm your SEO & content assistant. I can help you:
                     <br><br>
-                    🎨 <strong>Format your content</strong> - Find what should be headings, lists, quotes<br>
-                    ✨ <strong>Write headlines</strong> - SEO-optimised titles<br>
-                    📋 <strong>Create excerpts</strong> - Perfect meta descriptions<br>
-                    🔍 <strong>Improve SEO</strong> - Keywords & structure
+                    📊 <strong>SEO Analysis</strong> - Entities, keywords & semantic topics<br>
+                    ✨ <strong>SEO Titles</strong> - Optimised 50-60 character titles<br>
+                    📋 <strong>Meta Descriptions</strong> - Perfect 120-160 character descriptions<br>
+                    🔍 <strong>Keywords</strong> - Primary + secondary keyword suggestions<br>
+                    🔗 <strong>Internal Linking</strong> - Suggest relevant pages to link to<br>
+                    🎨 <strong>Formatting</strong> - Headings, lists, structure improvements
                     <br><br>
-                    Try "Fix Formatting" to analyse your article!
+                    Try "SEO Analysis" to get started!
                 </div>
             </div>
             
             <div class="cta-chat-suggestions" id="cta-chat-suggestions">
+                <button class="cta-chat-suggestion" data-prompt="Analyse my content for SEO - what entities, keywords, and semantic topics should I include? Give me specific suggestions for improving my SEO score.">📊 SEO Analysis</button>
+                <button class="cta-chat-suggestion" data-prompt="Write a catchy SEO title (50-60 chars exactly) for my <?php echo esc_js($screen->post_type); ?>">✨ SEO Title</button>
+                <button class="cta-chat-suggestion" data-prompt="Write an SEO meta description (120-160 chars exactly) for this <?php echo esc_js($screen->post_type); ?>">📋 Meta Description</button>
+                <button class="cta-chat-suggestion" data-prompt="What keywords should I include? Give me 1 primary keyword + 5 secondary keywords for SEO optimization">🔍 Keywords</button>
+                <button class="cta-chat-suggestion" data-prompt="What internal pages should I link to from this content? Suggest 3-5 relevant pages with anchor text suggestions.">🔗 Internal Links</button>
                 <button class="cta-chat-suggestion" data-prompt="Analyse my content structure and suggest formatting improvements - what should be headings, lists, quotes, etc.">🎨 Fix Formatting</button>
-                <button class="cta-chat-suggestion" data-prompt="Write a catchy SEO headline (50-60 chars) for my article">✨ Headline</button>
-                <button class="cta-chat-suggestion" data-prompt="Write an SEO excerpt (150-160 chars exactly) for this article">📋 Excerpt</button>
-                <button class="cta-chat-suggestion" data-prompt="What keywords should I include? Give me primary + 5 secondary">🔍 Keywords</button>
             </div>
             
             <div class="cta-chat-input-area">
@@ -372,6 +382,27 @@ function cta_ai_chat_widget() {
             
             if (showCopy && type === 'assistant') {
                 messageHtml += '<button class="cta-chat-copy-btn" data-text="' + escapeHtml(text) + '">📋 Copy</button>';
+                
+                // Detect SEO title suggestions (50-60 chars)
+                var titleMatch = text.match(/(?:title|headline)[:\s]*["']?([^"'\n]{40,70})["']?/i);
+                if (titleMatch && titleMatch[1].length >= 40 && titleMatch[1].length <= 70) {
+                    var suggestedTitle = titleMatch[1].trim();
+                    messageHtml += '<button class="cta-chat-apply-btn" data-field="meta_title" data-value="' + escapeHtml(suggestedTitle) + '" style="margin-left: 5px; background: #00a32a; color: white; border: none; padding: 4px 8px; border-radius: 3px; cursor: pointer; font-size: 11px;">✨ Apply as SEO Title</button>';
+                }
+                
+                // Detect meta description suggestions (120-160 chars)
+                var descMatch = text.match(/(?:description|excerpt|meta)[:\s]*["']?([^"'\n]{110,170})["']?/i);
+                if (descMatch && descMatch[1].length >= 110 && descMatch[1].length <= 170) {
+                    var suggestedDesc = descMatch[1].trim();
+                    messageHtml += '<button class="cta-chat-apply-btn" data-field="meta_description" data-value="' + escapeHtml(suggestedDesc) + '" style="margin-left: 5px; background: #00a32a; color: white; border: none; padding: 4px 8px; border-radius: 3px; cursor: pointer; font-size: 11px;">📋 Apply as Meta Description</button>';
+                }
+                
+                // Detect primary keyword suggestions
+                var keywordMatch = text.match(/(?:primary|main|focus)\s+keyword[:\s]*["']?([^"'\n]{1,50})["']?/i);
+                if (keywordMatch) {
+                    var suggestedKeyword = keywordMatch[1].trim();
+                    messageHtml += '<button class="cta-chat-apply-btn" data-field="primary_keyword" data-value="' + escapeHtml(suggestedKeyword) + '" style="margin-left: 5px; background: #2271b1; color: white; border: none; padding: 4px 8px; border-radius: 3px; cursor: pointer; font-size: 11px;">🔍 Apply as Primary Keyword</button>';
+                }
             }
             
             messageHtml += '</div>';
@@ -431,6 +462,41 @@ function cta_ai_chat_widget() {
                 alert('Copied to clipboard!');
             });
         });
+        
+        // Apply SEO suggestions to meta box
+        $(document).on('click', '.cta-chat-apply-btn', function() {
+            var field = $(this).data('field');
+            var value = $(this).data('value');
+            
+            switch(field) {
+                case 'meta_title':
+                    if ($('#page_seo_meta_title').length) {
+                        $('#page_seo_meta_title').val(value).trigger('input');
+                        $(this).text('✅ Applied!').css('background', '#00a32a').prop('disabled', true);
+                    } else {
+                        alert('SEO meta box not found. Please ensure the page is saved first.');
+                    }
+                    break;
+                    
+                case 'meta_description':
+                    if ($('#page_seo_meta_description').length) {
+                        $('#page_seo_meta_description').val(value).trigger('input');
+                        $(this).text('✅ Applied!').css('background', '#00a32a').prop('disabled', true);
+                    } else {
+                        alert('SEO meta box not found. Please ensure the page is saved first.');
+                    }
+                    break;
+                    
+                case 'primary_keyword':
+                    if ($('#page_seo_primary_keyword').length) {
+                        $('#page_seo_primary_keyword').val(value).trigger('input');
+                        $(this).text('✅ Applied!').css('background', '#00a32a').prop('disabled', true);
+                    } else {
+                        alert('SEO meta box not found. Please ensure the page is saved first.');
+                    }
+                    break;
+            }
+        });
     });
     </script>
     <?php
@@ -458,6 +524,10 @@ function cta_ai_chat_ajax() {
     $history = json_decode(stripslashes($_POST['history']), true) ?: [];
     $current_title = sanitize_text_field($_POST['current_title']);
     $current_content = sanitize_textarea_field($_POST['current_content']);
+    
+    // Get current screen for post type context
+    $screen = get_current_screen();
+    $post_type = $screen ? $screen->post_type : 'post';
     
     // Get company knowledge for context
     $company_knowledge = cta_get_ai_company_context();
@@ -501,16 +571,31 @@ FORMATTING SUGGESTIONS (when asked):
 - Suggest: Bold for key terms, break up walls of text
 
 SEO GUIDELINES:
-- Excerpts: exactly 150-160 characters
+- Meta descriptions: exactly 120-160 characters
 - Title tags: 50-60 characters with primary keyword
 - One H1 per page, logical H2→H3 hierarchy
-- Primary keyword in first paragraph
+- Primary keyword in first 10% of content (or first 300 words)
+- Keyword density: 1-1.5% optimal, >2.5% penalty
+- Content length: 2500+ words = 100% score, 2000-2500 = 70%, 1500-2000 = 60%
 - No keyword stuffing - write for humans first
 - E-E-A-T: Experience, Expertise, Authoritativeness, Trust
+- Semantic entities: Include related concepts, not just keywords
+- Internal linking: Link to related pages with descriptive anchor text
 
-CURRENT ARTICLE CONTEXT:
+CURRENT CONTENT CONTEXT:
+- Post Type: " . ($screen->post_type ?? 'post') . "
 - Title: " . ($current_title ?: '(not set yet)') . "
-- Content preview: " . ($current_content ? substr($current_content, 0, 2000) . '...' : '(empty)') . "
+- Content preview: " . ($current_content ? substr(strip_tags($current_content), 0, 2000) . '...' : '(empty)') . "
+- Word count: " . ($current_content ? str_word_count(strip_tags($current_content)) : 0) . " words
+
+SEO ANALYSIS MODE:
+When asked for SEO analysis, provide:
+1. Primary keyword suggestion (1-4 words)
+2. 5 secondary keywords
+3. Semantic entities to include (related concepts, not just keywords)
+4. Content gaps (what competitors cover that this doesn't)
+5. Internal linking opportunities (suggest 3-5 relevant pages with anchor text)
+6. Specific improvements to reach 100/100 SEO score
 
 RESPONSE STYLE:
 - Brief but actionable

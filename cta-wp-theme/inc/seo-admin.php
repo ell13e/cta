@@ -44,6 +44,16 @@ function cta_add_seo_admin_menu() {
         'cta_seo_settings_page'
     );
     
+    // Bulk Optimization
+    add_submenu_page(
+        'cta-seo',
+        'Bulk Optimization',
+        'Bulk Optimization',
+        'manage_options',
+        'cta-seo-bulk',
+        'cta_seo_bulk_page'
+    );
+    
     // Redirects
     add_submenu_page(
         'cta-seo',
@@ -203,6 +213,9 @@ function cta_seo_dashboard_page() {
                     <a href="<?php echo admin_url('admin.php?page=cta-seo-settings'); ?>" class="button">
                         SEO Settings
                     </a>
+                    <a href="<?php echo admin_url('admin.php?page=cta-seo-bulk'); ?>" class="button button-primary">
+                        Bulk Optimization
+                    </a>
                     <a href="<?php echo admin_url('admin.php?page=cta-seo-schema'); ?>" class="button">
                         Schema Markup
                     </a>
@@ -300,6 +313,281 @@ function cta_seo_settings_page() {
             <p><strong>Courses:</strong> <code>%title% %sep% %sitename%</code></p>
             <p><strong>Events:</strong> <code>%title% %sep% %sitename%</code></p>
             <p class="description">These templates are automatically applied. You can override them per page in the SEO meta box.</p>
+        </div>
+    </div>
+    <?php
+}
+
+/**
+ * Bulk SEO Optimization Page
+ */
+function cta_seo_bulk_page() {
+    // Handle bulk actions
+    if (isset($_POST['cta_bulk_seo_action']) && check_admin_referer('cta_bulk_seo')) {
+        $action = sanitize_text_field($_POST['bulk_action']);
+        $post_ids = isset($_POST['post_ids']) ? array_map('intval', $_POST['post_ids']) : [];
+        
+        if (empty($post_ids)) {
+            echo '<div class="notice notice-error"><p>No posts selected.</p></div>';
+        } else {
+            $updated = 0;
+            
+            foreach ($post_ids as $post_id) {
+                switch ($action) {
+                    case 'generate_descriptions':
+                        // Auto-generate meta descriptions
+                        $post = get_post($post_id);
+                        if ($post) {
+                            $description = cta_get_meta_description($post);
+                            if (!empty($description)) {
+                                cta_safe_update_field('page_seo_meta_description', $post_id, $description);
+                                $updated++;
+                            }
+                        }
+                        break;
+                    
+                    case 'apply_schema':
+                        // Apply default schema based on post type
+                        $post = get_post($post_id);
+                        if ($post) {
+                            $schema_type = cta_get_schema_template($post->post_type);
+                            if ($schema_type) {
+                                cta_safe_update_field('page_schema_type', $post_id, $schema_type);
+                                $updated++;
+                            }
+                        }
+                        break;
+                }
+            }
+            
+            echo '<div class="notice notice-success"><p>Updated ' . number_format($updated) . ' posts!</p></div>';
+        }
+    }
+    
+    // Get post types to show
+    $post_types = ['page', 'post'];
+    if (post_type_exists('course')) {
+        $post_types[] = 'course';
+    }
+    
+    // Get filter
+    $filter_post_type = isset($_GET['post_type']) ? sanitize_text_field($_GET['post_type']) : 'page';
+    $filter_status = isset($_GET['status']) ? sanitize_text_field($_GET['status']) : 'all';
+    $search = isset($_GET['s']) ? sanitize_text_field($_GET['s']) : '';
+    
+    // Build query
+    $args = [
+        'post_type' => $filter_post_type,
+        'posts_per_page' => 50,
+        'orderby' => 'title',
+        'order' => 'ASC',
+    ];
+    
+    if ($filter_status === 'missing_meta') {
+        // Only show posts missing meta description
+        $args['meta_query'] = [
+            [
+                'key' => 'page_seo_meta_description',
+                'compare' => 'NOT EXISTS',
+            ],
+        ];
+    }
+    
+    if (!empty($search)) {
+        $args['s'] = $search;
+    }
+    
+    $query = new WP_Query($args);
+    
+    ?>
+    <div class="wrap">
+        <h1>Bulk SEO Optimization</h1>
+        
+        <div class="card" style="margin-bottom: 20px;">
+            <h2>Bulk Actions</h2>
+            <form method="post" id="cta-bulk-seo-form">
+                <?php wp_nonce_field('cta_bulk_seo'); ?>
+                <input type="hidden" name="cta_bulk_seo_action" value="1" />
+                
+                <table class="form-table">
+                    <tr>
+                        <th scope="row">Action</th>
+                        <td>
+                            <select name="bulk_action" id="bulk_action" required>
+                                <option value="">-- Select Action --</option>
+                                <option value="generate_descriptions">Generate Meta Descriptions</option>
+                                <option value="apply_schema">Apply Default Schema Types</option>
+                            </select>
+                            <p class="description">Select an action to apply to selected posts below.</p>
+                        </td>
+                    </tr>
+                </table>
+                
+                <p class="submit">
+                    <button type="submit" class="button button-primary" id="bulk-submit-btn" disabled>
+                        Apply to Selected Posts
+                    </button>
+                    <span id="selected-count" style="margin-left: 10px; color: #666;"></span>
+                </p>
+            </form>
+        </div>
+        
+        <!-- Filters -->
+        <div class="card" style="margin-bottom: 20px;">
+            <form method="get">
+                <input type="hidden" name="page" value="cta-seo-bulk" />
+                <table class="form-table">
+                    <tr>
+                        <th scope="row">Post Type</th>
+                        <td>
+                            <select name="post_type">
+                                <?php foreach ($post_types as $pt) : ?>
+                                    <option value="<?php echo esc_attr($pt); ?>" <?php selected($filter_post_type, $pt); ?>>
+                                        <?php echo esc_html(ucfirst($pt)); ?>
+                                    </option>
+                                <?php endforeach; ?>
+                            </select>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">Filter</th>
+                        <td>
+                            <select name="status">
+                                <option value="all" <?php selected($filter_status, 'all'); ?>>All Posts</option>
+                                <option value="missing_meta" <?php selected($filter_status, 'missing_meta'); ?>>Missing Meta Descriptions</option>
+                            </select>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">Search</th>
+                        <td>
+                            <input type="text" name="s" value="<?php echo esc_attr($search); ?>" class="regular-text" placeholder="Search posts..." />
+                        </td>
+                    </tr>
+                </table>
+                <p class="submit">
+                    <button type="submit" class="button">Filter</button>
+                    <a href="<?php echo admin_url('admin.php?page=cta-seo-bulk'); ?>" class="button">Reset</a>
+                </p>
+            </form>
+        </div>
+        
+        <!-- Posts List -->
+        <div class="card">
+            <h2>Posts (<?php echo number_format($query->found_posts); ?> found)</h2>
+            
+            <?php if ($query->have_posts()) : ?>
+                <form id="posts-form">
+                    <table class="wp-list-table widefat fixed striped">
+                        <thead>
+                            <tr>
+                                <th style="width: 30px;">
+                                    <input type="checkbox" id="select-all" />
+                                </th>
+                                <th>Title</th>
+                                <th>Meta Title</th>
+                                <th>Meta Description</th>
+                                <th>Schema</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php while ($query->have_posts()) : $query->the_post(); 
+                                $post_id = get_the_ID();
+                                $meta_title = cta_safe_get_field('page_seo_meta_title', $post_id, '');
+                                $meta_description = cta_safe_get_field('page_seo_meta_description', $post_id, '');
+                                $schema_type = cta_safe_get_field('page_schema_type', $post_id, '');
+                            ?>
+                                <tr>
+                                    <td>
+                                        <input type="checkbox" name="post_ids[]" value="<?php echo $post_id; ?>" class="post-checkbox" />
+                                    </td>
+                                    <td>
+                                        <strong>
+                                            <a href="<?php echo get_edit_post_link($post_id); ?>">
+                                                <?php echo esc_html(get_the_title()); ?>
+                                            </a>
+                                        </strong>
+                                    </td>
+                                    <td>
+                                        <?php if ($meta_title) : ?>
+                                            <span style="color: #00a32a;">✓</span> <?php echo esc_html(mb_substr($meta_title, 0, 50)); ?>
+                                        <?php else : ?>
+                                            <span style="color: #d63638;">✗</span> <em>Not set</em>
+                                        <?php endif; ?>
+                                    </td>
+                                    <td>
+                                        <?php if ($meta_description) : ?>
+                                            <span style="color: #00a32a;">✓</span> <?php echo esc_html(mb_substr($meta_description, 0, 80)); ?>...
+                                        <?php else : ?>
+                                            <span style="color: #d63638;">✗</span> <em>Not set</em>
+                                        <?php endif; ?>
+                                    </td>
+                                    <td>
+                                        <?php echo $schema_type ? esc_html($schema_type) : '<em>Default</em>'; ?>
+                                    </td>
+                                    <td>
+                                        <a href="<?php echo get_edit_post_link($post_id); ?>" class="button button-small">Edit</a>
+                                    </td>
+                                </tr>
+                            <?php endwhile; wp_reset_postdata(); ?>
+                        </tbody>
+                    </table>
+                </form>
+                
+                <script>
+                jQuery(document).ready(function($) {
+                    // Select all checkbox
+                    $('#select-all').on('change', function() {
+                        $('.post-checkbox').prop('checked', $(this).prop('checked'));
+                        updateSelectedCount();
+                    });
+                    
+                    // Individual checkboxes
+                    $('.post-checkbox').on('change', function() {
+                        updateSelectedCount();
+                    });
+                    
+                    function updateSelectedCount() {
+                        var count = $('.post-checkbox:checked').length;
+                        $('#selected-count').text(count > 0 ? count + ' selected' : '');
+                        $('#bulk-submit-btn').prop('disabled', count === 0);
+                        
+                        // Copy checked IDs to form
+                        var ids = [];
+                        $('.post-checkbox:checked').each(function() {
+                            ids.push($(this).val());
+                        });
+                        $('#cta-bulk-seo-form').find('input[name="post_ids[]"]').remove();
+                        ids.forEach(function(id) {
+                            $('#cta-bulk-seo-form').append('<input type="hidden" name="post_ids[]" value="' + id + '" />');
+                        });
+                    }
+                    
+                    // Form submission
+                    $('#cta-bulk-seo-form').on('submit', function(e) {
+                        if ($('.post-checkbox:checked').length === 0) {
+                            e.preventDefault();
+                            alert('Please select at least one post.');
+                            return false;
+                        }
+                        
+                        if (!$('#bulk_action').val()) {
+                            e.preventDefault();
+                            alert('Please select an action.');
+                            return false;
+                        }
+                        
+                        if (!confirm('This will update ' + $('.post-checkbox:checked').length + ' post(s). Continue?')) {
+                            e.preventDefault();
+                            return false;
+                        }
+                    });
+                });
+                </script>
+            <?php else : ?>
+                <p>No posts found.</p>
+            <?php endif; ?>
         </div>
     </div>
     <?php
