@@ -759,17 +759,6 @@ section .container,
   /* Padding is handled by base .container class or specific overrides that should match */
 }
 
-/* Override for group-hero-section containers to prevent overflow-y: auto */
-/* More specific selector ensures this overrides general section .container rules */
-section.group-hero-section .container,
-.group-hero-section .container {
-  height: auto;
-  min-height: 0;
-  max-height: none;
-  overflow-y: visible;
-  overflow-x: hidden;
-}
-
 /* Sections now use container padding like benefits section */
   
   /* Ensure all section containers respect the parent container width */
