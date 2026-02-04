@@ -332,11 +332,16 @@
             </svg>
           </button>
           <div id="resources-dropdown" class="dropdown-menu" role="menu" aria-labelledby="resources-link">
-            <ul class="dropdown-menu-list">
-              <li>
-                <a href="<?php echo esc_url(get_permalink(get_page_by_path('news'))); ?>" class="dropdown-menu-item" role="menuitem">News & Articles</a>
-              </li>
-            </ul>
+            <?php
+            wp_nav_menu([
+                'theme_location' => 'resources',
+                'container' => false,
+                'menu_class' => '',
+                'fallback_cb' => 'cta_resources_fallback_menu',
+                'walker' => new CTA_Resources_Walker(),
+                'depth' => 1,
+            ]);
+            ?>
           </div>
         </div>
       </nav>

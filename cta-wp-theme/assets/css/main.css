@@ -4755,15 +4755,17 @@ input[type="search"]::-ms-clear,
   flex-shrink: 0;
   display: inline-flex;
   align-items: center;
-  padding: 6px 0 6px 12px; /* Match course-card-badge padding, no right padding for right alignment */
+  justify-content: center; /* Center content inside badge */
+  padding: 7px 14px; /* Equal padding on both sides for centered text */
   border-radius: 12px; /* Match course-card-badge border-radius */
-  font-size: 11px; /* Match course-card-badge font-size */
+  font-size: 13px; /* Increased from 11px for slightly bigger badges */
   font-weight: 600; /* Match course-card-badge font-weight */
   text-transform: none; /* Match course-card-badge text-transform */
   letter-spacing: 0.2px; /* Match course-card-badge letter-spacing */
   width: fit-content;
   height: fit-content;
   line-height: 1;
+  text-align: center; /* Center text inside badge */
 }
 
 /* Ensure course-badge-* colors override category-badge-* colors when both classes are present */
@@ -11228,9 +11230,10 @@ textarea:focus-visible,
 .course-card-badge {
   display: inline-flex;
   align-items: center;
+  justify-content: center; /* Center content inside badge */
   gap: 4px;
-  font-size: 11px;
-  padding: 6px 0 6px 12px;
+  font-size: 13px; /* Increased from 11px for slightly bigger badges */
+  padding: 7px 14px; /* Equal padding on both sides for centered text */
   border-radius: 12px; /* 20px→12px (design system standard for badges) */
   font-weight: 600;
   letter-spacing: 0.2px;
@@ -11240,10 +11243,11 @@ textarea:focus-visible,
   position: relative;
   overflow: hidden;
   white-space: nowrap;
+  text-align: center; /* Center text inside badge */
 }
 
 .course-card-badge-icon {
-  font-size: 11px; /* Increased from 10px for better visibility */
+  font-size: 13px; /* Increased from 11px to match badge font-size */
   opacity: 1; /* Full opacity for better visibility */
   flex-shrink: 0;
   display: inline-block; /* Ensure icon displays properly */
@@ -41303,72 +41307,229 @@ fieldset.booking-modal-field legend.booking-modal-label {
   min-width: 0; /* Prevent flex/grid item overflow */
 }
 
-/* Mobile: full width, sticky positioning */
+/* Mobile: full width, static positioning (no sticky) */
 @media (max-width: 639px) {
   .course-detail-grid {
-    gap: var(--spacing-xl); /* 32px - standardized spacing */
+    gap: var(--spacing-lg); /* 24px - reduced gap on mobile */
     padding: 0;
     box-sizing: border-box;
   }
   
   .course-detail-sidebar {
-    position: sticky;
-    top: 80px;
-    z-index: 90;
-    order: -1;
+    position: static; /* Remove sticky on mobile for better UX */
+    order: -1; /* Show sidebar first on mobile */
     width: 100%;
     max-width: 100%;
-    margin-bottom: var(--spacing-xl); /* 32px - standardized spacing */
+    margin-bottom: var(--spacing-lg); /* 24px spacing */
     box-sizing: border-box;
   }
   
   .course-detail-main {
     margin-top: 0;
     padding: 0;
+    padding-top: 0; /* Remove top padding on mobile */
     width: 100%;
     max-width: 100%;
     box-sizing: border-box;
   }
   
   .course-detail-section-heading {
-    font-size: 1.75rem;
-    margin: var(--spacing-lg) 0 var(--spacing-base) 0; /* 24px top, 16px bottom - standardized spacing */
+    font-size: 1.5rem; /* Smaller on mobile */
+    margin: 0 0 var(--spacing-base) 0; /* 0 top, 16px bottom - remove top margin on mobile */
+    line-height: 1.2;
+  }
+  
+  .course-detail-section-heading:first-of-type {
+    margin-top: 0; /* Ensure first heading has no top margin */
+  }
+  
+  .course-detail-subheading {
+    font-size: 1.125rem; /* 18px */
+    margin-bottom: var(--spacing-base); /* 16px */
   }
   
   .course-detail-booking-card {
-    padding: var(--spacing-lg); /* 24px - standardized spacing (20px = 1.25rem, using closest standard) */
+    padding: var(--spacing-base); /* 16px - reduced padding on mobile */
+    border-radius: 8px; /* Smaller radius on mobile */
+  }
+  
+  /* Better spacing for content sections on mobile */
+  .course-detail-learn-section,
+  .course-detail-description-section,
+  .course-detail-audience-section,
+  .course-detail-requirements-section {
+    margin-bottom: var(--spacing-lg); /* 24px */
+  }
+  
+  /* Improve text readability on mobile */
+  .course-detail-description,
+  .course-detail-text,
+  .course-audience-text {
+    font-size: 0.9375rem; /* 15px */
+    line-height: 1.6;
+  }
+  
+  /* Better meta list on mobile */
+  .course-detail-meta-list {
+    gap: var(--spacing-sm); /* 8px - tighter spacing */
+  }
+  
+  .course-detail-meta-item {
+    padding: var(--spacing-sm) 0; /* 8px vertical padding */
+    flex-wrap: wrap; /* Allow wrapping on small screens */
+  }
+  
+  .course-detail-meta-label {
+    font-size: 0.8125rem; /* 13px */
+    margin-bottom: 0.25rem;
+    width: 100%; /* Full width on mobile for better stacking */
+  }
+  
+  .course-detail-meta-value {
+    font-size: 0.9375rem; /* 15px */
+    width: 100%; /* Full width on mobile */
+  }
+  
+  /* Price display on mobile */
+  .course-detail-price-wrapper {
+    margin-bottom: var(--spacing-base); /* 16px */
+  }
+  
+  .course-detail-price {
+    font-size: 1.5rem; /* Smaller price on mobile */
+  }
+  
+  /* Button sizing on mobile */
+  .primary-cta-button-large {
+    padding: var(--spacing-base) var(--spacing-lg); /* 16px 24px */
+    font-size: 1rem;
+    width: 100%; /* Full width button on mobile */
+  }
+  
+  /* Phone section on mobile */
+  .course-detail-phone {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--spacing-sm); /* 8px */
+    padding-top: var(--spacing-base); /* 16px */
+  }
+  
+  .course-detail-phone-link {
+    width: 100%;
+    justify-content: center; /* Center on mobile */
+    padding: var(--spacing-sm); /* 8px */
+  }
+  
+  .course-detail-phone-hours {
+    text-align: center; /* Center on mobile */
+    width: 100%;
+    font-size: 0.8125rem; /* 13px */
+  }
+  
+  /* Discount badges on mobile */
+  .course-detail-discount-badges {
+    flex-direction: column; /* Stack badges on mobile */
+    align-items: stretch;
+  }
+  
+  /* Price display on mobile */
+  .course-detail-price-line {
+    flex-direction: column; /* Stack price elements */
+    align-items: flex-start;
+    gap: var(--spacing-xs); /* 4px */
+  }
+  
+  /* Meta list improvements on mobile */
+  .course-detail-meta-list {
+    margin-bottom: var(--spacing-base); /* 16px */
+  }
+  
+  /* Learn grid on mobile */
+  .course-detail-learn-grid {
+    gap: var(--spacing-sm); /* 8px - tighter spacing */
+  }
+  
+  .course-detail-learn-item {
+    font-size: 0.9375rem; /* 15px */
+    line-height: 1.6;
   }
 }
 
-/* Tablet: full width, sticky positioning */
+/* Tablet: full width, static positioning (better UX than sticky) */
 @media (min-width: 640px) and (max-width: 967px) {
   .course-detail-grid {
     padding: 0;
     box-sizing: border-box;
+    gap: var(--spacing-xl); /* 32px */
   }
   
   .course-detail-sidebar {
-    position: sticky;
-    top: 80px;
-    z-index: 90;
-    order: -1;
+    position: static; /* Static on tablet for better scrolling */
+    order: -1; /* Show sidebar first */
     width: 100%;
     max-width: 100%;
+    margin-bottom: var(--spacing-xl); /* 32px spacing */
     box-sizing: border-box;
   }
   
   .course-detail-main {
     width: 100%;
     max-width: 100%;
+    padding-top: 0; /* Remove top padding on tablet */
     box-sizing: border-box;
+  }
+  
+  .course-detail-section-heading {
+    font-size: 2rem; /* Slightly smaller on tablet */
+    margin-top: 0; /* Remove top margin on tablet */
+  }
+  
+  .course-detail-section-heading:first-of-type {
+    margin-top: 0; /* Ensure first heading has no top margin */
+  }
+  
+  .course-detail-booking-card {
+    padding: var(--spacing-lg); /* 24px */
+  }
+  
+  /* Better meta list on tablet */
+  .course-detail-meta-item {
+    flex-wrap: nowrap; /* Keep inline on tablet */
+  }
+  
+  .course-detail-meta-label {
+    width: auto; /* Auto width on tablet */
+    min-width: 120px; /* Minimum width for labels */
+  }
+  
+  .course-detail-meta-value {
+    width: auto; /* Auto width on tablet */
+    flex: 1; /* Take remaining space */
+  }
+  
+  /* Phone section on tablet */
+  .course-detail-phone {
+    flex-direction: row; /* Keep inline on tablet */
+    justify-content: space-between;
+  }
+  
+  .course-detail-phone-hours {
+    text-align: right; /* Right align on tablet */
   }
 }
 
-/* Desktop: sidebar fills the 380px grid column */
+/* Desktop: sidebar fills the 380px grid column, sticky positioning */
 @media (min-width: 968px) {
   .course-detail-sidebar {
     width: 100%;
     max-width: 100%;
+    position: sticky;
+    top: 100px; /* Account for header */
+    align-self: start; /* Align to top of grid */
+  }
+  
+  .course-detail-main {
+    min-width: 0; /* Prevent overflow in grid */
   }
 }
 
@@ -49484,8 +49645,6 @@ a.article-cta-btn:focus-visible {
   border: 2px solid var(--cream-border);
   border-radius: 12px;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
-  max-height: 320px;
-  overflow-y: auto;
   z-index: 10000; /* Very high z-index to appear above all content */
   display: none;
 }
@@ -49534,7 +49693,6 @@ a.article-cta-btn:focus-visible {
 
 @media (max-width: 768px) {
   .faq-suggestions {
-    max-height: 280px;
     margin-top: 6px;
   }
   
@@ -49685,9 +49843,40 @@ a.article-cta-btn:focus-visible {
   gap: 12px;
 }
 
+.faq-filter-icon {
+  display: inline-block;
+  width: 18px;
+  height: 18px;
+  margin-right: 8px;
+  vertical-align: middle;
+  line-height: 1;
+}
+
+.faq-filter-icon svg {
+  width: 100%;
+  height: 100%;
+  fill: currentColor;
+  display: block;
+}
+
+.faq-filter-icon i {
+  font-size: 16px;
+}
+
 .faqs-category-icon {
   font-size: 1.5rem;
   color: var(--gold-primary);
+  display: inline-block;
+  margin-right: 12px;
+  vertical-align: middle;
+  line-height: 1;
+}
+
+.faqs-category-icon svg {
+  width: 1.5rem;
+  height: 1.5rem;
+  fill: currentColor;
+  display: block;
 }
 
 @media (max-width: 768px) {
@@ -49704,6 +49893,21 @@ a.article-cta-btn:focus-visible {
   
   .faqs-category-icon {
     font-size: 1.25rem;
+  }
+  
+  .faqs-category-icon svg {
+    width: 1.25rem;
+    height: 1.25rem;
+  }
+  
+  .faq-filter-icon {
+    width: 16px;
+    height: 16px;
+    margin-right: 6px;
+  }
+  
+  .faq-filter-icon i {
+    font-size: 14px;
   }
 }
 

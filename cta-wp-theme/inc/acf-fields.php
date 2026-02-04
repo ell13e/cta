@@ -3779,3 +3779,85 @@ function cta_add_eventbrite_acf_fields() {
     ]);
 }
 add_action('acf/init', 'cta_add_eventbrite_acf_fields');
+
+/**
+ * Add ACF fields for FAQ post type
+ */
+function cta_add_faq_acf_fields() {
+    if (!function_exists('acf_add_local_field_group')) {
+        return;
+    }
+
+    acf_add_local_field_group([
+        'key' => 'group_faq_content',
+        'title' => 'FAQ Content',
+        'fields' => [
+            [
+                'key' => 'field_faq_answer',
+                'label' => 'Answer',
+                'name' => 'faq_answer',
+                'type' => 'wysiwyg',
+                'instructions' => 'The detailed answer to this FAQ. Use formatting tools to add emphasis, lists, or links.',
+                'required' => 1,
+                'tabs' => 'all',
+                'toolbar' => 'full',
+                'media_upload' => 1,
+                'delay' => 0,
+            ],
+        ],
+        'location' => [
+            [
+                [
+                    'param' => 'post_type',
+                    'operator' => '==',
+                    'value' => 'faq',
+                ],
+            ],
+        ],
+        'menu_order' => 0,
+        'position' => 'normal',
+        'style' => 'default',
+        'label_placement' => 'top',
+    ]);
+}
+add_action('acf/init', 'cta_add_faq_acf_fields');
+
+/**
+ * Add ACF fields for FAQ Category taxonomy (icon)
+ */
+function cta_add_faq_category_acf_fields() {
+    if (!function_exists('acf_add_local_field_group')) {
+        return;
+    }
+
+    acf_add_local_field_group([
+        'key' => 'group_faq_category_icon',
+        'title' => 'FAQ Category Icon',
+        'fields' => [
+            [
+                'key' => 'field_faq_category_icon',
+                'label' => 'Category Icon (SVG)',
+                'name' => 'faq_category_icon',
+                'type' => 'textarea',
+                'instructions' => 'Paste your SVG code here. This icon will appear beside the category heading and in the filter button. Example: <svg>...</svg>',
+                'required' => 0,
+                'rows' => 5,
+                'placeholder' => '<svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor"><path d="..."/></svg>',
+            ],
+        ],
+        'location' => [
+            [
+                [
+                    'param' => 'taxonomy',
+                    'operator' => '==',
+                    'value' => 'faq_category',
+                ],
+            ],
+        ],
+        'menu_order' => 0,
+        'position' => 'normal',
+        'style' => 'default',
+        'label_placement' => 'top',
+    ]);
+}
+add_action('acf/init', 'cta_add_faq_category_acf_fields');

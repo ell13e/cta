@@ -83,14 +83,17 @@
       const allowMultiple = accordion?.dataset.accordionAllowMultiple === 'true';
       const animation = accordion?.dataset.accordionAnimation || 'height';
 
-      // Open first accordion in each group on page load
-      if (!initializedGroups.has(group)) {
+      // Open first accordion in each group on page load (skip mobile-nav group)
+      if (!initializedGroups.has(group) && group !== 'mobile-nav') {
         initializedGroups.add(group);
         const isExpanded = trigger.getAttribute('aria-expanded') === 'true';
         if (!isExpanded) {
           // Open the first accordion in this group
           openAccordion(trigger, content, animation);
         }
+      } else if (group === 'mobile-nav') {
+        // For mobile-nav group, just mark as initialized without auto-opening
+        initializedGroups.add(group);
       }
 
       // Click handler

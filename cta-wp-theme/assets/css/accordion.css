@@ -123,21 +123,33 @@
   line-height: 1;
 }
 
-/* Default: show plus icon */
-.accordion-icon .fa-plus {
+/* SVG icon styling */
+.accordion-icon svg {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+  transition: opacity 0.2s ease;
+}
+
+/* Default: show plus icon (both Font Awesome and SVG) */
+.accordion-icon .fa-plus,
+.accordion-icon .icon-plus {
   display: inline-block;
 }
 
-.accordion-icon .fa-minus {
+.accordion-icon .fa-minus,
+.accordion-icon .icon-minus {
   display: none;
 }
 
 /* When expanded: show minus icon, hide plus */
-.accordion-trigger[aria-expanded="true"] .accordion-icon .fa-plus {
+.accordion-trigger[aria-expanded="true"] .accordion-icon .fa-plus,
+.accordion-trigger[aria-expanded="true"] .accordion-icon .icon-plus {
   display: none;
 }
 
-.accordion-trigger[aria-expanded="true"] .accordion-icon .fa-minus {
+.accordion-trigger[aria-expanded="true"] .accordion-icon .fa-minus,
+.accordion-trigger[aria-expanded="true"] .accordion-icon .icon-minus {
   display: inline-block;
 }
 
@@ -155,15 +167,24 @@
   transform: none;
 }
 
-/* For SVG icons (chevron) - keep rotation for SVG-based accordions */
+/* For SVG icons - plus/minus don't rotate, chevrons do */
 .accordion-icon svg {
   width: 100%;
   height: 100%;
   color: inherit;
 }
 
-.accordion-trigger[aria-expanded="true"] .accordion-icon svg {
+/* Chevron SVGs rotate when expanded */
+.accordion-trigger[aria-expanded="true"] .accordion-icon svg:not(.icon-plus):not(.icon-minus) {
   transform: rotate(180deg);
+}
+
+/* Plus/minus SVGs don't rotate - they show/hide instead */
+.accordion-icon svg.icon-plus,
+.accordion-icon svg.icon-minus {
+  width: 20px;
+  height: 20px;
+  transform: none;
 }
 
 /* Accordion Content Panel */

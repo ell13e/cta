@@ -1608,12 +1608,9 @@ function cta_filter_sitemap_entry($entry, $post, $post_type) {
         'terms-and-conditions',
         'legal-notice',
         'disclaimer',
-        // Remove all resource/location/compliance/training/faqs/downloadable pages
-        'cqc-compliance-hub',
+        // Training guides pages (not currently used)
         'training-guides-tools',
         'training-guides',
-        'downloadable-resources',
-        'faqs',
         // All location pages (completely removed - keeping slugs for sitemap exclusion)
         'location-maidstone',
         'location-london',

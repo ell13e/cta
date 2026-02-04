@@ -90,7 +90,6 @@ function cta_format_faq_answer($text) {
 // ACF fields
 $hero_title = function_exists('get_field') ? get_field('hero_title') : '';
 $hero_subtitle = function_exists('get_field') ? get_field('hero_subtitle') : '';
-$faqs = function_exists('get_field') ? get_field('faqs') : [];
 
 // Defaults
 if (empty($hero_title)) {
@@ -100,7 +99,50 @@ if (empty($hero_subtitle)) {
     $hero_subtitle = 'Quick answers to common questions about our training courses, booking, and certification.';
 }
 
-// Default FAQs if none provided via ACF
+// Get FAQs from custom post type
+$faqs = [];
+$faq_posts = get_posts([
+    'post_type' => 'faq',
+    'posts_per_page' => -1,
+    'post_status' => 'publish',
+    'orderby' => 'menu_order',
+    'order' => 'ASC',
+]);
+
+foreach ($faq_posts as $faq_post) {
+    $category_terms = get_the_terms($faq_post->ID, 'faq_category');
+    $category = 'general'; // Default category
+    if ($category_terms && !is_wp_error($category_terms)) {
+        $category_term = reset($category_terms);
+        $category_slug = $category_term->slug;
+        // Map taxonomy slugs to template category slugs (handle colons)
+        $template_slug = str_replace('-', ':', $category_slug);
+        if ($template_slug === 'course-specific') {
+            $template_slug = 'course:specific';
+        } elseif ($template_slug === 'group-training') {
+            $template_slug = 'group:training';
+        }
+        $category = $template_slug;
+    }
+    
+    $answer = get_field('faq_answer', $faq_post->ID);
+    if (empty($answer)) {
+        $answer = $faq_post->post_content; // Fallback to post content
+    }
+    
+    $faqs[] = [
+        'category' => $category,
+        'question' => $faq_post->post_title,
+        'answer' => $answer,
+    ];
+}
+
+// Fallback to ACF repeater if no FAQ posts exist
+if (empty($faqs)) {
+    $faqs = function_exists('get_field') ? get_field('faqs') : [];
+}
+
+// Final fallback to hardcoded FAQs if still empty
 if (empty($faqs)) {
     $faqs = [
         // General Training Questions (8 FAQs)
@@ -159,20 +201,86 @@ if (empty($faqs)) {
     ];
 }
 
-// Organize FAQs by category
-$faqs_by_category = [
-    'general' => [],
-    'booking' => [],
-    'certification' => [],
-    'course:specific' => [],
-    'payment' => [],
-    'group:training' => [],
-];
+// Get all FAQ categories with their icons
+$faq_categories = get_terms([
+    'taxonomy' => 'faq_category',
+    'hide_empty' => false,
+    'orderby' => 'term_order',
+    'order' => 'ASC',
+]);
 
+// Build category map with icons and organize FAQs
+$faqs_by_category = [];
+$category_info = [];
+
+foreach ($faq_categories as $term) {
+    $category_slug = $term->slug;
+    // Map taxonomy slug to template category slug (handle colons)
+    $template_slug = str_replace('-', ':', $category_slug);
+    if ($template_slug === 'course-specific') {
+        $template_slug = 'course:specific';
+    } elseif ($template_slug === 'group-training') {
+        $template_slug = 'group:training';
+    }
+    
+    $icon = get_field('faq_category_icon', 'faq_category_' . $term->term_id);
+    if (empty($icon)) {
+        // Fallback to Font Awesome icons for default categories
+        $default_icons = [
+            'general' => '<i class="fas fa-graduation-cap" aria-hidden="true"></i>',
+            'booking' => '<i class="fas fa-calendar-alt" aria-hidden="true"></i>',
+            'certification' => '<i class="fas fa-certificate" aria-hidden="true"></i>',
+            'course-specific' => '<i class="fas fa-book-open" aria-hidden="true"></i>',
+            'course:specific' => '<i class="fas fa-book-open" aria-hidden="true"></i>',
+            'payment' => '<i class="fas fa-pound-sign" aria-hidden="true"></i>',
+            'group-training' => '<i class="fas fa-users" aria-hidden="true"></i>',
+            'group:training' => '<i class="fas fa-users" aria-hidden="true"></i>',
+        ];
+        $icon = isset($default_icons[$category_slug]) ? $default_icons[$category_slug] : (isset($default_icons[$template_slug]) ? $default_icons[$template_slug] : '<i class="fas fa-question-circle" aria-hidden="true"></i>');
+    }
+    
+    $category_info[$template_slug] = [
+        'name' => $term->name,
+        'slug' => $category_slug,
+        'template_slug' => $template_slug,
+        'icon' => $icon,
+    ];
+    $faqs_by_category[$template_slug] = [];
+}
+
+// Organize FAQs by category
 foreach ($faqs as $faq) {
     if (is_array($faq) && isset($faq['category']) && isset($faq['question']) && isset($faq['answer'])) {
         $cat = $faq['category'];
         if (isset($faqs_by_category[$cat])) {
+            $faqs_by_category[$cat][] = $faq;
+        } else {
+            // If category doesn't exist in our map, add it
+            if (!isset($faqs_by_category[$cat])) {
+                $faqs_by_category[$cat] = [];
+                // Try to find the term
+                $term = get_term_by('slug', str_replace(':', '-', $cat), 'faq_category');
+                if ($term) {
+                    $icon = get_field('faq_category_icon', 'faq_category_' . $term->term_id);
+                    if (empty($icon)) {
+                        $icon = '<i class="fas fa-question-circle" aria-hidden="true"></i>';
+                    }
+                    $category_info[$cat] = [
+                        'name' => $term->name,
+                        'slug' => $term->slug,
+                        'template_slug' => $cat,
+                        'icon' => $icon,
+                    ];
+                } else {
+                    // Fallback for categories that don't have terms yet
+                    $category_info[$cat] = [
+                        'name' => ucwords(str_replace([':', '-'], ' ', $cat)),
+                        'slug' => str_replace(':', '-', $cat),
+                        'template_slug' => $cat,
+                        'icon' => '<i class="fas fa-question-circle" aria-hidden="true"></i>',
+                    ];
+                }
+            }
             $faqs_by_category[$cat][] = $faq;
         }
     }
@@ -254,179 +362,48 @@ foreach ($faqs as $faq) {
         <button type="button" class="faqs-filter-btn active" data-category="all" aria-pressed="true">
           <i class="fas fa-th" aria-hidden="true"></i> All Categories
         </button>
-        <button type="button" class="faqs-filter-btn" data-category="general" aria-pressed="false">
-          <i class="fas fa-graduation-cap" aria-hidden="true"></i> General
+        <?php foreach ($category_info as $cat_slug => $cat_data) : 
+          // Only show filter if category has FAQs
+          if (!empty($faqs_by_category[$cat_slug])) :
+            $filter_slug = str_replace(':', '-', $cat_slug);
+        ?>
+        <button type="button" class="faqs-filter-btn" data-category="<?php echo esc_attr($filter_slug); ?>" aria-pressed="false">
+          <span class="faq-filter-icon" aria-hidden="true"><?php echo wp_kses($cat_data['icon'], ['svg' => ['width' => true, 'height' => true, 'viewbox' => true, 'fill' => true, 'class' => true, 'aria-hidden' => true], 'path' => ['d' => true, 'fill' => true], 'i' => ['class' => true, 'aria-hidden' => true]]); ?></span> <?php echo esc_html($cat_data['name']); ?>
         </button>
-        <button type="button" class="faqs-filter-btn" data-category="booking" aria-pressed="false">
-          <i class="fas fa-calendar-alt" aria-hidden="true"></i> Booking
-        </button>
-        <button type="button" class="faqs-filter-btn" data-category="certification" aria-pressed="false">
-          <i class="fas fa-certificate" aria-hidden="true"></i> Certification
-        </button>
-        <button type="button" class="faqs-filter-btn" data-category="payment" aria-pressed="false">
-          <i class="fas fa-credit-card" aria-hidden="true"></i> Payment
-        </button>
-        <button type="button" class="faqs-filter-btn" data-category="group-training" aria-pressed="false">
-          <i class="fas fa-users" aria-hidden="true"></i> Group Training
-        </button>
+        <?php endif; endforeach; ?>
       </div>
       
       <div class="faqs-content-wrapper">
-        <!-- General Training Questions -->
-        <?php if (!empty($faqs_by_category['general'])) : ?>
-        <div class="faqs-category-section" data-category="general">
+        <?php foreach ($category_info as $cat_slug => $cat_data) : 
+          if (!empty($faqs_by_category[$cat_slug])) :
+            $filter_slug = str_replace(':', '-', $cat_slug);
+            $category_id = sanitize_title($cat_slug);
+        ?>
+        <div class="faqs-category-section" data-category="<?php echo esc_attr($filter_slug); ?>">
           <h3 class="faqs-category-title">
-            <i class="fas fa-graduation-cap faqs-category-icon" aria-hidden="true"></i>
-            General Training Questions
+            <span class="faqs-category-icon" aria-hidden="true"><?php echo wp_kses($cat_data['icon'], ['svg' => ['width' => true, 'height' => true, 'viewbox' => true, 'fill' => true, 'class' => true, 'aria-hidden' => true, 'xmlns' => true], 'path' => ['d' => true, 'fill' => true, 'stroke' => true, 'stroke-width' => true], 'i' => ['class' => true, 'aria-hidden' => true]]); ?></span>
+            <?php echo esc_html($cat_data['name']); ?>
           </h3>
           <div class="group-faq-list">
-          <?php foreach ($faqs_by_category['general'] as $index => $faq) : ?>
-          <div class="accordion faq-item" data-accordion-group="faqs" data-faq-category="general">
-            <button type="button" class="accordion-trigger" aria-expanded="false" aria-controls="faq-general-<?php echo (int) $index; ?>">
+          <?php foreach ($faqs_by_category[$cat_slug] as $index => $faq) : 
+            $faq_id = $category_id . '-' . (int) $index;
+          ?>
+          <div class="accordion faq-item" data-accordion-group="faqs" data-faq-category="<?php echo esc_attr($filter_slug); ?>">
+            <button type="button" class="accordion-trigger" aria-expanded="false" aria-controls="faq-<?php echo esc_attr($faq_id); ?>">
               <span><?php echo esc_html($faq['question']); ?></span>
               <span class="accordion-icon" aria-hidden="true">
                 <i class="fas fa-plus" aria-hidden="true"></i>
                 <i class="fas fa-minus" aria-hidden="true"></i>
               </span>
             </button>
-            <div id="faq-general-<?php echo (int) $index; ?>" class="accordion-content" role="region" aria-hidden="true">
+            <div id="faq-<?php echo esc_attr($faq_id); ?>" class="accordion-content" role="region" aria-hidden="true">
               <?php echo cta_format_faq_answer($faq['answer']); ?>
             </div>
           </div>
           <?php endforeach; ?>
           </div>
         </div>
-        <?php endif; ?>
-        
-        <!-- Booking & Scheduling -->
-        <?php if (!empty($faqs_by_category['booking'])) : ?>
-        <div class="faqs-category-section" data-category="booking">
-          <h3 class="faqs-category-title">
-            <i class="fas fa-calendar-alt faqs-category-icon" aria-hidden="true"></i>
-            Booking & Scheduling
-          </h3>
-          <div class="group-faq-list">
-          <?php foreach ($faqs_by_category['booking'] as $index => $faq) : ?>
-          <div class="accordion faq-item" data-accordion-group="faqs" data-faq-category="booking">
-            <button type="button" class="accordion-trigger" aria-expanded="false" aria-controls="faq-booking-<?php echo (int) $index; ?>">
-              <span><?php echo esc_html($faq['question']); ?></span>
-              <span class="accordion-icon" aria-hidden="true">
-                <i class="fas fa-plus" aria-hidden="true"></i>
-                <i class="fas fa-minus" aria-hidden="true"></i>
-              </span>
-            </button>
-            <div id="faq-booking-<?php echo (int) $index; ?>" class="accordion-content" role="region" aria-hidden="true">
-              <?php echo cta_format_faq_answer($faq['answer']); ?>
-            </div>
-          </div>
-          <?php endforeach; ?>
-          </div>
-        </div>
-        <?php endif; ?>
-        
-        <!-- Certification & Accreditation -->
-        <?php if (!empty($faqs_by_category['certification'])) : ?>
-        <div class="faqs-category-section" data-category="certification">
-          <h3 class="faqs-category-title">
-            <i class="fas fa-certificate faqs-category-icon" aria-hidden="true"></i>
-            Certification & Accreditation
-          </h3>
-          <div class="group-faq-list">
-          <?php foreach ($faqs_by_category['certification'] as $index => $faq) : ?>
-          <div class="accordion faq-item" data-accordion-group="faqs" data-faq-category="certification">
-            <button type="button" class="accordion-trigger" aria-expanded="false" aria-controls="faq-certification-<?php echo (int) $index; ?>">
-              <span><?php echo esc_html($faq['question']); ?></span>
-              <span class="accordion-icon" aria-hidden="true">
-                <i class="fas fa-plus" aria-hidden="true"></i>
-                <i class="fas fa-minus" aria-hidden="true"></i>
-              </span>
-            </button>
-            <div id="faq-certification-<?php echo (int) $index; ?>" class="accordion-content" role="region" aria-hidden="true">
-              <?php echo cta_format_faq_answer($faq['answer']); ?>
-            </div>
-          </div>
-          <?php endforeach; ?>
-          </div>
-        </div>
-        <?php endif; ?>
-        
-        <!-- Course-Specific Questions -->
-        <?php if (!empty($faqs_by_category['course:specific'])) : ?>
-        <div class="faqs-category-section">
-          <h3 class="faqs-category-title">
-            <i class="fas fa-book-open faqs-category-icon" aria-hidden="true"></i>
-            Course-Specific Questions
-          </h3>
-          <div class="group-faq-list">
-          <?php foreach ($faqs_by_category['course:specific'] as $index => $faq) : ?>
-          <div class="accordion faq-item" data-accordion-group="faqs">
-            <button type="button" class="accordion-trigger" aria-expanded="false" aria-controls="faq-course-specific-<?php echo (int) $index; ?>">
-              <span><?php echo esc_html($faq['question']); ?></span>
-              <span class="accordion-icon" aria-hidden="true">
-                <i class="fas fa-plus" aria-hidden="true"></i>
-                <i class="fas fa-minus" aria-hidden="true"></i>
-              </span>
-            </button>
-            <div id="faq-course-specific-<?php echo (int) $index; ?>" class="accordion-content" role="region" aria-hidden="true">
-              <?php echo cta_format_faq_answer($faq['answer']); ?>
-            </div>
-          </div>
-          <?php endforeach; ?>
-          </div>
-        </div>
-        <?php endif; ?>
-        
-        <!-- Payment & Funding -->
-        <?php if (!empty($faqs_by_category['payment'])) : ?>
-        <div class="faqs-category-section" data-category="payment">
-          <h3 class="faqs-category-title">
-            <i class="fas fa-pound-sign faqs-category-icon" aria-hidden="true"></i>
-            Payment & Funding
-          </h3>
-          <div class="group-faq-list">
-          <?php foreach ($faqs_by_category['payment'] as $index => $faq) : ?>
-          <div class="accordion faq-item" data-accordion-group="faqs" data-faq-category="payment">
-            <button type="button" class="accordion-trigger" aria-expanded="false" aria-controls="faq-payment-<?php echo (int) $index; ?>">
-              <span><?php echo esc_html($faq['question']); ?></span>
-              <span class="accordion-icon" aria-hidden="true">
-                <i class="fas fa-plus" aria-hidden="true"></i>
-                <i class="fas fa-minus" aria-hidden="true"></i>
-              </span>
-            </button>
-            <div id="faq-payment-<?php echo (int) $index; ?>" class="accordion-content" role="region" aria-hidden="true">
-              <?php echo cta_format_faq_answer($faq['answer']); ?>
-            </div>
-          </div>
-          <?php endforeach; ?>
-          </div>
-        </div>
-        <?php endif; ?>
-        
-        <!-- Group Training & Employers -->
-        <?php if (!empty($faqs_by_category['group:training'])) : ?>
-        <div class="faqs-category-section" data-category="group-training">
-          <h3 class="faqs-category-title">
-            <i class="fas fa-users faqs-category-icon" aria-hidden="true"></i>
-            Group Training & Employers
-          </h3>
-          <div class="group-faq-list">
-          <?php foreach ($faqs_by_category['group:training'] as $index => $faq) : ?>
-          <div class="accordion faq-item" data-accordion-group="faqs" data-faq-category="group-training">
-            <button type="button" class="accordion-trigger" aria-expanded="false" aria-controls="faq-group-training-<?php echo (int) $index; ?>">
-              <span><?php echo esc_html($faq['question']); ?></span>
-              <span class="accordion-icon" aria-hidden="true">
-                <i class="fas fa-plus" aria-hidden="true"></i>
-                <i class="fas fa-minus" aria-hidden="true"></i>
-              </span>
-            </button>
-            <div id="faq-group-training-<?php echo (int) $index; ?>" class="accordion-content" role="region" aria-hidden="true">
-              <?php echo cta_format_faq_answer($faq['answer']); ?>
-            </div>
-          </div>
-          <?php endforeach; ?>
-          </div>
-        </div>
-        <?php endif; ?>
+        <?php endif; endforeach; ?>
       </div>
     </div>
   </section>

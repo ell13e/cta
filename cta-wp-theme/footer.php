@@ -37,80 +37,31 @@ $contact = cta_get_contact_info();
       <!-- Company Column -->
       <nav class="footer-modern-col" aria-label="Company navigation">
         <h3 class="footer-modern-heading">Company</h3>
-        <ul class="footer-modern-links">
-          <?php 
-          $about_page = get_page_by_path('about');
-          if ($about_page) : ?>
-            <li><a href="<?php echo esc_url(get_permalink($about_page)); ?>" class="footer-modern-link">About</a></li>
-          <?php endif; ?>
-          <li><a href="<?php echo esc_url(get_post_type_archive_link('course') ?: home_url('/courses/')); ?>" class="footer-modern-link">Courses</a></li>
-          <li><a href="<?php echo esc_url(get_post_type_archive_link('course_event') ?: home_url('/upcoming-courses/')); ?>" class="footer-modern-link">Upcoming Courses</a></li>
-          <?php 
-          $group_training_page = get_page_by_path('group-training');
-          if ($group_training_page) : ?>
-            <li><a href="<?php echo esc_url(get_permalink($group_training_page)); ?>" class="footer-modern-link">Group Training</a></li>
-          <?php endif; ?>
-          <?php 
-          $cqc_hub_page = get_page_by_path('cqc-compliance-hub');
-          if ($cqc_hub_page) : ?>
-            <li><a href="<?php echo esc_url(get_permalink($cqc_hub_page)); ?>" class="footer-modern-link">CQC Compliance Hub</a></li>
-          <?php endif; ?>
-          <?php 
-          $training_guides_page = get_page_by_path('training-guides');
-          if ($training_guides_page) : ?>
-            <li><a href="<?php echo esc_url(get_permalink($training_guides_page)); ?>" class="footer-modern-link">Training Guides</a></li>
-          <?php endif; ?>
-          <?php 
-          $resources_page = get_page_by_path('downloadable-resources');
-          if ($resources_page) : ?>
-            <li><a href="<?php echo esc_url(get_permalink($resources_page)); ?>" class="footer-modern-link">Downloadable Resources</a></li>
-          <?php endif; ?>
-          <?php 
-          $news_page = get_option('page_for_posts');
-          if ($news_page) : ?>
-            <li><a href="<?php echo esc_url(get_permalink($news_page)); ?>" class="footer-modern-link">News</a></li>
-          <?php endif; ?>
-        </ul>
+        <?php
+        wp_nav_menu([
+            'theme_location' => 'footer-company',
+            'container' => false,
+            'menu_class' => 'footer-modern-links',
+            'fallback_cb' => 'cta_footer_company_fallback_menu',
+            'walker' => new CTA_Footer_Walker(),
+            'depth' => 1,
+        ]);
+        ?>
       </nav>
 
       <!-- Help Column -->
       <nav class="footer-modern-col" aria-label="Help and support navigation">
         <h3 class="footer-modern-heading">Help</h3>
-        <ul class="footer-modern-links">
-          <?php 
-          $contact_page = get_page_by_path('contact');
-          if ($contact_page) : ?>
-            <li><a href="<?php echo esc_url(get_permalink($contact_page)); ?>" class="footer-modern-link">Customer Support</a></li>
-          <?php endif; ?>
-          <?php 
-          $faqs_page = get_page_by_path('faqs');
-          if ($faqs_page) : ?>
-            <li><a href="<?php echo esc_url(get_permalink($faqs_page)); ?>" class="footer-modern-link">FAQs</a></li>
-          <?php endif; ?>
-          <?php 
-          $terms_page = get_page_by_path('terms-conditions');
-          if ($terms_page) : ?>
-            <li><a href="<?php echo esc_url(get_permalink($terms_page)); ?>" class="footer-modern-link">Terms & Conditions</a></li>
-          <?php endif; ?>
-          <?php 
-          $privacy_page = get_page_by_path('privacy-policy');
-          if ($privacy_page) : ?>
-            <li><a href="<?php echo esc_url(get_permalink($privacy_page)); ?>" class="footer-modern-link">Privacy Policy</a></li>
-          <?php endif; ?>
-          <?php 
-          $cookie_page = get_page_by_path('cookie-policy');
-          if ($cookie_page) : ?>
-            <li><a href="<?php echo esc_url(get_permalink($cookie_page)); ?>" class="footer-modern-link">Cookie Policy</a></li>
-          <?php endif; ?>
-          <?php 
-          // Check for accessibility page - prioritize accessibility-statement slug
-          $accessibility_page = get_page_by_path('accessibility-statement') ?: get_page_by_path('accessibility') ?: get_page_by_path('accessibility-policy');
-          if ($accessibility_page) : ?>
-            <li><a href="<?php echo esc_url(get_permalink($accessibility_page)); ?>" class="footer-modern-link">Accessibility</a></li>
-          <?php else : ?>
-            <li><a href="<?php echo esc_url(home_url('/accessibility-statement/')); ?>" class="footer-modern-link">Accessibility</a></li>
-          <?php endif; ?>
-        </ul>
+        <?php
+        wp_nav_menu([
+            'theme_location' => 'footer-help',
+            'container' => false,
+            'menu_class' => 'footer-modern-links',
+            'fallback_cb' => 'cta_footer_help_fallback_menu',
+            'walker' => new CTA_Footer_Walker(),
+            'depth' => 1,
+        ]);
+        ?>
       </nav>
 
       <!-- Newsletter Column -->
@@ -636,6 +587,7 @@ if (is_page_template('page-templates/page-downloadable-resources.php') ||
     is_page_template('page-templates/page-cqc-hub.php') ||
     is_page_template('page-templates/page-training-guides.php')) {
     get_template_part('template-parts/resource-download-modal');
+    get_template_part('template-parts/resource-unavailable-modal');
 }
 ?>
 

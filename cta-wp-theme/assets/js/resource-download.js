@@ -1,6 +1,8 @@
 (function () {
   'use strict';
 
+  let currentResourceName = '';
+
   function getCfg() {
     if (!window.ctaData || !ctaData.ajaxUrl || !ctaData.nonce) return null;
     return { ajaxUrl: ctaData.ajaxUrl, nonce: ctaData.nonce };
@@ -10,12 +12,14 @@
     const modal = document.getElementById('resource-download-modal');
     if (!modal) return;
 
+    currentResourceName = resourceName || '';
+
     const idInput = document.getElementById('resource-download-resource-id');
     if (idInput) idInput.value = String(resourceId || '');
 
     const subtitle = document.getElementById('resource-download-subtitle');
     if (subtitle && resourceName) {
-      subtitle.textContent = `We’ll email you a secure download link for “${resourceName}”.`;
+      subtitle.textContent = `We'll email you a secure download link for "${resourceName}".`;
     }
 
     modal.setAttribute('aria-hidden', 'false');
@@ -29,6 +33,31 @@
 
   function closeModal() {
     const modal = document.getElementById('resource-download-modal');
+    if (!modal) return;
+    modal.setAttribute('aria-hidden', 'true');
+    document.body.style.overflow = '';
+  }
+
+  function openUnavailableModal(resourceName) {
+    const modal = document.getElementById('resource-unavailable-modal');
+    if (!modal) return;
+
+    const subtitle = document.getElementById('resource-unavailable-subtitle');
+    if (subtitle && resourceName) {
+      subtitle.textContent = `"${resourceName}" is not available yet.`;
+    }
+
+    modal.setAttribute('aria-hidden', 'false');
+    document.body.style.overflow = 'hidden';
+
+    setTimeout(() => {
+      const closeBtn = modal.querySelector('[data-resource-unavailable-modal-close]');
+      closeBtn?.focus();
+    }, 50);
+  }
+
+  function closeUnavailableModal() {
+    const modal = document.getElementById('resource-unavailable-modal');
     if (!modal) return;
     modal.setAttribute('aria-hidden', 'true');
     document.body.style.overflow = '';
@@ -170,6 +199,14 @@
         return;
       }
 
+      // Check if resource is unavailable
+      if (json?.data?.code === 'resource_unavailable') {
+        closeModal();
+        openUnavailableModal(currentResourceName || 'This resource');
+        form.reset();
+        return;
+      }
+
       const errors = json?.data?.errors;
       if (errors) {
         if (errors.first_name) showFieldError('resource-first-name', 'resource-first-name-error', errors.first_name);
@@ -202,6 +239,13 @@
         return;
       }
 
+      const unavailableCloseEl = t.closest('[data-resource-unavailable-modal-close]');
+      if (unavailableCloseEl) {
+        e.preventDefault();
+        closeUnavailableModal();
+        return;
+      }
+
       const btn = t.closest('.resource-download-btn');
       if (btn) {
         e.preventDefault();
@@ -212,8 +256,16 @@
     });
 
     document.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape' && modal.getAttribute('aria-hidden') === 'false') {
-        closeModal();
+      if (e.key === 'Escape') {
+        const downloadModal = document.getElementById('resource-download-modal');
+        const unavailableModal = document.getElementById('resource-unavailable-modal');
+        
+        if (downloadModal && downloadModal.getAttribute('aria-hidden') === 'false') {
+          closeModal();
+        }
+        if (unavailableModal && unavailableModal.getAttribute('aria-hidden') === 'false') {
+          closeUnavailableModal();
+        }
       }
     });
 

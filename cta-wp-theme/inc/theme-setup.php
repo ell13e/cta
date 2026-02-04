@@ -39,8 +39,9 @@ function cta_theme_setup() {
     // Register navigation menus
     register_nav_menus([
         'primary' => __('Primary Navigation', 'cta-theme'),
-        'footer-quick-links' => __('Footer Quick Links', 'cta-theme'),
-        'footer-legal' => __('Footer Legal Links', 'cta-theme'),
+        'resources' => __('Resources Dropdown', 'cta-theme'),
+        'footer-company' => __('Footer Company Links', 'cta-theme'),
+        'footer-help' => __('Footer Help Links', 'cta-theme'),
     ]);
 
     // Set content width

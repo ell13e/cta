@@ -362,7 +362,15 @@ while (have_posts()) : the_post();
               data-accordion="certification"
             >
               <h3 class="course-detail-accordion-title">Certification</h3>
-              <i class="fas fa-chevron-down accordion-icon" aria-hidden="true"></i>
+              <span class="accordion-icon" aria-hidden="true">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-plus" aria-hidden="true">
+                  <line x1="12" y1="5" x2="12" y2="19"></line>
+                  <line x1="5" y1="12" x2="19" y2="12"></line>
+                </svg>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-minus" aria-hidden="true">
+                  <line x1="5" y1="12" x2="19" y2="12"></line>
+                </svg>
+              </span>
             </button>
             <div class="accordion-content" id="certification-content" aria-hidden="true">
               <div class="course-detail-certification">
@@ -393,7 +401,15 @@ while (have_posts()) : the_post();
               data-accordion="accessibility"
             >
               <h3 class="course-detail-accordion-title">Accessibility Support</h3>
-              <i class="fas fa-chevron-down accordion-icon" aria-hidden="true"></i>
+              <span class="accordion-icon" aria-hidden="true">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-plus" aria-hidden="true">
+                  <line x1="12" y1="5" x2="12" y2="19"></line>
+                  <line x1="5" y1="12" x2="19" y2="12"></line>
+                </svg>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-minus" aria-hidden="true">
+                  <line x1="5" y1="12" x2="19" y2="12"></line>
+                </svg>
+              </span>
             </button>
             <div class="accordion-content" id="accessibility-content" aria-hidden="true">
               <p class="course-detail-text">

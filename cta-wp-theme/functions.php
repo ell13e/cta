@@ -69,6 +69,7 @@ if (file_exists($autoloader)) {
  * Include theme files
  */
 require_once CTA_THEME_DIR . '/inc/theme-setup.php';
+require_once CTA_THEME_DIR . '/inc/nav-walkers.php';
 require_once CTA_THEME_DIR . '/inc/post-types.php';
 require_once CTA_THEME_DIR . '/inc/customizer.php';
 require_once CTA_THEME_DIR . '/inc/acf-fields.php';
@@ -1227,3 +1228,92 @@ function cta_add_course_schema() {
 }
 add_action('wp_footer', 'cta_add_course_schema', 5);
 
+/**
+ * Fallback menu for Resources dropdown
+ * Displays default links if menu is not assigned
+ */
+function cta_resources_fallback_menu() {
+    $items = [
+        ['title' => 'CQC Compliance Hub', 'slug' => 'cqc-compliance-hub'],
+        ['title' => 'Downloadable Resources', 'slug' => 'downloadable-resources'],
+        ['title' => 'News & Articles', 'slug' => 'news'],
+        ['title' => 'FAQs', 'slug' => 'faqs'],
+    ];
+    
+    echo '<ul class="dropdown-menu-list">';
+    foreach ($items as $item) {
+        $page = get_page_by_path($item['slug']);
+        if ($page) {
+            echo '<li><a href="' . esc_url(get_permalink($page)) . '" class="dropdown-menu-item" role="menuitem">' . esc_html($item['title']) . '</a></li>';
+        }
+    }
+    echo '</ul>';
+}
+
+/**
+ * Fallback menu for Footer Company column
+ * Displays default links if menu is not assigned
+ */
+function cta_footer_company_fallback_menu() {
+    $items = [
+        ['title' => 'About', 'slug' => 'about'],
+        ['title' => 'Courses', 'url' => get_post_type_archive_link('course') ?: home_url('/courses/')],
+        ['title' => 'Upcoming Courses', 'url' => get_post_type_archive_link('course_event') ?: home_url('/upcoming-courses/')],
+        ['title' => 'Group Training', 'slug' => 'group-training'],
+        ['title' => 'CQC Compliance Hub', 'slug' => 'cqc-compliance-hub'],
+        ['title' => 'Training Guides', 'slug' => 'training-guides'],
+        ['title' => 'Downloadable Resources', 'slug' => 'downloadable-resources'],
+        ['title' => 'News', 'page_id' => get_option('page_for_posts')],
+    ];
+    
+    echo '<ul class="footer-modern-links">';
+    foreach ($items as $item) {
+        $url = '';
+        if (isset($item['url'])) {
+            $url = $item['url'];
+        } elseif (isset($item['slug'])) {
+            $page = get_page_by_path($item['slug']);
+            $url = $page ? get_permalink($page) : '';
+        } elseif (isset($item['page_id']) && $item['page_id']) {
+            $url = get_permalink($item['page_id']);
+        }
+        
+        if ($url) {
+            echo '<li><a href="' . esc_url($url) . '" class="footer-modern-link">' . esc_html($item['title']) . '</a></li>';
+        }
+    }
+    echo '</ul>';
+}
+
+/**
+ * Fallback menu for Footer Help column
+ * Displays default links if menu is not assigned
+ */
+function cta_footer_help_fallback_menu() {
+    $items = [
+        ['title' => 'Customer Support', 'slug' => 'contact'],
+        ['title' => 'FAQs', 'slug' => 'faqs'],
+        ['title' => 'Terms & Conditions', 'slug' => 'terms-conditions'],
+        ['title' => 'Privacy Policy', 'slug' => 'privacy-policy'],
+        ['title' => 'Cookie Policy', 'slug' => 'cookie-policy'],
+        ['title' => 'Accessibility', 'slug' => 'accessibility-statement', 'fallback' => home_url('/accessibility-statement/')],
+    ];
+    
+    echo '<ul class="footer-modern-links">';
+    foreach ($items as $item) {
+        $url = '';
+        if (isset($item['slug'])) {
+            $page = get_page_by_path($item['slug']);
+            if (!$page && isset($item['fallback'])) {
+                $url = $item['fallback'];
+            } else {
+                $url = $page ? get_permalink($page) : '';
+            }
+        }
+        
+        if ($url) {
+            echo '<li><a href="' . esc_url($url) . '" class="footer-modern-link">' . esc_html($item['title']) . '</a></li>';
+        }
+    }
+    echo '</ul>';
+}

@@ -150,3 +150,122 @@
   text-align: center;
 }
 
+/* Resource Unavailable Modal */
+.resource-unavailable-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: none;
+}
+
+.resource-unavailable-modal[aria-hidden="false"] {
+  display: block;
+}
+
+.resource-unavailable-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+}
+
+.resource-unavailable-card {
+  position: relative;
+  max-width: 600px;
+  margin: 6vh auto;
+  background: #fff;
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25);
+}
+
+@media (min-width: 640px) {
+  .resource-unavailable-card {
+    padding: 32px;
+  }
+}
+
+.resource-unavailable-close {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 44px;
+  height: 44px;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 10px;
+  background: #fff;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--brown-medium);
+  transition: all 0.2s ease;
+}
+
+.resource-unavailable-close:hover {
+  background: #f9f7f4;
+  color: var(--brown-dark);
+}
+
+.resource-unavailable-header {
+  text-align: center;
+  margin-bottom: 24px;
+}
+
+.resource-unavailable-icon {
+  width: 64px;
+  height: 64px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  background: rgba(178, 148, 86, 0.12);
+  color: var(--gold-primary);
+  margin-bottom: 16px;
+  font-size: 28px;
+}
+
+.resource-unavailable-title {
+  margin: 0 0 8px 0;
+  font-size: 24px;
+  font-weight: 800;
+  color: var(--brown-dark);
+}
+
+.resource-unavailable-subtitle {
+  margin: 0;
+  color: var(--brown-medium);
+  font-size: 16px;
+}
+
+.resource-unavailable-content {
+  margin-bottom: 24px;
+  text-align: center;
+  color: var(--brown-medium);
+  line-height: 1.7;
+}
+
+.resource-unavailable-content p {
+  margin: 0 0 16px 0;
+}
+
+.resource-unavailable-content p:last-child {
+  margin-bottom: 0;
+}
+
+.resource-unavailable-content a {
+  color: var(--gold-primary);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.resource-unavailable-content a:hover {
+  color: var(--brown-dark);
+}
+
+.resource-unavailable-actions {
+  text-align: center;
+}
+
+.resource-unavailable-close-btn {
+  min-width: 120px;
+}
