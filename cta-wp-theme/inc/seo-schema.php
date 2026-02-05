@@ -11,11 +11,41 @@
  * Get organization schema data
  * Used across all pages for consistent organization information
  */
+/**
+ * Build openingHoursSpecification array from theme mods (e.g. "09:00-17:00").
+ *
+ * @return array[] Empty or array of schema.org OpeningHoursSpecification items.
+ */
+function cta_get_opening_hours_schema() {
+    $weekdays = get_theme_mod('cta_opening_weekdays', '');
+    $saturday = get_theme_mod('cta_opening_saturday', '');
+    $sunday = get_theme_mod('cta_opening_sunday', '');
+    $specs = [];
+    $day_ranges = [
+        'weekdays' => ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'],
+        'saturday' => ['Saturday'],
+        'sunday' => ['Sunday'],
+    ];
+    foreach ([ 'weekdays' => $weekdays, 'saturday' => $saturday, 'sunday' => $sunday ] as $key => $hours) {
+        if ($hours === '' || !preg_match('/^(\d{1,2}:\d{2})-(\d{1,2}:\d{2})$/', trim($hours), $m)) {
+            continue;
+        }
+        $specs[] = [
+            '@type' => 'OpeningHoursSpecification',
+            'dayOfWeek' => $day_ranges[$key],
+            'opens' => $m[1],
+            'closes' => $m[2],
+        ];
+    }
+    return $specs;
+}
+
 function cta_get_organization_schema() {
     $contact = cta_get_contact_info();
     $site_url = home_url();
     
-    // Get rating from theme customizer (default 4.6)
+    // Get rating from theme customizer (default 4.6); optional toggle to avoid self-serving rating in schema
+    $show_rating = get_theme_mod('cta_show_trustpilot_rating_schema', true);
     $rating_value = get_theme_mod('cta_trustpilot_rating', '4.6');
     $review_count = get_theme_mod('cta_trustpilot_review_count', '20');
     
@@ -31,7 +61,7 @@ function cta_get_organization_schema() {
     if (!empty($linkedin_url)) $same_as[] = $linkedin_url;
     if (!empty($instagram_url)) $same_as[] = $instagram_url;
     
-    return [
+    $org = [
         '@type' => 'EducationalOrganization',
         '@id' => $site_url . '/#organization',
         'name' => 'Continuity Training Academy',
@@ -60,15 +90,155 @@ function cta_get_organization_schema() {
         'email' => $contact['email'],
         'priceRange' => '££',
         'sameAs' => $same_as,
-        'aggregateRating' => [
+    ];
+    if ($show_rating && $rating_value !== '' && $review_count !== '') {
+        $org['aggregateRating'] = [
             '@type' => 'AggregateRating',
             'ratingValue' => $rating_value,
             'reviewCount' => $review_count,
             'bestRating' => '5',
             'worstRating' => '1',
-        ],
-    ];
+        ];
+    }
+    $opening = cta_get_opening_hours_schema();
+    if (!empty($opening)) {
+        $org['openingHoursSpecification'] = $opening;
+    }
+    return $org;
 }
+
+/**
+ * Get LocalBusiness schema for the physical location (no aggregateRating; for local/sitelinks).
+ */
+function cta_get_local_business_schema() {
+    $contact = cta_get_contact_info();
+    $site_url = home_url();
+    $opening = cta_get_opening_hours_schema();
+    $lb = [
+        '@type' => 'LocalBusiness',
+        '@id' => $site_url . '/#localbusiness',
+        'name' => 'Continuity Training Academy',
+        'url' => $site_url . '/',
+        'telephone' => $contact['phone'],
+        'address' => [
+            '@type' => 'PostalAddress',
+            'streetAddress' => 'The Maidstone Studios, New Cut Road',
+            'addressLocality' => 'Maidstone',
+            'addressRegion' => 'Kent',
+            'postalCode' => 'ME14 5NZ',
+            'addressCountry' => 'GB',
+        ],
+        'geo' => [
+            '@type' => 'GeoCoordinates',
+            'latitude' => '51.264494',
+            'longitude' => '0.545844',
+        ],
+        'priceRange' => '££',
+    ];
+    if (!empty($opening)) {
+        $lb['openingHoursSpecification'] = $opening;
+    }
+    return $lb;
+}
+
+/**
+ * Get Course schema graph for a single course (rich results).
+ * Returns array of schema items: Course (+ optional offers, timeRequired, image), provider references Organization @id.
+ *
+ * @param int|null $post_id Course post ID; defaults to current post.
+ * @return array Schema graph items for this course.
+ */
+function cta_get_course_schema($post_id = null) {
+    if (!$post_id) {
+        $post_id = get_the_ID();
+    }
+    if (!$post_id || get_post_type($post_id) !== 'course') {
+        return [];
+    }
+    $site_url = home_url();
+    $course_url = get_permalink($post_id);
+    $name = get_the_title($post_id);
+    $description = has_excerpt($post_id) ? get_the_excerpt($post_id) : wp_trim_words(strip_tags(get_post_field('post_content', $post_id)), 50);
+    if (empty($description)) {
+        $description = 'CQC-compliant ' . $name . ' training for care workers. CPD-accredited course.';
+    }
+    $course = [
+        '@type' => 'Course',
+        '@id' => $course_url . '#course',
+        'name' => $name,
+        'description' => $description,
+        'url' => $course_url,
+        'provider' => ['@id' => $site_url . '/#organization'],
+        'inLanguage' => 'en-GB',
+        'courseMode' => 'onsite',
+        'isAccessibleForFree' => false,
+    ];
+    $duration = cta_safe_get_field('course_duration', $post_id, '');
+    if ($duration && preg_match('/(\d+)\s*day/i', $duration, $m)) {
+        $course['timeRequired'] = 'P' . $m[1] . 'D';
+    } elseif ($duration && preg_match('/(\d+)\s*hour/i', $duration, $m)) {
+        $course['timeRequired'] = 'PT' . $m[1] . 'H';
+    }
+    $level = cta_safe_get_field('course_level', $post_id, '');
+    if ($level) {
+        $course['educationalLevel'] = $level;
+    }
+    $accreditation = cta_safe_get_field('course_accreditation', $post_id, '');
+    if ($accreditation) {
+        $course['educationalCredentialAwarded'] = $accreditation;
+    }
+    $price = cta_safe_get_field('course_price', $post_id, '');
+    if ($price !== '' && $price !== null) {
+        $price_clean = preg_replace('/[^0-9.]/', '', (string) $price);
+        if ($price_clean !== '') {
+            $course['offers'] = [
+                '@type' => 'Offer',
+                'price' => $price_clean,
+                'priceCurrency' => 'GBP',
+                'availability' => 'https://schema.org/InStock',
+                'url' => $course_url,
+                'seller' => ['@id' => $site_url . '/#organization'],
+            ];
+        }
+    }
+    $image_url = cta_get_page_schema_image($post_id);
+    if ($image_url) {
+        $course['image'] = [
+            '@type' => 'ImageObject',
+            'url' => $image_url,
+        ];
+    }
+    $terms = get_the_terms($post_id, 'course_category');
+    if ($terms && !is_wp_error($terms)) {
+        $course['keywords'] = implode(', ', array_map(function ($t) {
+            return $t->name;
+        }, $terms));
+    }
+    return [$course];
+}
+
+/**
+ * Output Course schema on single course pages (graph: Course + Organization + Breadcrumb).
+ */
+function cta_output_course_schema() {
+    if (!is_singular('course')) {
+        return;
+    }
+    $site_url = home_url();
+    $page_url = get_permalink();
+    $page_title = get_the_title();
+    $graph = array_merge(
+        cta_get_course_schema(),
+        [cta_get_organization_schema()],
+        [cta_get_breadcrumb_schema([
+            ['name' => 'Home', 'url' => $site_url . '/'],
+            ['name' => 'Courses', 'url' => get_post_type_archive_link('course')],
+            ['name' => $page_title, 'url' => $page_url],
+        ])]
+    );
+    cta_output_schema_json($graph);
+}
+add_action('wp_head', 'cta_output_course_schema', 10);
 
 /**
  * Get page featured image URL for schema
@@ -387,6 +557,50 @@ function cta_schema_customizer_settings($wp_customize) {
         'section' => 'cta_schema_settings',
         'type' => 'url',
     ]);
+    
+    // Show Trustpilot rating in Organization schema (Google: avoid self-serving ratings; disable if unsure)
+    $wp_customize->add_setting('cta_show_trustpilot_rating_schema', [
+        'default' => true,
+        'sanitize_callback' => function ($v) { return (bool) $v; },
+    ]);
+    $wp_customize->add_control('cta_show_trustpilot_rating_schema', [
+        'label' => 'Show Trustpilot rating in Organization schema',
+        'description' => 'Uncheck if you prefer not to show star rating in schema (e.g. to avoid self-serving interpretation).',
+        'section' => 'cta_schema_settings',
+        'type' => 'checkbox',
+    ]);
+    
+    // Opening hours (format HH:MM-HH:MM; used in Organization and LocalBusiness schema)
+    $wp_customize->add_setting('cta_opening_weekdays', [
+        'default' => '',
+        'sanitize_callback' => 'sanitize_text_field',
+    ]);
+    $wp_customize->add_control('cta_opening_weekdays', [
+        'label' => 'Opening hours (Mon–Fri)',
+        'description' => 'e.g. 09:00-17:00. Leave blank to omit.',
+        'section' => 'cta_schema_settings',
+        'type' => 'text',
+    ]);
+    $wp_customize->add_setting('cta_opening_saturday', [
+        'default' => '',
+        'sanitize_callback' => 'sanitize_text_field',
+    ]);
+    $wp_customize->add_control('cta_opening_saturday', [
+        'label' => 'Opening hours (Saturday)',
+        'description' => 'e.g. 09:00-12:00',
+        'section' => 'cta_schema_settings',
+        'type' => 'text',
+    ]);
+    $wp_customize->add_setting('cta_opening_sunday', [
+        'default' => '',
+        'sanitize_callback' => 'sanitize_text_field',
+    ]);
+    $wp_customize->add_control('cta_opening_sunday', [
+        'label' => 'Opening hours (Sunday)',
+        'description' => 'e.g. 10:00-14:00',
+        'section' => 'cta_schema_settings',
+        'type' => 'text',
+    ]);
 }
 add_action('customize_register', 'cta_schema_customizer_settings');
 
@@ -419,6 +633,9 @@ function cta_get_homepage_schema() {
     
     // Organization schema
     $schema_graph[] = cta_get_organization_schema();
+    
+    // LocalBusiness for physical location (local/sitelinks)
+    $schema_graph[] = cta_get_local_business_schema();
     
     // BreadcrumbList for homepage
     $schema_graph[] = cta_get_breadcrumb_schema([
@@ -453,6 +670,9 @@ function cta_get_about_page_schema() {
     
     // Organization schema
     $schema_graph[] = cta_get_organization_schema();
+    
+    // LocalBusiness for physical location
+    $schema_graph[] = cta_get_local_business_schema();
     
     // BreadcrumbList
     $schema_graph[] = cta_get_breadcrumb_schema([
@@ -498,6 +718,9 @@ function cta_get_contact_page_schema() {
     
     // Organization schema (includes contact info)
     $schema_graph[] = cta_get_organization_schema();
+    
+    // LocalBusiness for physical location
+    $schema_graph[] = cta_get_local_business_schema();
     
     // BreadcrumbList
     $schema_graph[] = cta_get_breadcrumb_schema([

@@ -92,8 +92,5 @@ function cta_add_meta_tags() {
         echo '<meta name="twitter:image" content="' . esc_url($image) . '">' . "\n";
     }
     
-    // Add canonical URL
-    if (is_singular() || is_page()) {
-        echo '<link rel="canonical" href="' . esc_url(get_permalink()) . '">' . "\n";
-    }
+    // Canonical is output by inc/seo.php (cta_seo_meta_tags) for all contexts to avoid duplicate or conflicting canonicals.
 }

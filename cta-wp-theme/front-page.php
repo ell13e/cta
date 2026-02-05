@@ -105,7 +105,7 @@ $trustpilot_stars = cta_get_trustpilot_stars($trustpilot_rating);
           <div class="partners-marquee-set"<?php echo $aria_hidden; ?>>
             <?php foreach ($partners as $partner) : ?>
             <div class="partner-logo-wrapper">
-              <a href="<?php echo esc_url($partner['url']); ?>" target="_blank" rel="noopener noreferrer" aria-label="Visit <?php echo esc_attr($partner['name']); ?> website">
+              <a href="<?php echo esc_url($partner['url']); ?>" target="_blank" rel="noopener noreferrer sponsored" aria-label="Visit <?php echo esc_attr($partner['name']); ?> website">
                 <img src="<?php echo esc_url(cta_image('partners/' . $partner['slug'] . '-logo.webp')); ?>" alt="<?php echo esc_attr($partner['name']); ?>" class="partner-logo" width="150" height="60" loading="lazy">
               </a>
             </div>

@@ -340,6 +340,18 @@ function cta_seo_dashboard_page() {
                 }
                 ?>
             </div>
+
+            <!-- SEO runbook: monitoring, security, redirects -->
+            <div class="card" style="margin-top: 20px;">
+                <h2>SEO runbook</h2>
+                <p style="margin-top: 0;">Ongoing practice tied to theme improvements. No code changes here—process only.</p>
+                <ul style="margin: 0.5em 0 0 1.5em;">
+                    <li><strong>After schema changes:</strong> Validate key URLs (homepage, a post, a course, an event) with <a href="https://search.google.com/test/rich-results" target="_blank" rel="noopener">Google Rich Results Test</a>; fix errors and preferably warnings; re-check Search Console Enhancements after deployment.</li>
+                    <li><strong>Traffic drops:</strong> Use Search Console Performance (16 months), compare date ranges, segment by query/page/device; use “Clicks difference” to find affected URLs; cross-check with Search Status Dashboard (core/spam/review updates).</li>
+                    <li><strong>Security:</strong> Treat Security Issues and Safe Browsing as P0; keep WordPress, plugins, theme and server patched; use <code>site:yourdomain</code> periodically to spot odd URLs.</li>
+                    <li><strong>Redirects:</strong> Prefer 301 for permanent moves; keep chains to one hop; use real 404/410 and a helpful 404 page for removed content.</li>
+                </ul>
+            </div>
         </div>
     </div>
     <?php
@@ -413,6 +425,16 @@ function cta_seo_settings_page() {
             <p><strong>Courses:</strong> <code>%title% %sep% %sitename%</code></p>
             <p><strong>Events:</strong> <code>%title% %sep% %sitename%</code></p>
             <p class="description">These templates are automatically applied. You can override them per page in the SEO meta box.</p>
+        </div>
+
+        <h2>Link policy</h2>
+        <div class="card">
+            <p>For outbound links, use the correct <code>rel</code> attributes so search engines understand the relationship:</p>
+            <ul style="margin-left: 1.5em;">
+                <li><strong>Paid or partnership links</strong> (e.g. ads, sponsor logos, partner sections): use <code>rel="sponsored"</code>. This theme adds <code>rel="sponsored"</code> to the homepage partner logos section.</li>
+                <li><strong>User-generated content</strong> (e.g. comments, forum posts): use <code>rel="ugc"</code> or <code>rel="nofollow"</code> on links within that content. If you enable comments, ensure your theme or plugin outputs these attributes on comment author/URL links.</li>
+            </ul>
+            <p class="description" style="margin-bottom: 0;">Applying these in templates keeps markup consistent with Google’s link guidelines.</p>
         </div>
     </div>
     <?php
@@ -826,36 +848,115 @@ function cta_seo_sitemap_page() {
 
 /**
  * SEO Schema Page
+ * Aligned with Google Search structured data and Schema.org.
+ * @see https://developers.google.com/search/docs/appearance/structured-data/search-gallery
+ * @see https://schema.org/docs/full.html
  */
 function cta_seo_schema_page() {
-    // Get schema stats
-    $pages_with_schema = 0;
-    $posts_with_schema = 0;
-    $courses_with_schema = wp_count_posts('course')->publish ?? 0;
-    $events_with_schema = wp_count_posts('course_event')->publish ?? 0;
-    
-    // Count pages with custom schema
     global $wpdb;
-    $pages_with_schema = $wpdb->get_var("
-        SELECT COUNT(*) 
-        FROM {$wpdb->postmeta} 
-        WHERE meta_key = '_cta_schema_type' 
-        AND meta_value != ''
+
+    $pages_with_custom_schema = (int) $wpdb->get_var("
+        SELECT COUNT(*) FROM {$wpdb->postmeta}
+        WHERE meta_key = '_cta_schema_type' AND meta_value != ''
     ");
-    
+    $courses_count = (int) (wp_count_posts('course')->publish ?? 0);
+    $events_count = (int) (wp_count_posts('course_event')->publish ?? 0);
+
+    $google_gallery = 'https://developers.google.com/search/docs/appearance/structured-data/search-gallery';
+    $schema_docs = 'https://schema.org/docs/full.html';
+    $rich_results_test = 'https://search.google.com/test/rich-results';
     ?>
     <div class="wrap">
         <h1>Schema Markup</h1>
-        
-        <div class="card">
-            <h2>Schema Coverage</h2>
-            <p>Schema markup is automatically applied to content based on post type:</p>
-            
+
+        <div class="card" style="margin-top: 16px;">
+            <h2 style="margin-top: 0;">Overview</h2>
+            <p>Structured data helps Google understand your content and can make it eligible for <strong>rich results</strong> (e.g. course carousels, event snippets, FAQ expandables, breadcrumbs). This theme outputs JSON-LD based on <a href="<?php echo esc_url($schema_docs); ?>" target="_blank" rel="noopener">Schema.org</a> types that <a href="<?php echo esc_url($google_gallery); ?>" target="_blank" rel="noopener">Google Search supports</a>.</p>
+            <p style="margin-bottom: 0;"><strong>Byline dates:</strong> For posts, keep visible &ldquo;Published&rdquo; and &ldquo;Last updated&rdquo; dates in sync with Article schema (<code>datePublished</code> / <code>dateModified</code>). The single post template shows these labels automatically.</p>
+        </div>
+
+        <div class="card" style="margin-top: 20px;">
+            <h2 style="margin-top: 0;">Snippet control</h2>
+            <p>You can control what Google uses in search snippets and AI Overviews:</p>
+            <ul style="margin: 0.5em 0 0 1.5em;">
+                <li><strong>Page-level:</strong> In the page SEO meta box (Advanced SEO Settings), use <strong>No snippet</strong> to exclude the whole page from snippets, or <strong>Max snippet length</strong> to cap the snippet length (e.g. 160 characters).</li>
+                <li><strong>Section-level:</strong> Wrap any block of content in <code>&lt;div data-nosnippet&gt;…&lt;/div&gt;</code> so that section is omitted from snippets while the rest of the page can still be used. No theme setting required.</li>
+            </ul>
+            <p style="margin: 0.75em 0 0 0;">Use <code>nosnippet</code> (page-level) when the entire page shouldn’t appear in snippets. Use <code>data-nosnippet</code> when only specific parts (e.g. disclaimers, internal notes) should be excluded.</p>
+        </div>
+
+        <div class="card" style="margin-top: 20px;">
+            <h2 style="margin-top: 0;">Rich results eligibility</h2>
+            <p>Types we output and their Google Search feature guides:</p>
             <table class="wp-list-table widefat fixed striped">
                 <thead>
                     <tr>
-                        <th>Content Type</th>
-                        <th>Schema Type</th>
+                        <th>Feature</th>
+                        <th>Schema.org type</th>
+                        <th>Where we use it</th>
+                        <th>Google guide</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>Article</strong></td>
+                        <td><code>Article</code></td>
+                        <td>Blog posts</td>
+                        <td><a href="https://developers.google.com/search/docs/appearance/structured-data/article" target="_blank" rel="noopener">Article</a></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Breadcrumb</strong></td>
+                        <td><code>BreadcrumbList</code></td>
+                        <td>All pages (site hierarchy)</td>
+                        <td><a href="https://developers.google.com/search/docs/appearance/structured-data/breadcrumb" target="_blank" rel="noopener">Breadcrumb</a></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Course list</strong></td>
+                        <td><code>Course</code></td>
+                        <td>Single course pages</td>
+                        <td><a href="https://developers.google.com/search/docs/appearance/structured-data/course" target="_blank" rel="noopener">Course list</a></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Event</strong></td>
+                        <td><code>Event</code></td>
+                        <td>Single scheduled course events; event archives</td>
+                        <td><a href="https://developers.google.com/search/docs/appearance/structured-data/event" target="_blank" rel="noopener">Event</a></td>
+                    </tr>
+                    <tr>
+                        <td><strong>FAQ</strong></td>
+                        <td><code>FAQPage</code></td>
+                        <td>FAQ page (questions from content/CPT)</td>
+                        <td><a href="https://developers.google.com/search/docs/appearance/structured-data/faqpage" target="_blank" rel="noopener">FAQ</a></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Organization</strong></td>
+                        <td><code>EducationalOrganization</code></td>
+                        <td>All pages (org + rating, contact, sameAs)</td>
+                        <td><a href="https://developers.google.com/search/docs/appearance/structured-data/organization" target="_blank" rel="noopener">Organization</a></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Review snippet</strong></td>
+                        <td><code>AggregateRating</code> (on Organization)</td>
+                        <td>Site-wide (Trustpilot rating)</td>
+                        <td><a href="https://developers.google.com/search/docs/appearance/structured-data/review-snippet" target="_blank" rel="noopener">Review snippet</a></td>
+                    </tr>
+                    <tr>
+                        <td><strong>WebPage</strong></td>
+                        <td><code>WebPage</code>, <code>AboutPage</code>, <code>ContactPage</code>, etc.</td>
+                        <td>Pages (with optional override per page)</td>
+                        <td>—</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="card" style="margin-top: 20px;">
+            <h2 style="margin-top: 0;">Schema coverage by content type</h2>
+            <table class="wp-list-table widefat fixed striped">
+                <thead>
+                    <tr>
+                        <th>Content type</th>
+                        <th>Schema type(s)</th>
                         <th>Status</th>
                     </tr>
                 </thead>
@@ -863,63 +964,53 @@ function cta_seo_schema_page() {
                     <tr>
                         <td><strong>Posts</strong></td>
                         <td>Article</td>
-                        <td>✅ Automatic</td>
+                        <td>Automatic</td>
                     </tr>
                     <tr>
                         <td><strong>Pages</strong></td>
-                        <td>WebPage (or custom)</td>
-                        <td>✅ Automatic (can override)</td>
+                        <td>WebPage (or AboutPage, ContactPage, FAQPage, etc. by template)</td>
+                        <td>Automatic; override in page SEO meta box</td>
                     </tr>
                     <tr>
                         <td><strong>Courses</strong></td>
                         <td>Course</td>
-                        <td>✅ Automatic</td>
+                        <td>Automatic</td>
                     </tr>
                     <tr>
-                        <td><strong>Events</strong></td>
+                        <td><strong>Scheduled courses (events)</strong></td>
                         <td>Event</td>
-                        <td>✅ Automatic</td>
+                        <td>Automatic</td>
                     </tr>
                     <tr>
-                        <td><strong>All Pages</strong></td>
-                        <td>Organization, LocalBusiness</td>
-                        <td>✅ Site-wide</td>
+                        <td><strong>All pages</strong></td>
+                        <td>EducationalOrganization, BreadcrumbList</td>
+                        <td>Site-wide</td>
                     </tr>
                 </tbody>
             </table>
         </div>
-        
+
         <div class="card" style="margin-top: 20px;">
-            <h2>Schema Statistics</h2>
-            <ul>
-                <li><strong>Pages with custom schema:</strong> <?php echo number_format($pages_with_schema); ?></li>
-                <li><strong>Courses with schema:</strong> <?php echo number_format($courses_with_schema); ?></li>
-                <li><strong>Events with schema:</strong> <?php echo number_format($events_with_schema); ?></li>
+            <h2 style="margin-top: 0;">Statistics</h2>
+            <ul style="margin: 0;">
+                <li><strong>Pages with custom schema override:</strong> <?php echo number_format($pages_with_custom_schema); ?></li>
+                <li><strong>Courses (with Course schema):</strong> <?php echo number_format($courses_count); ?></li>
+                <li><strong>Events (with Event schema):</strong> <?php echo number_format($events_count); ?></li>
             </ul>
         </div>
-        
+
         <div class="card" style="margin-top: 20px;">
-            <h2>Schema Types Available</h2>
-            <ul>
-                <li><strong>Article</strong> - Blog posts and articles</li>
-                <li><strong>WebPage</strong> - Regular pages</li>
-                <li><strong>Course</strong> - Training courses</li>
-                <li><strong>Event</strong> - Scheduled course events</li>
-                <li><strong>FAQPage</strong> - Pages with FAQs</li>
-                <li><strong>Organization</strong> - Site-wide organization info</li>
-                <li><strong>LocalBusiness</strong> - Site-wide business info</li>
-            </ul>
-            <p class="description">You can override the default schema type for any page in the SEO meta box when editing that page.</p>
+            <h2 style="margin-top: 0;">Override per page</h2>
+            <p>When editing a page, use the SEO meta box to set a custom <code>schema:WebPage</code> subtype (e.g. <code>AboutPage</code>, <code>ContactPage</code>) or leave default. Schema.org type hierarchy: <a href="<?php echo esc_url($schema_docs); ?>" target="_blank" rel="noopener">Schema.org full hierarchy</a>.</p>
         </div>
-        
+
         <div class="card" style="margin-top: 20px;">
-            <h2>Validate Schema</h2>
-            <p>Use Google's Rich Results Test to validate your schema markup:</p>
+            <h2 style="margin-top: 0;">Validate</h2>
+            <p>Check how Google interprets your markup and whether rich results are eligible:</p>
             <p>
-                <a href="https://search.google.com/test/rich-results" target="_blank" class="button button-primary">
-                    Open Rich Results Test
-                </a>
+                <a href="<?php echo esc_url($rich_results_test); ?>" target="_blank" rel="noopener" class="button button-primary">Open Rich Results Test</a>
             </p>
+            <p class="description">Enter a live URL from your site. Actual appearance in search may still vary.</p>
         </div>
     </div>
     <?php

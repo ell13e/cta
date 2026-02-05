@@ -67,11 +67,15 @@ $contact = cta_get_contact_info();
             <?php
             $author_id = get_the_author_meta('ID');
             $author_name = get_the_author();
+            $published_iso = get_the_date('c');
+            $modified_iso = get_the_modified_date('c');
+            $show_updated = ( $modified_iso && $modified_iso !== $published_iso );
             ?>
             <span class="single-post-author-name"><?php echo esc_html($author_name); ?></span>
-            <time datetime="<?php echo get_the_date('c'); ?>" class="single-post-date-below">
-              <?php echo get_the_date('M j, Y'); ?>
-            </time>
+            <span class="single-post-date-label">Published </span><time datetime="<?php echo esc_attr($published_iso); ?>" class="single-post-date-below"><?php echo get_the_date('M j, Y'); ?></time>
+            <?php if ( $show_updated ) : ?>
+              <span class="single-post-updated-label"> · Last updated </span><time datetime="<?php echo esc_attr($modified_iso); ?>" class="single-post-updated-date"><?php echo get_the_modified_date('M j, Y'); ?></time>
+            <?php endif; ?>
             <span class="reading-time-below">
               <?php echo cta_reading_time(get_the_content()); ?> min read
             </span>

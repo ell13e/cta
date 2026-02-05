@@ -750,7 +750,7 @@ function cta_output_facebook_pixel() {
         return;
     }
     
-    // Facebook Pixel code in <head> section
+    // Facebook Pixel script in <head> (recommended by Meta). Noscript fallback moved to body so <head> contains no img/iframe (valid head per Google).
     ?>
 <!-- Facebook Pixel Code -->
 <script>
@@ -765,13 +765,28 @@ s.parentNode.insertBefore(t,s)}(window, document,'script',
 fbq('init', '<?php echo esc_js($fb_pixel_id); ?>');
 fbq('track', 'PageView');
 </script>
-<noscript><img height="1" width="1" style="display:none"
-src="https://www.facebook.com/tr?id=<?php echo esc_attr($fb_pixel_id); ?>&ev=PageView&noscript=1"
-/></noscript>
 <!-- End Facebook Pixel Code -->
     <?php
 }
 add_action('wp_head', 'cta_output_facebook_pixel', 4);
+
+/**
+ * Facebook Pixel noscript fallback (in body so head stays valid for crawlers)
+ */
+function cta_output_facebook_pixel_noscript() {
+    $fb_pixel_id = cta_get_facebook_pixel_id();
+    if (empty($fb_pixel_id) || !preg_match('/^\d+$/', $fb_pixel_id)) {
+        return;
+    }
+    ?>
+<!-- Facebook Pixel (noscript) -->
+<noscript><img height="1" width="1" style="display:none"
+src="https://www.facebook.com/tr?id=<?php echo esc_attr($fb_pixel_id); ?>&ev=PageView&noscript=1"
+alt="" /></noscript>
+<!-- End Facebook Pixel (noscript) -->
+    <?php
+}
+add_action('wp_body_open', 'cta_output_facebook_pixel_noscript', 2);
 
 /**
  * Optimise document title - Fix duplicates and shorten to <60 chars
@@ -1121,123 +1136,7 @@ function cta_schema_markup() {
     
     echo '<script type="application/ld+json">' . json_encode($website_schema, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT) . '</script>' . "\n";
     
-    // Course schema
-    if (is_singular('course')) {
-        global $post;
-        $price = cta_safe_get_field('course_price', $post->ID, '');
-        $duration = cta_safe_get_field('course_duration', $post->ID, '');
-        $level = cta_safe_get_field('course_level', $post->ID, '');
-        $accreditation = cta_safe_get_field('course_accreditation', $post->ID, '');
-        
-        $course_schema = [
-            '@context' => 'https://schema.org',
-            '@type' => 'Course',
-            'name' => get_the_title(),
-            'description' => has_excerpt() ? get_the_excerpt() : wp_trim_words(strip_tags($post->post_content), 50),
-            'url' => get_permalink(),
-            'provider' => [
-                '@type' => 'EducationalOrganization',
-                'name' => get_bloginfo('name'),
-                'url' => home_url('/'),
-                'address' => [
-                    '@type' => 'PostalAddress',
-                    'streetAddress' => $street,
-                    'addressLocality' => $locality,
-                    'addressRegion' => $region,
-                    'postalCode' => $postcode,
-                    'addressCountry' => 'GB',
-                ],
-            ],
-            'courseMode' => 'onsite',
-            'inLanguage' => 'en-GB',
-            'isAccessibleForFree' => false,
-            'teaches' => get_the_title(), // What the course teaches
-        ];
-        
-        // Add course category as keywords
-        $terms = get_the_terms($post->ID, 'course_category');
-        if ($terms && !is_wp_error($terms)) {
-            $keywords = array_map(function($term) {
-                return $term->name;
-            }, $terms);
-            $course_schema['keywords'] = implode(', ', $keywords);
-        }
-        
-        if ($price) {
-            // Clean price (remove currency symbols, extract numeric value)
-            $price_clean = preg_replace('/[^0-9.]/', '', $price);
-            $course_schema['offers'] = [
-                '@type' => 'Offer',
-                'price' => $price_clean,
-                'priceCurrency' => 'GBP',
-                'availability' => 'https://schema.org/InStock',
-                'url' => get_permalink(),
-                'seller' => [
-                    '@type' => 'EducationalOrganization',
-                    'name' => get_bloginfo('name'),
-                ],
-            ];
-        }
-        
-        if ($duration) {
-            // Convert duration to ISO 8601 format
-            if (preg_match('/(\d+)\s*day/i', $duration, $matches)) {
-                $course_schema['timeRequired'] = 'P' . $matches[1] . 'D';
-            } elseif (preg_match('/(\d+)\s*hour/i', $duration, $matches)) {
-                $course_schema['timeRequired'] = 'PT' . $matches[1] . 'H';
-            }
-        }
-        
-        if ($level) {
-            $course_schema['educationalLevel'] = $level;
-        }
-        
-        if ($accreditation) {
-            $course_schema['educationalCredentialAwarded'] = $accreditation;
-        }
-        
-        // Add location (Maidstone, Kent)
-        $course_schema['location'] = [
-            '@type' => 'Place',
-            'name' => 'Maidstone Studios',
-            'address' => [
-                '@type' => 'PostalAddress',
-                'streetAddress' => $street,
-                'addressLocality' => $locality,
-                'addressRegion' => $region,
-                'postalCode' => $postcode,
-                'addressCountry' => 'GB',
-            ],
-        ];
-        
-        // Add image with proper ImageObject schema
-        if (has_post_thumbnail()) {
-            $image_id = get_post_thumbnail_id($post->ID);
-            $image_url = get_the_post_thumbnail_url($post->ID, 'large');
-            $image_meta = wp_get_attachment_metadata($image_id);
-            
-            $image_schema = [
-                '@type' => 'ImageObject',
-                'url' => $image_url,
-            ];
-            
-            // Add dimensions if available
-            if (!empty($image_meta['width']) && !empty($image_meta['height'])) {
-                $image_schema['width'] = $image_meta['width'];
-                $image_schema['height'] = $image_meta['height'];
-            }
-            
-            // Add alt text
-            $alt_text = get_post_meta($image_id, '_wp_attachment_image_alt', true);
-            if (!empty($alt_text)) {
-                $image_schema['caption'] = $alt_text;
-            }
-            
-            $course_schema['image'] = $image_schema;
-        }
-        
-        echo '<script type="application/ld+json">' . json_encode($course_schema, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT) . '</script>' . "\n";
-    }
+    // Course schema: output by seo-schema.php (cta_output_course_schema) on single course pages.
     
     // Course Event schema
     if (is_singular('course_event')) {
@@ -3694,12 +3593,20 @@ function cta_robots_meta($robots) {
         $post_id = get_queried_object_id();
         $noindex = get_post_meta($post_id, '_cta_noindex', true);
         $nofollow = get_post_meta($post_id, '_cta_nofollow', true);
+        $nosnippet = get_post_meta($post_id, '_cta_nosnippet', true);
+        $max_snippet = get_post_meta($post_id, '_cta_max_snippet_length', true);
         
         if ($noindex === '1') {
             $robots['noindex'] = true;
         }
         if ($nofollow === '1') {
             $robots['nofollow'] = true;
+        }
+        if ($nosnippet === '1') {
+            $robots['nosnippet'] = true;
+        }
+        if ($max_snippet !== '' && is_numeric($max_snippet) && (int) $max_snippet > 0) {
+            $robots['max-snippet'] = (string) (int) $max_snippet;
         }
     }
     

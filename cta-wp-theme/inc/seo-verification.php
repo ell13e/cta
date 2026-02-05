@@ -298,7 +298,43 @@ function cta_verify_meta_tags() {
 }
 
 /**
- * Verify canonical URLs
+ * Fetch a URL and return canonical link count and href values (for manual review).
+ *
+ * @param string $url Full URL to fetch.
+ * @return array{count: int, hrefs: string[], error: string|null}
+ */
+function cta_fetch_canonical_from_url($url) {
+    $out = ['count' => 0, 'hrefs' => [], 'error' => null];
+    $response = wp_remote_get($url, [
+        'timeout' => 10,
+        'sslverify' => true,
+        'user-agent' => 'CTA-SEO-Verification/1.0',
+    ]);
+    if (is_wp_error($response)) {
+        $out['error'] = $response->get_error_message();
+        return $out;
+    }
+    $code = wp_remote_retrieve_response_code($response);
+    if ($code !== 200) {
+        $out['error'] = 'HTTP ' . $code;
+        return $out;
+    }
+    $body = wp_remote_retrieve_body($response);
+    if (!is_string($body) || $body === '') {
+        $out['error'] = 'Empty response';
+        return $out;
+    }
+    // Match <link rel="canonical" href="..."> (allow single or double quotes, optional whitespace)
+    if (preg_match_all('#<link\s+[^>]*rel\s*=\s*["\']canonical["\'][^>]*href\s*=\s*["\']([^"\']+)["\'][^>]*>#i', $body, $m) ||
+        preg_match_all('#<link\s+[^>]*href\s*=\s*["\']([^"\']+)["\'][^>]*rel\s*=\s*["\']canonical["\'][^>]*>#i', $body, $m)) {
+        $out['count'] = count($m[1]);
+        $out['hrefs'] = array_values(array_unique(array_map('trim', $m[1])));
+    }
+    return $out;
+}
+
+/**
+ * Verify canonical URLs and sample coverage (homepage, post, course, archive).
  */
 function cta_verify_canonical_urls() {
     $check = [
@@ -306,6 +342,7 @@ function cta_verify_canonical_urls() {
         'status' => 'pass',
         'issues' => [],
         'recommendations' => [],
+        'coverage' => [],
     ];
     
     // Check if canonical function exists
@@ -322,6 +359,61 @@ function cta_verify_canonical_urls() {
     if (strpos($cleaned, 'utm_source') !== false) {
         $check['status'] = 'warning';
         $check['issues'][] = 'Canonical URL cleaning may not be removing query parameters';
+    }
+    
+    // Canonical coverage: sample homepage, a post, a course, and an archive
+    $base = home_url('/');
+    $samples = [];
+    
+    // Homepage
+    $samples[] = ['label' => 'Homepage', 'url' => $base];
+    
+    // First published post
+    $post = get_posts(['post_type' => 'post', 'post_status' => 'publish', 'posts_per_page' => 1, 'orderby' => 'date']);
+    if (!empty($post)) {
+        $samples[] = ['label' => 'Post', 'url' => get_permalink($post[0])];
+    }
+    
+    // First published course
+    $course = get_posts(['post_type' => 'course', 'post_status' => 'publish', 'posts_per_page' => 1, 'orderby' => 'date']);
+    if (!empty($course)) {
+        $samples[] = ['label' => 'Course', 'url' => get_permalink($course[0])];
+    }
+    
+    // Course archive
+    $samples[] = ['label' => 'Course archive', 'url' => get_post_type_archive_link('course') ?: $base . 'course/'];
+    
+    foreach ($samples as $sample) {
+        $url = $sample['url'];
+        if (empty($url) || is_wp_error($url)) {
+            $check['coverage'][] = ['label' => $sample['label'], 'url' => '', 'count' => 0, 'href' => null, 'error' => 'Invalid URL'];
+            continue;
+        }
+        $result = cta_fetch_canonical_from_url($url);
+        $href = isset($result['hrefs'][0]) ? $result['hrefs'][0] : null;
+        $check['coverage'][] = [
+            'label' => $sample['label'],
+            'url'   => $url,
+            'count' => $result['count'],
+            'href'  => $href,
+            'error' => $result['error'],
+        ];
+        if ($result['error']) {
+            if ($check['status'] === 'pass') {
+                $check['status'] = 'warning';
+            }
+            $check['issues'][] = $sample['label'] . ': could not fetch (' . $result['error'] . ')';
+        } elseif ($result['count'] === 0) {
+            if ($check['status'] === 'pass') {
+                $check['status'] = 'warning';
+            }
+            $check['issues'][] = $sample['label'] . ': no canonical link found';
+        } elseif ($result['count'] > 1) {
+            if ($check['status'] === 'pass') {
+                $check['status'] = 'warning';
+            }
+            $check['issues'][] = $sample['label'] . ': multiple canonicals (' . $result['count'] . ')';
+        }
     }
     
     return $check;
@@ -444,13 +536,13 @@ function cta_handle_seo_fix_actions() {
             break;
             
         case 'fix_trustpilot':
-            // Get values from POST
+            // Get values from POST (theme reads via cta_trustpilot_rating / cta_trustpilot_review_count)
             $rating = isset($_POST['trustpilot_rating']) ? floatval($_POST['trustpilot_rating']) : 0;
             $count = isset($_POST['trustpilot_count']) ? absint($_POST['trustpilot_count']) : 0;
             
             if ($rating > 0 && $count > 0) {
-                set_theme_mod('trustpilot_rating', $rating);
-                set_theme_mod('trustpilot_review_count', $count);
+                set_theme_mod('cta_trustpilot_rating', $rating . '/5');
+                set_theme_mod('cta_trustpilot_review_count', (string) $count);
                 $success = true;
                 $message = 'Trustpilot configuration updated!';
             } else {
@@ -506,16 +598,11 @@ function cta_handle_seo_fix_actions() {
             break;
             
         case 'configure_social_meta':
-            // Get values from POST
             $og_image = isset($_POST['og_default_image']) ? esc_url_raw($_POST['og_default_image']) : '';
-            $twitter_handle = isset($_POST['twitter_handle']) ? sanitize_text_field($_POST['twitter_handle']) : '';
             $fb_app_id = isset($_POST['fb_app_id']) ? sanitize_text_field($_POST['fb_app_id']) : '';
             
             if (!empty($og_image)) {
                 update_option('cta_default_og_image', $og_image);
-            }
-            if (!empty($twitter_handle)) {
-                update_option('cta_twitter_handle', $twitter_handle);
             }
             if (!empty($fb_app_id)) {
                 update_option('cta_facebook_app_id', $fb_app_id);
@@ -652,6 +739,30 @@ function cta_seo_verification_page() {
                             </ul>
                             <?php endif; ?>
                             
+                            <?php if (!empty($check['coverage']) && $check_key === 'canonical') : ?>
+                            <div style="margin-top: 8px; font-size: 12px;">
+                                <strong style="color: #1d2327;">Canonical coverage (for manual review):</strong>
+                                <table class="widefat striped" style="margin-top: 6px; max-width: 100%; font-size: 12px;">
+                                    <thead>
+                                        <tr>
+                                            <th>Page</th>
+                                            <th>Canonicals</th>
+                                            <th>Value</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <?php foreach ($check['coverage'] as $row) : ?>
+                                        <tr>
+                                            <td><?php echo esc_html($row['label']); ?></td>
+                                            <td><?php echo $row['error'] ? esc_html($row['error']) : ( (int) $row['count'] ); ?></td>
+                                            <td style="word-break: break-all;"><?php echo $row['href'] ? esc_html($row['href']) : '—'; ?></td>
+                                        </tr>
+                                        <?php endforeach; ?>
+                                    </tbody>
+                                </table>
+                            </div>
+                            <?php endif; ?>
+                            
                             <?php if (empty($check['issues']) && empty($check['recommendations'])) : ?>
                             <span style="color: #00a32a;">All checks passed</span>
                             <?php endif; ?>
@@ -760,7 +871,6 @@ function cta_seo_verification_page() {
             $default_title_suffix = get_option('cta_default_title_suffix', '| Continuity Training Academy');
             $default_description = get_option('cta_default_meta_description', '');
             $og_image = get_option('cta_default_og_image', '');
-            $twitter_handle = get_option('cta_twitter_handle', '');
             ?>
             
             <table class="widefat" style="margin-top: 15px;">
@@ -833,10 +943,10 @@ function cta_seo_verification_page() {
                     <tr>
                         <td><strong>Social Media Tags</strong></td>
                         <td>
-                            <?php if (!empty($og_image) || !empty($twitter_handle)) : ?>
+                            <?php if (!empty($og_image)) : ?>
                                 <span style="color: #00a32a;">✓ Configured</span>
                             <?php else : ?>
-                                <span style="color: #dba617;">⚠ Not Set</span>
+                                <span style="color: #00a32a;">✓ Auto-populated</span>
                             <?php endif; ?>
                         </td>
                         <td>
@@ -845,7 +955,7 @@ function cta_seo_verification_page() {
                                 Configure
                             </button>
                         </td>
-                        <td>Optimal for social sharing on Facebook, Twitter, LinkedIn</td>
+                        <td><?php echo !empty($og_image) ? 'Default share image set for Facebook, LinkedIn.' : 'Auto-populated from page title, description, and featured image; set a default image below to override.'; ?></td>
                     </tr>
                 </tbody>
             </table>
@@ -885,7 +995,7 @@ function cta_seo_verification_page() {
         <!-- Social Media Config Form (hidden) -->
         <div id="social-config-form" class="card" style="max-width: 1200px; margin-top: 20px; display: none;">
             <h2><span class="dashicons dashicons-share" style="color: #2271b1;"></span> Configure Social Media Tags</h2>
-            <p>Optimize how your content appears when shared on social media.</p>
+            <p>Default share image for Facebook, LinkedIn. Your site links to Trustpilot, Facebook, LinkedIn and Instagram from the theme.</p>
             <form method="post">
                 <?php wp_nonce_field('cta_seo_fix_action'); ?>
                 <input type="hidden" name="cta_seo_fix_action" value="configure_social_meta">
@@ -896,16 +1006,7 @@ function cta_seo_verification_page() {
                             <input type="url" name="og_default_image" id="og_default_image" 
                                    value="<?php echo esc_attr($og_image); ?>" 
                                    style="width: 400px;" placeholder="https://example.com/image.jpg">
-                            <p class="description">Default image for Open Graph (Facebook, LinkedIn). Recommended: 1200x630px</p>
-                        </td>
-                    </tr>
-                    <tr>
-                        <th><label for="twitter_handle">Twitter Handle</label></th>
-                        <td>
-                            <input type="text" name="twitter_handle" id="twitter_handle" 
-                                   value="<?php echo esc_attr($twitter_handle); ?>" 
-                                   style="width: 200px;" placeholder="@yourhandle">
-                            <p class="description">Your Twitter/X username (with @)</p>
+                            <p class="description">Default image when a page has no featured image. Recommended: 1200×630px.</p>
                         </td>
                     </tr>
                     <tr>

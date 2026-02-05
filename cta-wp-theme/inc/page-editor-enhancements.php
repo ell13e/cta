@@ -69,6 +69,8 @@ function cta_page_seo_meta_box_callback($post) {
     $secondary_keywords = cta_safe_get_field('page_seo_secondary_keywords', $post->ID, '');
     $noindex = get_post_meta($post->ID, '_cta_noindex', true);
     $nofollow = get_post_meta($post->ID, '_cta_nofollow', true);
+    $nosnippet = get_post_meta($post->ID, '_cta_nosnippet', true);
+    $max_snippet_length = get_post_meta($post->ID, '_cta_max_snippet_length', true);
     
     // Calculate SEO score
     $seo_score = cta_calculate_page_seo_score($post);
@@ -266,6 +268,38 @@ function cta_page_seo_meta_box_callback($post) {
                             </label>
                             <p class="description" style="margin: 8px 0 0 0; font-size: 12px; color: #d63638;">
                                 ⚠️ Only use noindex if this page should NOT appear in search results.
+                            </p>
+                        </div>
+                        
+                        <div style="margin-bottom: 16px;">
+                            <label style="display: block; font-weight: 600; margin-bottom: 8px; font-size: 13px;">Snippet control</label>
+                            <label style="display: flex; align-items: center; margin-bottom: 8px;">
+                                <input 
+                                    type="checkbox" 
+                                    name="cta_nosnippet" 
+                                    value="1" 
+                                    <?php checked($nosnippet, '1'); ?>
+                                    style="margin-right: 8px;"
+                                />
+                                <span style="font-size: 13px;">No snippet (exclude from search result snippets)</span>
+                            </label>
+                            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
+                                <label for="cta_max_snippet_length" style="font-size: 13px;">Max snippet length:</label>
+                                <input 
+                                    type="number" 
+                                    id="cta_max_snippet_length" 
+                                    name="cta_max_snippet_length" 
+                                    value="<?php echo esc_attr($max_snippet_length); ?>"
+                                    min="1" 
+                                    max="320" 
+                                    step="1"
+                                    placeholder="160"
+                                    style="width: 80px; padding: 6px 8px; border: 1px solid #8c8f94; border-radius: 4px; font-size: 13px;"
+                                />
+                                <span style="font-size: 12px; color: #646970;">characters (leave blank for default)</span>
+                            </div>
+                            <p class="description" style="margin: 4px 0 0 0; font-size: 12px; color: #646970;">
+                                To exclude only part of the page from snippets, wrap that section in <code>&lt;div data-nosnippet&gt;…&lt;/div&gt;</code> in the content.
                             </p>
                         </div>
                         
@@ -1020,6 +1054,15 @@ function cta_save_seo_meta_box($post_id) {
     $nofollow = isset($_POST['cta_nofollow']) ? '1' : '0';
     update_post_meta($post_id, '_cta_noindex', $noindex);
     update_post_meta($post_id, '_cta_nofollow', $nofollow);
+    
+    // Save snippet control
+    $nosnippet = isset($_POST['cta_nosnippet']) ? '1' : '0';
+    update_post_meta($post_id, '_cta_nosnippet', $nosnippet);
+    $max_snippet = isset($_POST['cta_max_snippet_length']) ? sanitize_text_field($_POST['cta_max_snippet_length']) : '';
+    if ($max_snippet !== '' && is_numeric($max_snippet)) {
+        $max_snippet = (string) max(1, min(320, (int) $max_snippet));
+    }
+    update_post_meta($post_id, '_cta_max_snippet_length', $max_snippet);
     
     // Clear sitemap cache when SEO settings change
     cta_flush_sitemap_cache($post_id, get_post($post_id));
