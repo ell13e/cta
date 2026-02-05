@@ -419,84 +419,159 @@ function cta_seo_settings_page() {
 }
 
 /**
+ * Meta description field name by post type (for bulk SEO).
+ */
+function cta_seo_bulk_meta_field($post_type) {
+    $fields = [
+        'page'          => 'page_seo_meta_description',
+        'post'          => 'news_meta_description',
+        'course'        => 'course_seo_meta_description',
+        'course_event'  => 'event_seo_meta_description',
+    ];
+    return $fields[$post_type] ?? 'page_seo_meta_description';
+}
+
+/**
  * Bulk SEO Optimization Page
  */
 function cta_seo_bulk_page() {
-    // Handle bulk actions
+    // Single-item quick action (GET)
+    if (isset($_GET['cta_bulk_single']) && isset($_GET['id']) && isset($_GET['action']) && check_admin_referer('cta_bulk_seo_single_' . (int) $_GET['id'])) {
+        $post_id = (int) $_GET['id'];
+        $action = sanitize_text_field($_GET['action']);
+        $post = get_post($post_id);
+        if ($post && current_user_can('edit_post', $post_id)) {
+            if ($action === 'generate_descriptions') {
+                $description = cta_get_meta_description($post);
+                $field = cta_seo_bulk_meta_field($post->post_type);
+                if (!empty($description)) {
+                    cta_safe_update_field($field, $post_id, $description);
+                }
+            } elseif ($action === 'apply_schema') {
+                $schema_type = cta_get_schema_template($post->post_type);
+                if ($schema_type && $schema_type !== 'None') {
+                    cta_safe_update_field('page_schema_type', $post_id, $schema_type);
+                }
+            }
+            $redirect = add_query_arg([
+                'page'          => 'cta-seo-bulk',
+                'post_type'     => $post->post_type,
+                'status'        => isset($_GET['status']) ? sanitize_text_field($_GET['status']) : '',
+                's'             => isset($_GET['s']) ? sanitize_text_field($_GET['s']) : '',
+                'paged'         => isset($_GET['paged']) ? (int) $_GET['paged'] : 1,
+                'cta_bulk_done' => 1,
+            ], admin_url('admin.php'));
+            wp_safe_redirect($redirect);
+            exit;
+        }
+    }
+
+    // Handle bulk actions (POST)
     if (isset($_POST['cta_bulk_seo_action']) && check_admin_referer('cta_bulk_seo')) {
         $action = sanitize_text_field($_POST['bulk_action']);
-        $post_ids = isset($_POST['post_ids']) ? array_map('intval', $_POST['post_ids']) : [];
-        
+        $post_ids = isset($_POST['post_ids']) ? array_map('intval', array_unique($_POST['post_ids'])) : [];
+
         if (empty($post_ids)) {
             echo '<div class="notice notice-error"><p>No posts selected.</p></div>';
         } else {
             $updated = 0;
-            
+            $skipped = 0;
+
             foreach ($post_ids as $post_id) {
+                $post = get_post($post_id);
+                if (!$post || !current_user_can('edit_post', $post_id)) {
+                    continue;
+                }
+                $meta_field = cta_seo_bulk_meta_field($post->post_type);
+
                 switch ($action) {
                     case 'generate_descriptions':
-                        // Auto-generate meta descriptions
-                        $post = get_post($post_id);
-                        if ($post) {
-                            $description = cta_get_meta_description($post);
-                            if (!empty($description)) {
-                                cta_safe_update_field('page_seo_meta_description', $post_id, $description);
-                                $updated++;
-                            }
+                        $description = cta_get_meta_description($post);
+                        if (!empty($description)) {
+                            cta_safe_update_field($meta_field, $post_id, $description);
+                            $updated++;
+                        } else {
+                            $skipped++;
                         }
                         break;
-                    
+
                     case 'apply_schema':
-                        // Apply default schema based on post type
-                        $post = get_post($post_id);
-                        if ($post) {
-                            $schema_type = cta_get_schema_template($post->post_type);
-                            if ($schema_type) {
-                                cta_safe_update_field('page_schema_type', $post_id, $schema_type);
-                                $updated++;
-                            }
+                        $schema_type = cta_get_schema_template($post->post_type);
+                        if ($schema_type && $schema_type !== 'None') {
+                            cta_safe_update_field('page_schema_type', $post_id, $schema_type);
+                            $updated++;
                         }
                         break;
                 }
             }
-            
-            echo '<div class="notice notice-success"><p>Updated ' . number_format($updated) . ' posts!</p></div>';
+
+            $msg = 'Updated ' . number_format($updated) . ' item(s).';
+            if ($skipped > 0 && $action === 'generate_descriptions') {
+                $msg .= ' ' . number_format($skipped) . ' had no generated description.';
+            }
+            echo '<div class="notice notice-success"><p>' . esc_html($msg) . '</p></div>';
         }
     }
-    
-    // Get post types to show
+
+    if (isset($_GET['cta_bulk_done'])) {
+        echo '<div class="notice notice-success is-dismissible"><p>Item updated.</p></div>';
+    }
+
+    // Post types
     $post_types = ['page', 'post'];
     if (post_type_exists('course')) {
         $post_types[] = 'course';
     }
-    
-    // Get filter
+    if (post_type_exists('course_event')) {
+        $post_types[] = 'course_event';
+    }
+
     $filter_post_type = isset($_GET['post_type']) ? sanitize_text_field($_GET['post_type']) : 'page';
+    if (!in_array($filter_post_type, $post_types, true)) {
+        $filter_post_type = 'page';
+    }
     $filter_status = isset($_GET['status']) ? sanitize_text_field($_GET['status']) : 'all';
     $search = isset($_GET['s']) ? sanitize_text_field($_GET['s']) : '';
-    
-    // Build query
+    $paged = max(1, (int) (isset($_GET['paged']) ? $_GET['paged'] : 1));
+
     $args = [
-        'post_type' => $filter_post_type,
-        'posts_per_page' => 50,
-        'orderby' => 'title',
-        'order' => 'ASC',
+        'post_type'      => $filter_post_type,
+        'posts_per_page' => 20,
+        'orderby'        => 'title',
+        'order'          => 'ASC',
+        'post_status'    => 'publish',
+        'paged'          => $paged,
     ];
-    
+
     if ($filter_status === 'missing_meta') {
-        // Only show posts missing meta description
+        $meta_key = cta_seo_bulk_meta_field($filter_post_type);
+        $args['meta_query'] = [
+            'relation' => 'OR',
+            [
+                'key'     => $meta_key,
+                'compare' => 'NOT EXISTS',
+            ],
+            [
+                'key'     => $meta_key,
+                'value'   => '',
+                'compare' => '=',
+            ],
+        ];
+    } elseif ($filter_status === 'has_meta') {
+        $meta_key = cta_seo_bulk_meta_field($filter_post_type);
         $args['meta_query'] = [
             [
-                'key' => 'page_seo_meta_description',
-                'compare' => 'NOT EXISTS',
+                'key'     => $meta_key,
+                'value'   => '',
+                'compare' => '!=',
             ],
         ];
     }
-    
+
     if (!empty($search)) {
         $args['s'] = $search;
     }
-    
+
     $query = new WP_Query($args);
     
     ?>
@@ -553,8 +628,9 @@ function cta_seo_bulk_page() {
                         <th scope="row">Filter</th>
                         <td>
                             <select name="status">
-                                <option value="all" <?php selected($filter_status, 'all'); ?>>All Posts</option>
-                                <option value="missing_meta" <?php selected($filter_status, 'missing_meta'); ?>>Missing Meta Descriptions</option>
+                                <option value="all" <?php selected($filter_status, 'all'); ?>>All</option>
+                                <option value="missing_meta" <?php selected($filter_status, 'missing_meta'); ?>>Missing meta description</option>
+                                <option value="has_meta" <?php selected($filter_status, 'has_meta'); ?>>Has meta description</option>
                             </select>
                         </td>
                     </tr>
@@ -566,15 +642,16 @@ function cta_seo_bulk_page() {
                     </tr>
                 </table>
                 <p class="submit">
+                    <input type="hidden" name="paged" value="1" />
                     <button type="submit" class="button">Filter</button>
-                    <a href="<?php echo admin_url('admin.php?page=cta-seo-bulk'); ?>" class="button">Reset</a>
+                    <a href="<?php echo esc_url(admin_url('admin.php?page=cta-seo-bulk&post_type=' . $filter_post_type)); ?>" class="button">Reset</a>
                 </p>
             </form>
         </div>
-        
+
         <!-- Posts List -->
         <div class="card">
-            <h2>Posts (<?php echo number_format($query->found_posts); ?> found)</h2>
+            <h2><?php echo esc_html(ucfirst($filter_post_type === 'course_event' ? 'Events' : $filter_post_type)); ?> (<?php echo number_format($query->found_posts); ?> found)</h2>
             
             <?php if ($query->have_posts()) : ?>
                 <form id="posts-form">
@@ -592,19 +669,27 @@ function cta_seo_bulk_page() {
                             </tr>
                         </thead>
                         <tbody>
-                            <?php while ($query->have_posts()) : $query->the_post(); 
+                            <?php
+                            while ($query->have_posts()) :
+                                $query->the_post();
                                 $post_id = get_the_ID();
-                                $meta_title = cta_safe_get_field('page_seo_meta_title', $post_id, '');
-                                $meta_description = cta_safe_get_field('page_seo_meta_description', $post_id, '');
+                                $pt = get_post_type($post_id);
+                                $meta_field = cta_seo_bulk_meta_field($pt);
+                                $meta_title = $pt === 'course' ? cta_safe_get_field('course_seo_meta_title', $post_id, '') : ($pt === 'course_event' ? cta_safe_get_field('event_seo_meta_title', $post_id, '') : cta_safe_get_field('page_seo_meta_title', $post_id, ''));
+                                $meta_description = cta_safe_get_field($meta_field, $post_id, '');
                                 $schema_type = cta_safe_get_field('page_schema_type', $post_id, '');
+                                $single_nonce = wp_create_nonce('cta_bulk_seo_single_' . $post_id);
+                                $base_url = admin_url('admin.php');
+                                $gen_url = add_query_arg(['page' => 'cta-seo-bulk', 'cta_bulk_single' => 1, 'id' => $post_id, 'action' => 'generate_descriptions', '_wpnonce' => $single_nonce], $base_url);
+                                $schema_url = add_query_arg(['page' => 'cta-seo-bulk', 'cta_bulk_single' => 1, 'id' => $post_id, 'action' => 'apply_schema', '_wpnonce' => $single_nonce], $base_url);
                             ?>
                                 <tr>
                                     <td>
-                                        <input type="checkbox" name="post_ids[]" value="<?php echo $post_id; ?>" class="post-checkbox" />
+                                        <input type="checkbox" name="post_ids[]" value="<?php echo (int) $post_id; ?>" class="post-checkbox" />
                                     </td>
                                     <td>
                                         <strong>
-                                            <a href="<?php echo get_edit_post_link($post_id); ?>">
+                                            <a href="<?php echo esc_url(get_edit_post_link($post_id)); ?>">
                                                 <?php echo esc_html(get_the_title()); ?>
                                             </a>
                                         </strong>
@@ -613,24 +698,27 @@ function cta_seo_bulk_page() {
                                         <?php if ($meta_title) : ?>
                                             <span style="color: #00a32a;">✓</span> <?php echo esc_html(mb_substr($meta_title, 0, 50)); ?>
                                         <?php else : ?>
-                                            <span style="color: #d63638;">✗</span> <em>Not set</em>
+                                            <span style="color: #d63638;">—</span> <em>Not set</em>
                                         <?php endif; ?>
                                     </td>
                                     <td>
                                         <?php if ($meta_description) : ?>
-                                            <span style="color: #00a32a;">✓</span> <?php echo esc_html(mb_substr($meta_description, 0, 80)); ?>...
+                                            <span style="color: #00a32a;">✓</span> <?php echo esc_html(mb_substr($meta_description, 0, 70)); ?><?php echo mb_strlen($meta_description) > 70 ? '…' : ''; ?>
                                         <?php else : ?>
-                                            <span style="color: #d63638;">✗</span> <em>Not set</em>
+                                            <span style="color: #d63638;">—</span> <em>Not set</em>
                                         <?php endif; ?>
                                     </td>
                                     <td>
                                         <?php echo $schema_type ? esc_html($schema_type) : '<em>Default</em>'; ?>
                                     </td>
                                     <td>
-                                        <a href="<?php echo get_edit_post_link($post_id); ?>" class="button button-small">Edit</a>
+                                        <a href="<?php echo esc_url($gen_url); ?>" class="button button-small" title="Generate meta description">Generate</a>
+                                        <a href="<?php echo esc_url($schema_url); ?>" class="button button-small" title="Apply default schema">Schema</a>
+                                        <a href="<?php echo esc_url(get_edit_post_link($post_id)); ?>" class="button button-small">Edit</a>
                                     </td>
                                 </tr>
-                            <?php endwhile; wp_reset_postdata(); ?>
+                            <?php endwhile;
+                            wp_reset_postdata(); ?>
                         </tbody>
                     </table>
                 </form>
@@ -685,8 +773,27 @@ function cta_seo_bulk_page() {
                     });
                 });
                 </script>
+
+                <?php
+                $total_pages = $query->max_num_pages;
+                if ($total_pages > 1) {
+                    $base = add_query_arg(['page' => 'cta-seo-bulk', 'post_type' => $filter_post_type, 'status' => $filter_status, 's' => $search], admin_url('admin.php'));
+                    echo '<div class="tablenav bottom" style="margin-top: 16px;">';
+                    echo '<div class="tablenav-pages">';
+                    echo '<span class="displaying-num">' . number_format($query->found_posts) . ' items</span>';
+                    echo ' <span class="pagination-links">';
+                    if ($paged > 1) {
+                        echo '<a class="prev-page button" href="' . esc_url(add_query_arg('paged', $paged - 1, $base)) . '">‹</a> ';
+                    }
+                    echo '<span class="paging-input">' . $paged . ' of <span class="total-pages">' . $total_pages . '</span></span>';
+                    if ($paged < $total_pages) {
+                        echo ' <a class="next-page button" href="' . esc_url(add_query_arg('paged', $paged + 1, $base)) . '">›</a>';
+                    }
+                    echo '</span></div></div>';
+                }
+                ?>
             <?php else : ?>
-                <p>No posts found.</p>
+                <p>No posts found. Try changing the filter or search.</p>
             <?php endif; ?>
         </div>
     </div>
