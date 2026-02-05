@@ -334,6 +334,19 @@ section,
   overflow-x: hidden;
 }
 
+/* Mobile: allow shadows to paint (no clipping) and add padding so shadows stay inside viewport */
+@media (max-width: 767px) {
+  section,
+  .section {
+    overflow: visible;
+  }
+  .container {
+    overflow: visible;
+    padding-left: 24px;
+    padding-right: 24px;
+  }
+}
+
 /* ============================================
    CSS Custom Properties (Brand Colors)
    ============================================ */
@@ -41589,7 +41602,7 @@ fieldset.booking-modal-field legend.booking-modal-label {
   }
   
   .course-detail-main {
-    margin-top: 0;
+    margin-top: var(--spacing-2xl); /* Space between bottom of sidebar and Event Overview */
     padding: 0;
     padding-top: 0; /* Remove top padding on mobile */
     width: 100%;
@@ -41651,18 +41664,19 @@ fieldset.booking-modal-field legend.booking-modal-label {
   
   .course-detail-meta-item {
     padding: var(--spacing-sm) 0; /* 8px vertical padding */
-    flex-wrap: wrap; /* Allow wrapping on small screens */
+    flex-wrap: nowrap; /* Keep label and value on one line */
+    align-items: center;
   }
   
   .course-detail-meta-label {
     font-size: 0.8125rem; /* 13px */
-    margin-bottom: 0.25rem;
-    width: 100%; /* Full width on mobile for better stacking */
+    flex-shrink: 0; /* Prevent label squashing */
   }
   
   .course-detail-meta-value {
     font-size: 0.9375rem; /* 15px */
-    width: 100%; /* Full width on mobile */
+    text-align: right;
+    min-width: 0; /* Allow shrink in flex if needed */
   }
   
   /* Price display on mobile */
@@ -41760,6 +41774,7 @@ fieldset.booking-modal-field legend.booking-modal-label {
   }
   
   .course-detail-main {
+    margin-top: var(--spacing-2xl); /* Space between bottom of sidebar and Event Overview */
     width: 100%;
     max-width: 100%;
     padding-top: 0; /* Remove top padding on tablet */
