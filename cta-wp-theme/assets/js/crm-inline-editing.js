@@ -278,10 +278,13 @@
                     success: function(response) {
                         if (response.success) {
                             if (notes) {
-                                $notesContainer.html('<div class="cta-notes-preview" style="font-size: 11px; color: #666; cursor: pointer;" title="Click to edit" data-post-id="' + postId + '">' + 
-                                    notes.substring(0, 50) + (notes.length > 50 ? '...' : '') + '</div>');
+                                var previewLen = 180;
+                                var preview = notes.length > previewLen ? notes.substring(0, previewLen) + '…' : notes;
+                                var safePreview = preview.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+                                var safeTitle = notes.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+                                $notesContainer.html('<div class="cta-notes-preview" title="' + safeTitle + '" data-post-id="' + postId + '">' + safePreview + '</div>');
                             } else {
-                                $notesContainer.html('<button type="button" class="button-link cta-add-note-btn" style="font-size: 11px; padding: 0;" data-post-id="' + postId + '">+ Add note</button>');
+                                $notesContainer.html('<button type="button" class="button-link cta-add-note-btn" data-post-id="' + postId + '">+ Add note</button>');
                             }
                         } else {
                             alert('Error saving note: ' + (response.data && response.data.message ? response.data.message : 'Unknown error'));
@@ -299,10 +302,13 @@
             $cancelBtn.on('click', function() {
                 var originalText = currentNotes !== '+ Add note' ? currentNotes : '';
                 if (originalText) {
-                    $notesContainer.html('<div class="cta-notes-preview" style="font-size: 11px; color: #666; cursor: pointer;" title="Click to edit" data-post-id="' + postId + '">' + 
-                        originalText.substring(0, 50) + (originalText.length > 50 ? '...' : '') + '</div>');
+                    var previewLen = 180;
+                    var preview = originalText.length > previewLen ? originalText.substring(0, previewLen) + '…' : originalText;
+                    var safePreview = preview.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+                    var safeTitle = originalText.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+                    $notesContainer.html('<div class="cta-notes-preview" title="' + safeTitle + '" data-post-id="' + postId + '">' + safePreview + '</div>');
                 } else {
-                    $notesContainer.html('<button type="button" class="button-link cta-add-note-btn" style="font-size: 11px; padding: 0;" data-post-id="' + postId + '">+ Add note</button>');
+                    $notesContainer.html('<button type="button" class="button-link cta-add-note-btn" data-post-id="' + postId + '">+ Add note</button>');
                 }
             });
             

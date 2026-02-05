@@ -83,6 +83,7 @@ require_once CTA_THEME_DIR . '/inc/ai-content-assistant.php';
 require_once CTA_THEME_DIR . '/inc/ai-course-assistant.php';
 require_once CTA_THEME_DIR . '/inc/smart-internal-linker.php';
 require_once CTA_THEME_DIR . '/inc/ai-chat-widget.php';
+require_once CTA_THEME_DIR . '/inc/ai-alt-text.php';
 require_once CTA_THEME_DIR . '/inc/seo.php';
 require_once CTA_THEME_DIR . '/inc/seo-schema.php';
 require_once CTA_THEME_DIR . '/inc/seo-image-sitemap.php';

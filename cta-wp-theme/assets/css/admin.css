@@ -64,6 +64,34 @@
     min-width: 160px;
 }
 
+/* Notes column: enough space to read follow-up notes without truncation */
+.wp-list-table .column-followup_notes {
+    min-width: 220px;
+    max-width: 320px;
+}
+
+.cta-notes-cell .cta-notes-preview {
+    font-size: 12px;
+    line-height: 1.4;
+    color: #50575e;
+    cursor: pointer;
+    display: block;
+    white-space: normal;
+    word-wrap: break-word;
+    max-height: 4.2em;
+    overflow: hidden;
+    padding: 2px 0;
+}
+
+.cta-notes-cell .cta-notes-preview:hover {
+    color: #1d2327;
+}
+
+.cta-notes-cell .cta-add-note-btn {
+    font-size: 12px;
+    padding: 2px 0;
+}
+
 /* Responsive adjustments for mobile admin view */
 @media screen and (max-width: 782px) {
     .cta-followup-status-wrapper,
@@ -77,6 +105,11 @@
     .cta-assigned-to-select {
         width: 100%;
         min-width: auto;
+    }
+    
+    .wp-list-table .column-followup_notes {
+        min-width: 0;
+        max-width: none;
     }
 }
 

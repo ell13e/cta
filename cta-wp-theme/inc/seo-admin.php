@@ -847,6 +847,24 @@ function cta_seo_images_page() {
         echo '<div class="notice notice-success"><p>Alt text added to ' . number_format($updated) . ' images!</p></div>';
     }
     
+    // Handle bulk remove alt text action
+    if (isset($_POST['cta_bulk_remove_alt_text']) && check_admin_referer('cta_bulk_remove_alt_text_action')) {
+        $images = $wpdb->get_results("
+            SELECT ID FROM {$wpdb->posts}
+            WHERE post_type = 'attachment'
+            AND post_mime_type LIKE 'image/%'
+        ");
+        $removed = 0;
+        foreach ($images as $image) {
+            $current_alt = get_post_meta($image->ID, '_wp_attachment_image_alt', true);
+            if (!empty($current_alt)) {
+                delete_post_meta($image->ID, '_wp_attachment_image_alt');
+                $removed++;
+            }
+        }
+        echo '<div class="notice notice-success"><p>Alt text removed from ' . number_format($removed) . ' images.</p></div>';
+    }
+    
     // Count images
     $total_images = $wpdb->get_var("
         SELECT COUNT(*) 
@@ -919,11 +937,27 @@ function cta_seo_images_page() {
         </div>
         <?php endif; ?>
         
+        <?php if ($images_with_alt > 0): ?>
+        <div class="card" style="margin-top: 20px;">
+            <h2>Remove All Alt Text</h2>
+            <p>Remove alt text from all images. Use this if you want to clear auto-generated alt and start over, or manage alt text manually. This cannot be undone.</p>
+            <form method="post" onsubmit="return confirm('Remove alt text from all <?php echo number_format($images_with_alt); ?> images? This cannot be undone.');">
+                <?php wp_nonce_field('cta_bulk_remove_alt_text_action'); ?>
+                <p>
+                    <button type="submit" name="cta_bulk_remove_alt_text" class="button" style="border-color: #d63638; color: #d63638;">
+                        Remove Alt Text from <?php echo number_format($images_with_alt); ?> Images
+                    </button>
+                </p>
+            </form>
+        </div>
+        <?php endif; ?>
+        
         <div class="card" style="margin-top: 20px;">
             <h2>How It Works</h2>
             <ul>
                 <li><strong>Automatic:</strong> When you upload an image, alt text is automatically generated from the filename</li>
                 <li><strong>Format:</strong> Filename is cleaned and formatted (e.g., "care-training-course.jpg" → "Care Training Course")</li>
+                <li><strong>Generate with AI:</strong> In the Media Library, open any image’s attachment details and use <strong>Generate with AI</strong> to fill Title, Caption, Alt text, and Description in one go. Alt text follows <a href="https://www.w3.org/WAI/tutorials/images/decision-tree/" target="_blank" rel="noopener">W3C guidance</a> (e.g. empty for decorative images). Requires OpenAI or Anthropic key in Settings → AI Assistant.</li>
                 <li><strong>Manual Override:</strong> You can edit alt text for any image in the Media Library</li>
                 <li><strong>Bulk Tool:</strong> Use the button above to add alt text to all images missing it</li>
             </ul>

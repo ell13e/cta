@@ -1465,7 +1465,7 @@ function cta_newsletter_compose_page() {
 
         $('#cta-send-test-btn').on('click', function(){
             var email = $('#test_email_address').val() || '';
-            if (!email.match(/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/)) {
+            if (!email.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)) {
                 alert('Please enter a valid test email address.');
                 return;
             }

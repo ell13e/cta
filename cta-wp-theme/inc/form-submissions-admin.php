@@ -1529,6 +1529,7 @@ function cta_form_submission_admin_columns($columns) {
             $new_columns['course_and_date'] = 'Event';
             $new_columns['delegates'] = 'Delegates';
             $new_columns['followup_status'] = 'Status';
+            $new_columns['followup_notes'] = 'Notes';
             $new_columns['assigned_to'] = 'Assigned';
             $new_columns['email_status'] = 'Email Status';
             $new_columns['date'] = 'Submitted';
@@ -1538,6 +1539,7 @@ function cta_form_submission_admin_columns($columns) {
             $new_columns['contact_info'] = 'Contact';
             $new_columns['course_name'] = 'Course';
             $new_columns['followup_status'] = 'Status';
+            $new_columns['followup_notes'] = 'Notes';
             $new_columns['assigned_to'] = 'Assigned';
             $new_columns['marketing_consent'] = 'Marketing Consent';
             $new_columns['email_status'] = 'Email Status';
@@ -1549,6 +1551,7 @@ function cta_form_submission_admin_columns($columns) {
             $new_columns['course_name'] = 'Training Type';
             $new_columns['delegates'] = 'Staff Count';
             $new_columns['followup_status'] = 'Status';
+            $new_columns['followup_notes'] = 'Notes';
             $new_columns['assigned_to'] = 'Assigned';
             $new_columns['marketing_consent'] = 'Marketing Consent';
             $new_columns['email_status'] = 'Email Status';
@@ -1567,6 +1570,7 @@ function cta_form_submission_admin_columns($columns) {
             $new_columns['form_type'] = 'Type';
             $new_columns['contact_info'] = 'Contact';
             $new_columns['followup_status'] = 'Status';
+            $new_columns['followup_notes'] = 'Notes';
             $new_columns['assigned_to'] = 'Assigned';
             $new_columns['marketing_consent'] = 'Marketing Consent';
             $new_columns['email_status'] = 'Email Status';
@@ -1578,6 +1582,7 @@ function cta_form_submission_admin_columns($columns) {
             $new_columns['form_type'] = 'Form Type';
             $new_columns['contact_info'] = 'Contact';
             $new_columns['followup_status'] = 'Status';
+            $new_columns['followup_notes'] = 'Notes';
             $new_columns['assigned_to'] = 'Assigned';
             $new_columns['marketing_consent'] = 'Marketing Consent';
             $new_columns['email_status'] = 'Email Status';
@@ -1717,9 +1722,23 @@ function cta_form_submission_admin_column_content($column, $post_id) {
             echo '</div>';
             break;
             
+        case 'followup_notes':
+            $followup_notes = get_post_meta($post_id, '_submission_followup_notes', true);
+            echo '<div class="cta-followup-notes-quick cta-notes-cell">';
+            if ($followup_notes) {
+                $full_notes = esc_attr($followup_notes);
+                $preview = wp_trim_words($followup_notes, 25);
+                echo '<div class="cta-notes-preview" title="' . $full_notes . '" data-post-id="' . esc_attr($post_id) . '">';
+                echo esc_html($preview);
+                echo '</div>';
+            } else {
+                echo '<button type="button" class="button-link cta-add-note-btn" data-post-id="' . esc_attr($post_id) . '">+ Add note</button>';
+            }
+            echo '</div>';
+            break;
+            
         case 'followup_status':
             $followup_status = get_post_meta($post_id, '_submission_followup_status', true);
-            $followup_notes = get_post_meta($post_id, '_submission_followup_notes', true);
             $email_sent = get_post_meta($post_id, '_submission_email_sent', true);
             $email_error = get_post_meta($post_id, '_submission_email_error', true);
             
@@ -1737,8 +1756,6 @@ function cta_form_submission_admin_column_content($column, $post_id) {
                 'cancelled' => ['label' => 'Cancelled', 'class' => 'cta-status-cancelled'],
             ];
             
-            $current_status = $status_labels[$followup_status] ?? null;
-            
             echo '<div class="cta-followup-status-wrapper" data-post-id="' . esc_attr($post_id) . '">';
             echo '<select class="cta-followup-status-select" data-post-id="' . esc_attr($post_id) . '">';
             echo '<option value="">No Status</option>';
@@ -1753,23 +1770,11 @@ function cta_form_submission_admin_column_content($column, $post_id) {
             }
             echo '</select>';
             
-            // Add email retry button next to status
             if ($email_error) {
                 echo '<button type="button" class="button-link cta-resend-email" data-post-id="' . esc_attr($post_id) . '" title="Retry sending email - ' . esc_attr($email_error) . '" style="color: #d63638; padding: 0; margin: 0; line-height: 1;"><span class="dashicons dashicons-update" style="font-size: 18px; width: 18px; height: 18px;"></span></button>';
             } elseif ($email_sent !== 'yes' && $email_sent !== '1') {
                 echo '<button type="button" class="button-link cta-resend-email" data-post-id="' . esc_attr($post_id) . '" title="Send notification now" style="color: #2271b1; padding: 0; margin: 0; line-height: 1;"><span class="dashicons dashicons-update" style="font-size: 18px; width: 18px; height: 18px;"></span></button>';
             }
-            
-            // Show notes preview/quick edit
-            echo '<div class="cta-followup-notes-quick">';
-            if ($followup_notes) {
-                echo '<div class="cta-notes-preview" title="Click to edit">';
-                echo esc_html(wp_trim_words($followup_notes, 15));
-                echo '</div>';
-            } else {
-                echo '<button type="button" class="button-link cta-add-note-btn" data-post-id="' . esc_attr($post_id) . '">+ Add note</button>';
-            }
-            echo '</div>';
             echo '</div>';
             break;
             
@@ -2564,6 +2569,10 @@ function cta_form_submission_admin_styles() {
         .wp-list-table .column-email_status {
             width: 200px;
         }
+        .wp-list-table .column-followup_notes {
+            min-width: 220px;
+            max-width: 320px;
+        }
         
         /* Responsive adjustments for mobile admin view */
         @media screen and (max-width: 782px) {
@@ -2584,7 +2593,8 @@ function cta_form_submission_admin_styles() {
             
             .wp-list-table .column-followup_status,
             .wp-list-table .column-assigned_to,
-            .wp-list-table .column-email_status {
+            .wp-list-table .column-email_status,
+            .wp-list-table .column-followup_notes {
                 width: auto;
             }
         }
@@ -2615,12 +2625,15 @@ function cta_form_submission_add_filters() {
                    !empty($selected_date);
     
     // Get counts for each tab
-    $all_count = wp_count_posts('form_submission')->publish;
+    $num_posts = wp_count_posts('form_submission', 'readable');
+    $all_count = isset($num_posts->publish) ? (int) $num_posts->publish : 0;
+    $trash_count = isset($num_posts->trash) ? (int) $num_posts->trash : 0;
     $course_enquiries_count = cta_get_submission_count_by_tab('course-enquiries');
     $event_bookings_count = cta_get_submission_count_by_tab('event-bookings');
     $group_enquiries_count = cta_get_submission_count_by_tab('group-enquiries');
     $newsletter_count = cta_get_submission_count_by_tab('newsletter');
     $other_count = cta_get_submission_count_by_tab('other');
+    $is_trash_view = isset($_GET['post_status']) && $_GET['post_status'] === 'trash';
     
     // Filter pills for quick access
     echo '<div class="cta-filter-pills">';
@@ -2632,21 +2645,23 @@ function cta_form_submission_add_filters() {
         ['label' => 'Newsletter', 'param' => 'submission_tab', 'value' => 'newsletter', 'count' => $newsletter_count],
         ['label' => 'Group', 'param' => 'submission_tab', 'value' => 'group-enquiries', 'count' => $group_enquiries_count],
         ['label' => 'Other Listings (' . $other_count . ')', 'param' => 'submission_tab', 'value' => 'other'],
+        ['label' => 'Bin', 'param' => 'post_status', 'value' => 'trash', 'count' => $trash_count],
     ];
     
     foreach ($quick_filters as $filter) {
         $base_url = admin_url('edit.php?post_type=form_submission');
         
-        // Build URL with this filter
+        // Build URL for this filter
         if ($filter['param'] === 'submission_tab') {
             if ($filter['value'] !== 'all') {
                 $url = add_query_arg('submission_tab', $filter['value'], $base_url);
             } else {
                 $url = $base_url;
             }
+        } elseif ($filter['param'] === 'post_status' && $filter['value'] === 'trash') {
+            $url = add_query_arg('post_status', 'trash', $base_url);
         } else {
             $url = add_query_arg($filter['param'], $filter['value'], $base_url);
-            // Preserve tab
             if ($selected_tab !== 'all') {
                 $url = add_query_arg('submission_tab', $selected_tab, $url);
             }
@@ -2655,7 +2670,9 @@ function cta_form_submission_add_filters() {
         // Check if active
         $is_active = false;
         if ($filter['param'] === 'submission_tab') {
-            $is_active = $selected_tab === $filter['value'];
+            $is_active = !$is_trash_view && $selected_tab === $filter['value'];
+        } elseif ($filter['param'] === 'post_status' && $filter['value'] === 'trash') {
+            $is_active = $is_trash_view;
         } elseif ($filter['param'] === 'date_filter') {
             $is_active = $selected_date === $filter['value'];
         }
@@ -2663,7 +2680,6 @@ function cta_form_submission_add_filters() {
         $active_class = $is_active ? ' active' : '';
         $display_label = $filter['label'];
         
-        // Add count if available and not already in label
         if (isset($filter['count']) && strpos($filter['label'], '(') === false) {
             $display_label .= ' (' . $filter['count'] . ')';
         }
@@ -2692,12 +2708,14 @@ function cta_form_submission_add_filters() {
     echo '</select>';
     submit_button(__('Apply'), 'action', '', false, ['id' => 'doaction']);
     
-    // Show "All" button if on a specific tab
-    if ($selected_tab !== 'all') {
+    // Show "All" button when on a type tab (to clear to "All types") or when viewing Bin (to return to main list)
+    if ($selected_tab !== 'all' || $is_trash_view) {
         $all_url = admin_url('edit.php?post_type=form_submission');
+        $all_label = $is_trash_view ? 'Back to list' : 'All';
         printf(
-            '<a href="%s" class="button">All</a>',
-            esc_url($all_url)
+            '<a href="%s" class="button">%s</a>',
+            esc_url($all_url),
+            esc_html($all_label)
         );
     }
     
@@ -4364,7 +4382,6 @@ function cta_send_assignment_notification_email($post_id, $assignee) {
     $email = get_post_meta($post_id, '_submission_email', true);
     $phone = get_post_meta($post_id, '_submission_phone', true);
     $message = get_post_meta($post_id, '_submission_message', true);
-    $page_url = get_post_meta($post_id, '_submission_page_url', true);
     $form_type_terms = get_the_terms($post_id, 'form_type');
     $form_type = $form_type_terms && !is_wp_error($form_type_terms) ? $form_type_terms[0]->name : 'Form Submission';
     
@@ -4409,9 +4426,6 @@ function cta_send_assignment_notification_email($post_id, $assignee) {
     $body .= "Form Type: {$form_type}\n";
     if ($message) {
         $body .= "\nMessage:\n{$message}\n";
-    }
-    if ($page_url) {
-        $body .= "\nSubmitted from: {$page_url}\n";
     }
     $body .= "\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n";
     $body .= "View full submission: {$submission_url}\n";
