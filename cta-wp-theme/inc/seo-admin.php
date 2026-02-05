@@ -146,6 +146,22 @@ function cta_add_seo_admin_menu() {
 add_action('admin_menu', 'cta_add_seo_admin_menu', 20);
 
 /**
+ * Enqueue SEO admin styles on all SEO sub-pages (not just Dashboard).
+ */
+function cta_seo_admin_enqueue_styles($hook) {
+    if (strpos($hook, 'cta-seo') === false) {
+        return;
+    }
+    wp_enqueue_style(
+        'cta-seo-admin',
+        get_template_directory_uri() . '/assets/css/seo-admin.css',
+        [],
+        defined('CTA_THEME_VERSION') ? CTA_THEME_VERSION : '1.0.0'
+    );
+}
+add_action('admin_enqueue_scripts', 'cta_seo_admin_enqueue_styles', 11);
+
+/**
  * SEO Dashboard Page
  */
 function cta_seo_dashboard_page() {
@@ -345,7 +361,7 @@ function cta_seo_dashboard_page() {
             <div class="card" style="margin-top: 20px;">
                 <h2>SEO runbook</h2>
                 <p style="margin-top: 0;">Ongoing practice tied to theme improvements. No code changes here—process only.</p>
-                <ul style="margin: 0.5em 0 0 1.5em;">
+                <ul>
                     <li><strong>After schema changes:</strong> Validate key URLs (homepage, a post, a course, an event) with <a href="https://search.google.com/test/rich-results" target="_blank" rel="noopener">Google Rich Results Test</a>; fix errors and preferably warnings; re-check Search Console Enhancements after deployment.</li>
                     <li><strong>Traffic drops:</strong> Use Search Console Performance (16 months), compare date ranges, segment by query/page/device; use “Clicks difference” to find affected URLs; cross-check with Search Status Dashboard (core/spam/review updates).</li>
                     <li><strong>Security:</strong> Treat Security Issues and Safe Browsing as P0; keep WordPress, plugins, theme and server patched; use <code>site:yourdomain</code> periodically to spot odd URLs.</li>
@@ -379,62 +395,69 @@ function cta_seo_settings_page() {
     $default_robots_follow = get_option('cta_seo_default_robots_follow', 1);
     
     ?>
-    <div class="wrap">
-        <h1>SEO Settings</h1>
-        
-        <form method="post">
-            <?php wp_nonce_field('cta_seo_settings'); ?>
-            
-            <table class="form-table">
-                <tr>
-                    <th scope="row">
-                        <label for="title_separator">Title Separator</label>
-                    </th>
-                    <td>
-                        <input type="text" id="title_separator" name="title_separator" value="<?php echo esc_attr($title_separator); ?>" class="regular-text" />
-                        <p class="description">Character used to separate page title and site name (default: –)</p>
-                    </td>
-                </tr>
-                
-                <tr>
-                    <th scope="row">Default Robots Meta</th>
-                    <td>
-                        <fieldset>
-                            <label>
-                                <input type="checkbox" name="default_robots_index" value="1" <?php checked($default_robots_index, 1); ?> />
-                                Index (allow search engines to index)
-                            </label><br>
-                            <label>
-                                <input type="checkbox" name="default_robots_follow" value="1" <?php checked($default_robots_follow, 1); ?> />
-                                Follow (allow search engines to follow links)
-                            </label>
-                        </fieldset>
-                    </td>
-                </tr>
-            </table>
-            
-            <?php submit_button('Save Settings', 'primary', 'cta_save_seo_settings'); ?>
-        </form>
-        
-        <hr>
-        
-        <h2>Title Templates</h2>
-        <div class="card">
+    <div class="wrap cta-seo-page">
+        <header class="cta-seo-header">
+            <h1>SEO Settings</h1>
+            <p class="cta-seo-header-desc">Global defaults for titles and indexing. Per-page overrides are in each post’s SEO meta box.</p>
+        </header>
+
+        <div class="cta-seo-section">
+            <h2 class="cta-seo-section__title">Title &amp; indexing</h2>
+            <div class="cta-seo-section__body">
+            <form method="post">
+                <?php wp_nonce_field('cta_seo_settings'); ?>
+                <table class="form-table">
+                    <tr>
+                        <th scope="row">
+                            <label for="title_separator">Title separator</label>
+                        </th>
+                        <td>
+                            <input type="text" id="title_separator" name="title_separator" value="<?php echo esc_attr($title_separator); ?>" class="regular-text" />
+                            <p class="description">Character between page title and site name (default: –)</p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th scope="row">Default robots</th>
+                        <td>
+                            <fieldset>
+                                <label>
+                                    <input type="checkbox" name="default_robots_index" value="1" <?php checked($default_robots_index, 1); ?> />
+                                    Index (allow search engines to index)
+                                </label><br>
+                                <label>
+                                    <input type="checkbox" name="default_robots_follow" value="1" <?php checked($default_robots_follow, 1); ?> />
+                                    Follow (allow search engines to follow links)
+                                </label>
+                            </fieldset>
+                        </td>
+                    </tr>
+                </table>
+                <?php submit_button('Save settings', 'primary', 'cta_save_seo_settings'); ?>
+            </form>
+            </div>
+        </div>
+
+        <div class="cta-seo-section">
+            <h2 class="cta-seo-section__title">Title templates</h2>
+            <div class="cta-seo-section__body">
             <p><strong>Posts:</strong> <code>%title%</code></p>
             <p><strong>Pages:</strong> <code>%title% %sep% %sitename%</code></p>
             <p><strong>Courses:</strong> <code>%title% %sep% %sitename%</code></p>
             <p><strong>Events:</strong> <code>%title% %sep% %sitename%</code></p>
-            <p class="description">These templates are automatically applied. You can override them per page in the SEO meta box.</p>
+            <p class="description">Applied automatically. Override per page in the SEO meta box.</p>
+            </div>
         </div>
 
-        <h2>Link policy</h2>
-        <div class="card">
+        <div class="cta-seo-section">
+            <h2 class="cta-seo-section__title">Link policy</h2>
+            <div class="cta-seo-section__body">
             <p>For outbound links, use the correct <code>rel</code> attributes so search engines understand the relationship:</p>
-            <ul style="margin-left: 1.5em;">
+            <ul>
                 <li><strong>Paid or partnership links</strong> (e.g. ads, sponsor logos, partner sections): use <code>rel="sponsored"</code>. This theme adds <code>rel="sponsored"</code> to the homepage partner logos section.</li>
                 <li><strong>User-generated content</strong> (e.g. comments, forum posts): use <code>rel="ugc"</code> or <code>rel="nofollow"</code> on links within that content. If you enable comments, ensure your theme or plugin outputs these attributes on comment author/URL links.</li>
             </ul>
-            <p class="description" style="margin-bottom: 0;">Applying these in templates keeps markup consistent with Google’s link guidelines.</p>
+            <p class="description">Applying these in templates keeps markup consistent with Google’s link guidelines.</p>
+            </div>
         </div>
     </div>
     <?php
@@ -597,83 +620,49 @@ function cta_seo_bulk_page() {
     $query = new WP_Query($args);
     
     ?>
-    <div class="wrap">
-        <h1>Bulk SEO Optimization</h1>
-        
-        <div class="card" style="margin-bottom: 20px;">
-            <h2>Bulk Actions</h2>
-            <form method="post" id="cta-bulk-seo-form">
+    <div class="wrap cta-seo-page">
+        <header class="cta-seo-header">
+            <h1>Bulk SEO Optimization</h1>
+            <p class="cta-seo-header-desc">Apply meta descriptions or schema types in bulk. Filter and select items below, then choose an action.</p>
+        </header>
+
+        <div class="cta-seo-toolbar">
+            <form method="get" class="cta-seo-toolbar-group">
+                <input type="hidden" name="page" value="cta-seo-bulk" />
+                <input type="hidden" name="paged" value="1" />
+                <label for="cta-bulk-post-type">Post type</label>
+                <select name="post_type" id="cta-bulk-post-type">
+                    <?php foreach ($post_types as $pt) : ?>
+                        <option value="<?php echo esc_attr($pt); ?>" <?php selected($filter_post_type, $pt); ?>>
+                            <?php echo esc_html(ucfirst($pt === 'course_event' ? 'Events' : $pt)); ?>
+                        </option>
+                    <?php endforeach; ?>
+                </select>
+                <label for="cta-bulk-status">Filter</label>
+                <select name="status" id="cta-bulk-status">
+                    <option value="all" <?php selected($filter_status, 'all'); ?>>All</option>
+                    <option value="missing_meta" <?php selected($filter_status, 'missing_meta'); ?>>Missing meta</option>
+                    <option value="has_meta" <?php selected($filter_status, 'has_meta'); ?>>Has meta</option>
+                </select>
+                <input type="text" name="s" value="<?php echo esc_attr($search); ?>" placeholder="Search…" class="regular-text" />
+                <button type="submit" class="button">Filter</button>
+                <a href="<?php echo esc_url(admin_url('admin.php?page=cta-seo-bulk&post_type=' . $filter_post_type)); ?>" class="button">Reset</a>
+            </form>
+            <form method="post" id="cta-bulk-seo-form" class="cta-seo-toolbar-actions">
                 <?php wp_nonce_field('cta_bulk_seo'); ?>
                 <input type="hidden" name="cta_bulk_seo_action" value="1" />
-                
-                <table class="form-table">
-                    <tr>
-                        <th scope="row">Action</th>
-                        <td>
-                            <select name="bulk_action" id="bulk_action" required>
-                                <option value="">-- Select Action --</option>
-                                <option value="generate_descriptions">Generate Meta Descriptions</option>
-                                <option value="apply_schema">Apply Default Schema Types</option>
-                            </select>
-                            <p class="description">Select an action to apply to selected posts below.</p>
-                        </td>
-                    </tr>
-                </table>
-                
-                <p class="submit">
-                    <button type="submit" class="button button-primary" id="bulk-submit-btn" disabled>
-                        Apply to Selected Posts
-                    </button>
-                    <span id="selected-count" style="margin-left: 10px; color: #666;"></span>
-                </p>
-            </form>
-        </div>
-        
-        <!-- Filters -->
-        <div class="card" style="margin-bottom: 20px;">
-            <form method="get">
-                <input type="hidden" name="page" value="cta-seo-bulk" />
-                <table class="form-table">
-                    <tr>
-                        <th scope="row">Post Type</th>
-                        <td>
-                            <select name="post_type">
-                                <?php foreach ($post_types as $pt) : ?>
-                                    <option value="<?php echo esc_attr($pt); ?>" <?php selected($filter_post_type, $pt); ?>>
-                                        <?php echo esc_html(ucfirst($pt)); ?>
-                                    </option>
-                                <?php endforeach; ?>
-                            </select>
-                        </td>
-                    </tr>
-                    <tr>
-                        <th scope="row">Filter</th>
-                        <td>
-                            <select name="status">
-                                <option value="all" <?php selected($filter_status, 'all'); ?>>All</option>
-                                <option value="missing_meta" <?php selected($filter_status, 'missing_meta'); ?>>Missing meta description</option>
-                                <option value="has_meta" <?php selected($filter_status, 'has_meta'); ?>>Has meta description</option>
-                            </select>
-                        </td>
-                    </tr>
-                    <tr>
-                        <th scope="row">Search</th>
-                        <td>
-                            <input type="text" name="s" value="<?php echo esc_attr($search); ?>" class="regular-text" placeholder="Search posts..." />
-                        </td>
-                    </tr>
-                </table>
-                <p class="submit">
-                    <input type="hidden" name="paged" value="1" />
-                    <button type="submit" class="button">Filter</button>
-                    <a href="<?php echo esc_url(admin_url('admin.php?page=cta-seo-bulk&post_type=' . $filter_post_type)); ?>" class="button">Reset</a>
-                </p>
+                <select name="bulk_action" id="bulk_action" required>
+                    <option value="">Apply to selected…</option>
+                    <option value="generate_descriptions">Generate meta descriptions</option>
+                    <option value="apply_schema">Apply default schema</option>
+                </select>
+                <button type="submit" class="button button-primary" id="bulk-submit-btn" disabled>Apply</button>
+                <span id="selected-count"></span>
             </form>
         </div>
 
-        <!-- Posts List -->
-        <div class="card">
-            <h2><?php echo esc_html(ucfirst($filter_post_type === 'course_event' ? 'Events' : $filter_post_type)); ?> (<?php echo number_format($query->found_posts); ?> found)</h2>
+        <div class="cta-seo-section">
+            <h2 class="cta-seo-section__title"><?php echo esc_html(ucfirst($filter_post_type === 'course_event' ? 'Events' : $filter_post_type)); ?> <span class="cta-seo-section__count">(<?php echo number_format($query->found_posts); ?> found)</span></h2>
             
             <?php if ($query->have_posts()) : ?>
                 <form id="posts-form">
@@ -718,25 +707,35 @@ function cta_seo_bulk_page() {
                                     </td>
                                     <td>
                                         <?php if ($meta_title) : ?>
-                                            <span style="color: #00a32a;">✓</span> <?php echo esc_html(mb_substr($meta_title, 0, 50)); ?>
+                                            <span class="cta-seo-badge cta-seo-badge--set">Set</span>
+                                            <span class="cta-seo-meta-preview" title="<?php echo esc_attr($meta_title); ?>"><?php echo esc_html(mb_substr($meta_title, 0, 40)); ?><?php echo mb_strlen($meta_title) > 40 ? '…' : ''; ?></span>
                                         <?php else : ?>
-                                            <span style="color: #d63638;">—</span> <em>Not set</em>
+                                            <span class="cta-seo-badge cta-seo-badge--missing">Not set</span>
                                         <?php endif; ?>
                                     </td>
                                     <td>
                                         <?php if ($meta_description) : ?>
-                                            <span style="color: #00a32a;">✓</span> <?php echo esc_html(mb_substr($meta_description, 0, 70)); ?><?php echo mb_strlen($meta_description) > 70 ? '…' : ''; ?>
+                                            <span class="cta-seo-badge cta-seo-badge--set">Set</span>
+                                            <span class="cta-seo-meta-preview" title="<?php echo esc_attr($meta_description); ?>"><?php echo esc_html(mb_substr($meta_description, 0, 50)); ?><?php echo mb_strlen($meta_description) > 50 ? '…' : ''; ?></span>
                                         <?php else : ?>
-                                            <span style="color: #d63638;">—</span> <em>Not set</em>
+                                            <span class="cta-seo-badge cta-seo-badge--missing">Not set</span>
                                         <?php endif; ?>
                                     </td>
                                     <td>
-                                        <?php echo $schema_type ? esc_html($schema_type) : '<em>Default</em>'; ?>
+                                        <?php if ($schema_type) : ?>
+                                            <span class="cta-seo-badge cta-seo-badge--set"><?php echo esc_html($schema_type); ?></span>
+                                        <?php else : ?>
+                                            <span class="cta-seo-badge cta-seo-badge--default">Default</span>
+                                        <?php endif; ?>
                                     </td>
                                     <td>
-                                        <a href="<?php echo esc_url($gen_url); ?>" class="button button-small" title="Generate meta description">Generate</a>
-                                        <a href="<?php echo esc_url($schema_url); ?>" class="button button-small" title="Apply default schema">Schema</a>
-                                        <a href="<?php echo esc_url(get_edit_post_link($post_id)); ?>" class="button button-small">Edit</a>
+                                        <div class="cta-seo-table-actions">
+                                            <a href="<?php echo esc_url($gen_url); ?>" title="Generate meta description">Generate</a>
+                                            <span class="sep">|</span>
+                                            <a href="<?php echo esc_url($schema_url); ?>" title="Apply default schema">Schema</a>
+                                            <span class="sep">|</span>
+                                            <a href="<?php echo esc_url(get_edit_post_link($post_id)); ?>">Edit</a>
+                                        </div>
                                     </td>
                                 </tr>
                             <?php endwhile;
@@ -866,27 +865,35 @@ function cta_seo_schema_page() {
     $schema_docs = 'https://schema.org/docs/full.html';
     $rich_results_test = 'https://search.google.com/test/rich-results';
     ?>
-    <div class="wrap">
-        <h1>Schema Markup</h1>
+    <div class="wrap cta-seo-page">
+        <header class="cta-seo-header">
+            <h1>Schema Markup</h1>
+            <p class="cta-seo-header-desc">Structured data types this theme outputs and where they’re used. Validate URLs with <a href="<?php echo esc_url($rich_results_test); ?>" target="_blank" rel="noopener">Rich Results Test</a> after changes.</p>
+        </header>
 
-        <div class="card" style="margin-top: 16px;">
-            <h2 style="margin-top: 0;">Overview</h2>
+        <div class="cta-seo-section">
+            <h2 class="cta-seo-section__title">Overview</h2>
+            <div class="cta-seo-section__body">
             <p>Structured data helps Google understand your content and can make it eligible for <strong>rich results</strong> (e.g. course carousels, event snippets, FAQ expandables, breadcrumbs). This theme outputs JSON-LD based on <a href="<?php echo esc_url($schema_docs); ?>" target="_blank" rel="noopener">Schema.org</a> types that <a href="<?php echo esc_url($google_gallery); ?>" target="_blank" rel="noopener">Google Search supports</a>.</p>
-            <p style="margin-bottom: 0;"><strong>Byline dates:</strong> For posts, keep visible &ldquo;Published&rdquo; and &ldquo;Last updated&rdquo; dates in sync with Article schema (<code>datePublished</code> / <code>dateModified</code>). The single post template shows these labels automatically.</p>
+            <p><strong>Byline dates:</strong> For posts, keep visible &ldquo;Published&rdquo; and &ldquo;Last updated&rdquo; dates in sync with Article schema (<code>datePublished</code> / <code>dateModified</code>). The single post template shows these labels automatically.</p>
+            </div>
         </div>
 
-        <div class="card" style="margin-top: 20px;">
-            <h2 style="margin-top: 0;">Snippet control</h2>
+        <div class="cta-seo-section">
+            <h2 class="cta-seo-section__title">Snippet control</h2>
+            <div class="cta-seo-section__body">
             <p>You can control what Google uses in search snippets and AI Overviews:</p>
-            <ul style="margin: 0.5em 0 0 1.5em;">
+            <ul>
                 <li><strong>Page-level:</strong> In the page SEO meta box (Advanced SEO Settings), use <strong>No snippet</strong> to exclude the whole page from snippets, or <strong>Max snippet length</strong> to cap the snippet length (e.g. 160 characters).</li>
                 <li><strong>Section-level:</strong> Wrap any block of content in <code>&lt;div data-nosnippet&gt;…&lt;/div&gt;</code> so that section is omitted from snippets while the rest of the page can still be used. No theme setting required.</li>
             </ul>
-            <p style="margin: 0.75em 0 0 0;">Use <code>nosnippet</code> (page-level) when the entire page shouldn’t appear in snippets. Use <code>data-nosnippet</code> when only specific parts (e.g. disclaimers, internal notes) should be excluded.</p>
+            <p>Use <code>nosnippet</code> (page-level) when the entire page shouldn’t appear in snippets. Use <code>data-nosnippet</code> when only specific parts (e.g. disclaimers, internal notes) should be excluded.</p>
+            </div>
         </div>
 
-        <div class="card" style="margin-top: 20px;">
-            <h2 style="margin-top: 0;">Rich results eligibility</h2>
+        <div class="cta-seo-section">
+            <h2 class="cta-seo-section__title">Rich results eligibility</h2>
+            <div class="cta-seo-section__body">
             <p>Types we output and their Google Search feature guides:</p>
             <table class="wp-list-table widefat fixed striped">
                 <thead>
@@ -948,11 +955,13 @@ function cta_seo_schema_page() {
                     </tr>
                 </tbody>
             </table>
+            </div>
         </div>
 
-        <div class="card" style="margin-top: 20px;">
-            <h2 style="margin-top: 0;">Schema coverage by content type</h2>
-            <table class="wp-list-table widefat fixed striped">
+        <div class="cta-seo-section">
+            <h2 class="cta-seo-section__title">Schema coverage by content type</h2>
+            <div class="cta-seo-section__body">
+            <table class="cta-seo-table wp-list-table widefat fixed striped">
                 <thead>
                     <tr>
                         <th>Content type</th>
@@ -988,29 +997,36 @@ function cta_seo_schema_page() {
                     </tr>
                 </tbody>
             </table>
+            </div>
         </div>
 
-        <div class="card" style="margin-top: 20px;">
-            <h2 style="margin-top: 0;">Statistics</h2>
-            <ul style="margin: 0;">
+        <div class="cta-seo-section">
+            <h2 class="cta-seo-section__title">Statistics</h2>
+            <div class="cta-seo-section__body">
+            <ul>
                 <li><strong>Pages with custom schema override:</strong> <?php echo number_format($pages_with_custom_schema); ?></li>
                 <li><strong>Courses (with Course schema):</strong> <?php echo number_format($courses_count); ?></li>
                 <li><strong>Events (with Event schema):</strong> <?php echo number_format($events_count); ?></li>
             </ul>
+            </div>
         </div>
 
-        <div class="card" style="margin-top: 20px;">
-            <h2 style="margin-top: 0;">Override per page</h2>
+        <div class="cta-seo-section">
+            <h2 class="cta-seo-section__title">Override per page</h2>
+            <div class="cta-seo-section__body">
             <p>When editing a page, use the SEO meta box to set a custom <code>schema:WebPage</code> subtype (e.g. <code>AboutPage</code>, <code>ContactPage</code>) or leave default. Schema.org type hierarchy: <a href="<?php echo esc_url($schema_docs); ?>" target="_blank" rel="noopener">Schema.org full hierarchy</a>.</p>
+            </div>
         </div>
 
-        <div class="card" style="margin-top: 20px;">
-            <h2 style="margin-top: 0;">Validate</h2>
+        <div class="cta-seo-section">
+            <h2 class="cta-seo-section__title">Validate</h2>
+            <div class="cta-seo-section__body">
             <p>Check how Google interprets your markup and whether rich results are eligible:</p>
             <p>
                 <a href="<?php echo esc_url($rich_results_test); ?>" target="_blank" rel="noopener" class="button button-primary">Open Rich Results Test</a>
             </p>
             <p class="description">Enter a live URL from your site. Actual appearance in search may still vary.</p>
+            </div>
         </div>
     </div>
     <?php
@@ -1083,11 +1099,15 @@ function cta_seo_images_page() {
     $images_with_alt = $total_images - $images_without_alt;
     
     ?>
-    <div class="wrap">
-        <h1>Image SEO</h1>
-        
-        <div class="card">
-            <h2>Image Alt Text Statistics</h2>
+    <div class="wrap cta-seo-page">
+        <header class="cta-seo-header">
+            <h1>Image SEO</h1>
+            <p class="cta-seo-header-desc">Alt text coverage and bulk actions. Use the Media Library or AI generation for individual images.</p>
+        </header>
+
+        <div class="cta-seo-section">
+            <h2 class="cta-seo-section__title">Image alt text statistics</h2>
+            <div class="cta-seo-section__body">
             <table class="wp-list-table widefat fixed striped">
                 <thead>
                     <tr>
@@ -1107,18 +1127,20 @@ function cta_seo_images_page() {
                         <td><?php echo number_format($images_without_alt); ?></td>
                         <td><?php echo $total_images > 0 ? number_format(($images_without_alt / $total_images) * 100, 1) : 0; ?>%</td>
                     </tr>
-                    <tr style="background: #f0f0f1; font-weight: bold;">
+                    <tr class="cta-seo-table-total">
                         <td><strong>Total Images</strong></td>
                         <td><?php echo number_format($total_images); ?></td>
                         <td>100%</td>
                     </tr>
                 </tbody>
             </table>
+            </div>
         </div>
         
         <?php if ($images_without_alt > 0): ?>
-        <div class="card" style="margin-top: 20px;">
-            <h2>Bulk Add Alt Text</h2>
+        <div class="cta-seo-section">
+            <h2 class="cta-seo-section__title">Bulk Add Alt Text</h2>
+            <div class="cta-seo-section__body">
             <p>Automatically add alt text to all images that are missing it. Alt text will be generated from the image filename.</p>
             <form method="post">
                 <?php wp_nonce_field('cta_bulk_alt_text_action'); ?>
@@ -1128,6 +1150,7 @@ function cta_seo_images_page() {
                     </button>
                 </p>
             </form>
+            </div>
         </div>
         <?php else: ?>
         <div class="notice notice-success inline">
@@ -1136,22 +1159,25 @@ function cta_seo_images_page() {
         <?php endif; ?>
         
         <?php if ($images_with_alt > 0): ?>
-        <div class="card" style="margin-top: 20px;">
-            <h2>Remove All Alt Text</h2>
+        <div class="cta-seo-section">
+            <h2 class="cta-seo-section__title">Remove All Alt Text</h2>
+            <div class="cta-seo-section__body">
             <p>Remove alt text from all images. Use this if you want to clear auto-generated alt and start over, or manage alt text manually. This cannot be undone.</p>
             <form method="post" onsubmit="return confirm('Remove alt text from all <?php echo number_format($images_with_alt); ?> images? This cannot be undone.');">
                 <?php wp_nonce_field('cta_bulk_remove_alt_text_action'); ?>
                 <p>
-                    <button type="submit" name="cta_bulk_remove_alt_text" class="button" style="border-color: #d63638; color: #d63638;">
+                    <button type="submit" name="cta_bulk_remove_alt_text" class="button cta-seo-btn-danger">
                         Remove Alt Text from <?php echo number_format($images_with_alt); ?> Images
                     </button>
                 </p>
             </form>
+            </div>
         </div>
         <?php endif; ?>
         
-        <div class="card" style="margin-top: 20px;">
-            <h2>How It Works</h2>
+        <div class="cta-seo-section">
+            <h2 class="cta-seo-section__title">How It Works</h2>
+            <div class="cta-seo-section__body">
             <ul>
                 <li><strong>Automatic:</strong> When you upload an image, alt text is automatically generated from the filename</li>
                 <li><strong>Format:</strong> Filename is cleaned and formatted (e.g., "care-training-course.jpg" → "Care Training Course")</li>
@@ -1159,15 +1185,18 @@ function cta_seo_images_page() {
                 <li><strong>Manual Override:</strong> You can edit alt text for any image in the Media Library</li>
                 <li><strong>Bulk Tool:</strong> Use the button above to add alt text to all images missing it</li>
             </ul>
+            </div>
         </div>
         
-        <div class="card" style="margin-top: 20px;">
-            <h2>Manage Images</h2>
+        <div class="cta-seo-section">
+            <h2 class="cta-seo-section__title">Manage Images</h2>
+            <div class="cta-seo-section__body">
             <p>
                 <a href="<?php echo admin_url('upload.php'); ?>" class="button">
                     Go to Media Library
                 </a>
             </p>
+            </div>
         </div>
     </div>
     <?php

@@ -531,13 +531,16 @@ function cta_redirects_admin_page() {
     $redirects = $wpdb->get_results("SELECT * FROM $table_name ORDER BY created_at DESC");
     
     ?>
-    <div class="wrap">
-        <h1>Redirects Management</h1>
+    <div class="wrap cta-seo-page">
+        <header class="cta-seo-header">
+            <h1>Redirects</h1>
+            <p class="cta-seo-header-desc">Manage 301/302 redirects. Source and target use relative paths (e.g. /old-page/).</p>
+        </header>
         
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 20px;">
-            <!-- Add Redirect Form -->
-            <div>
-                <h2>Add New Redirect</h2>
+        <div class="cta-seo-grid cta-seo-grid--2">
+            <div class="cta-seo-section">
+                <h2 class="cta-seo-section__title">Add redirect</h2>
+                <div class="cta-seo-section__body">
                 <form method="post" action="">
                     <?php wp_nonce_field('cta_redirects'); ?>
                     <table class="form-table">
@@ -568,14 +571,15 @@ function cta_redirects_admin_page() {
                         </tr>
                     </table>
                     <p class="submit">
-                        <input type="submit" name="cta_add_redirect" class="button button-primary" value="Add Redirect">
+                        <input type="submit" name="cta_add_redirect" class="button button-primary" value="Add redirect">
                     </p>
                 </form>
+                </div>
             </div>
             
-            <!-- Redirects List -->
-            <div>
-                <h2>Existing Redirects (<?php echo count($redirects); ?>)</h2>
+            <div class="cta-seo-section">
+                <h2 class="cta-seo-section__title">Existing redirects (<?php echo count($redirects); ?>)</h2>
+                <div class="cta-seo-section__body">
                 <?php if (empty($redirects)) : ?>
                     <p>No redirects configured yet.</p>
                 <?php else : ?>
@@ -597,7 +601,7 @@ function cta_redirects_admin_page() {
                                     <td><?php echo esc_html($redirect->redirect_type); ?></td>
                                     <td><?php echo number_format($redirect->hit_count); ?></td>
                                     <td>
-                                        <a href="<?php echo wp_nonce_url(admin_url('tools.php?page=cta-redirects&delete=' . $redirect->id), 'cta_delete_redirect'); ?>" 
+                                        <a href="<?php echo wp_nonce_url(admin_url('admin.php?page=cta-seo-redirects&delete=' . $redirect->id), 'cta_delete_redirect'); ?>" 
                                            class="button button-small" 
                                            onclick="return confirm('Delete this redirect?')">Delete</a>
                                     </td>
@@ -606,16 +610,17 @@ function cta_redirects_admin_page() {
                         </tbody>
                     </table>
                 <?php endif; ?>
+                </div>
             </div>
         </div>
         
-        <div style="margin-top: 30px; padding: 15px; background: #f0f6fc; border-left: 4px solid #2271b1;">
-            <h3>ℹ️ How It Works</h3>
+        <div class="cta-seo-info">
+            <p class="cta-seo-info__title">How it works</p>
             <ul>
                 <li><strong>Auto-redirects:</strong> When you change a page/post slug, a redirect is automatically created.</li>
                 <li><strong>Manual redirects:</strong> Use the form above to create custom redirects.</li>
-                <li><strong>Attachment redirects:</strong> Attachment pages automatically redirect to their parent post (or homepage if orphaned).</li>
-                <li><strong>Category base:</strong> Category URLs don't include /category/ (cleaner URLs).</li>
+                <li><strong>Attachment redirects:</strong> Attachment pages redirect to their parent post (or homepage if orphaned).</li>
+                <li><strong>Category base:</strong> Category URLs don't include /category/.</li>
             </ul>
         </div>
     </div>

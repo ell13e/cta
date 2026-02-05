@@ -1961,13 +1961,16 @@ function cta_sitemap_admin_page() {
     }
     
     ?>
-    <div class="wrap">
-        <h1>📍 Sitemap Monitor</h1>
+    <div class="wrap cta-seo-page">
+        <header class="cta-seo-header">
+            <h1>Sitemap</h1>
+            <p class="cta-seo-header-desc">WordPress core sitemap index and per–post-type sub-sitemaps. Content counts and ping status below.</p>
+        </header>
         
         <?php if (!empty($warnings)): ?>
         <div class="notice notice-warning">
-            <p><strong>⚠️ Important Notes:</strong></p>
-            <ul style="margin-left: 20px;">
+            <p><strong>Important notes</strong></p>
+            <ul>
                 <?php foreach ($warnings as $warning): ?>
                 <li><?php echo esc_html($warning); ?></li>
                 <?php endforeach; ?>
@@ -1976,8 +1979,9 @@ function cta_sitemap_admin_page() {
         </div>
         <?php endif; ?>
         
-        <div class="card">
-            <h2>Sitemap Overview</h2>
+        <div class="cta-seo-section">
+            <h2 class="cta-seo-section__title">Sitemap overview</h2>
+            <div class="cta-seo-section__body">
             <p><strong>Sitemap URL:</strong> <a href="<?php echo esc_url($sitemap_url); ?>" target="_blank"><?php echo esc_html($sitemap_url); ?></a></p>
             
             <table class="wp-list-table widefat fixed striped">
@@ -2019,9 +2023,9 @@ function cta_sitemap_admin_page() {
                         <td>0.85</td>
                         <td>Daily</td>
                     </tr>
-                    <tr>
-                        <td colspan="5" style="background: #f0f0f1; font-weight: bold;">
-                            Total URLs Currently in Sitemap: <?php echo number_format($total_urls); ?>
+                    <tr class="cta-seo-table-total">
+                        <td colspan="5">
+                            Total URLs in sitemap: <?php echo number_format($total_urls); ?>
                         </td>
                     </tr>
                 </tbody>
@@ -2030,17 +2034,19 @@ function cta_sitemap_admin_page() {
             <?php if ($total_urls == 0): ?>
             <div class="notice notice-info inline">
                 <p><strong>Getting Started:</strong> Your sitemap is ready but empty. Start by publishing some content:</p>
-                <ul style="margin-left: 20px;">
+                <ul>
                     <li><a href="<?php echo admin_url('post-new.php?post_type=page'); ?>">Add a Page</a></li>
                     <li><a href="<?php echo admin_url('post-new.php?post_type=course'); ?>">Add a Course</a></li>
                     <li><a href="<?php echo admin_url('post-new.php?post_type=course_event'); ?>">Add a Scheduled Course</a></li>
                 </ul>
             </div>
             <?php endif; ?>
+            </div>
         </div>
         
-        <div class="card">
-            <h2>Recent Sitemap Activity</h2>
+        <div class="cta-seo-section">
+            <h2 class="cta-seo-section__title">Recent activity</h2>
+            <div class="cta-seo-section__body">
             <?php
             $last_ping = get_transient('cta_sitemap_last_ping');
             if ($last_ping) {
@@ -2057,10 +2063,12 @@ function cta_sitemap_admin_page() {
                 </button>
             </form>
             <p class="description">This will clear the sitemap cache and notify Google and Bing of the update.</p>
+            </div>
         </div>
         
-        <div class="card">
-            <h2>What's Included in Your Sitemap</h2>
+        <div class="cta-seo-section">
+            <h2 class="cta-seo-section__title">What's in the sitemap</h2>
+            <div class="cta-seo-section__body">
             <p>Your sitemap includes <strong>individual pages and posts</strong> only:</p>
             <ul>
                 <li>✅ Individual Pages (About, Contact, etc.)</li>
@@ -2075,10 +2083,12 @@ function cta_sitemap_admin_page() {
                 <li>❌ Author archives (not indexed)</li>
             </ul>
             <p class="description">This focuses search engines on your actual content pages, not archive/listing pages.</p>
+            </div>
         </div>
         
-        <div class="card">
-            <h2>High-Priority Pages</h2>
+        <div class="cta-seo-section">
+            <h2 class="cta-seo-section__title">High-priority pages</h2>
+            <div class="cta-seo-section__body">
             <ul>
                 <li>CQC Compliance Hub (0.9 priority)</li>
                 <li>Downloadable Resources (0.9 priority)</li>
@@ -2088,10 +2098,12 @@ function cta_sitemap_admin_page() {
                 <li>All Individual Courses (0.8 priority)</li>
                 <li>All Upcoming Events (0.85 priority)</li>
             </ul>
+            </div>
         </div>
         
-        <div class="card">
-            <h2>Submit Sitemap to Search Engines</h2>
+        <div class="cta-seo-section">
+            <h2 class="cta-seo-section__title">Submit to search engines</h2>
+            <div class="cta-seo-section__body">
             <p>To improve indexing, submit your sitemap directly to search engines:</p>
             <ul>
                 <li>
@@ -2105,11 +2117,13 @@ function cta_sitemap_admin_page() {
                     <br><code><?php echo esc_html($sitemap_url); ?></code>
                 </li>
             </ul>
+            </div>
         </div>
         
-        <div class="card">
-            <h2>How Automatic Updates Work</h2>
-            <p>Your sitemap now updates automatically when:</p>
+        <div class="cta-seo-section">
+            <h2 class="cta-seo-section__title">Automatic updates</h2>
+            <div class="cta-seo-section__body">
+            <p>Your sitemap updates automatically when:</p>
             <ul>
                 <li>✅ A new page is published or updated</li>
                 <li>✅ A new course is added or modified</li>
@@ -2118,6 +2132,7 @@ function cta_sitemap_admin_page() {
                 <li>✅ Course categories are added or changed</li>
             </ul>
             <p>Search engines are automatically notified (max once per hour to avoid spam).</p>
+            </div>
         </div>
     </div>
     <?php
@@ -2213,7 +2228,7 @@ function cta_sitemap_diagnostic_notice() {
         
         <?php if (!empty($issues)) : ?>
         <p><strong>Issues Found:</strong></p>
-        <ul style="margin-left: 20px;">
+        <ul>
             <?php foreach ($issues as $issue) : ?>
             <li><?php echo esc_html($issue); ?></li>
             <?php endforeach; ?>
@@ -2222,7 +2237,7 @@ function cta_sitemap_diagnostic_notice() {
         
         <?php if (!empty($warnings)) : ?>
         <p><strong>Warnings:</strong></p>
-        <ul style="margin-left: 20px;">
+        <ul>
             <?php foreach ($warnings as $warning) : ?>
             <li><?php echo esc_html($warning); ?></li>
             <?php endforeach; ?>

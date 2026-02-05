@@ -669,14 +669,16 @@ function cta_seo_verification_page() {
     
     settings_errors('cta_seo_verification');
     ?>
-    <div class="wrap">
-        <h1>SEO Verification Tool</h1>
-        <p class="description">Identify and fix SEO issues with one-click actions.</p>
+    <div class="wrap cta-seo-page">
+        <header class="cta-seo-header">
+            <h1>SEO Verification</h1>
+            <p class="cta-seo-header-desc">Identify and fix SEO issues with one-click actions. Re-run after changes to confirm.</p>
+        </header>
         
-        <div class="card" style="max-width: 1200px; margin-top: 20px;">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <div class="cta-seo-section">
+            <div class="cta-seo-actions" style="justify-content: space-between; flex-wrap: wrap; gap: 1rem; margin-bottom: 1rem;">
                 <div>
-                    <h2 style="margin-top: 0;">Verification Results</h2>
+                    <h2 class="cta-seo-section__title">Verification Results</h2>
                     <p class="description">Last checked: <?php echo esc_html($results['timestamp']); ?></p>
                 </div>
                 <form method="post" style="margin: 0;">
@@ -684,27 +686,17 @@ function cta_seo_verification_page() {
                     <input type="hidden" name="cta_refresh_verification" value="1">
                     <button type="submit" class="button button-primary">
                         <span class="dashicons dashicons-update" style="vertical-align: middle;"></span>
-                        Refresh Verification
+                        Refresh
                     </button>
                 </form>
             </div>
             
-            <!-- Overall Status -->
-            <div style="background: <?php echo esc_attr($status_colors[$results['overall_status']]); ?>15; border-left: 4px solid <?php echo esc_attr($status_colors[$results['overall_status']]); ?>; padding: 15px; margin-bottom: 20px;">
-                <div style="display: flex; align-items: center; gap: 10px;">
-                    <span style="font-size: 24px;"><?php echo esc_html($status_icons[$results['overall_status']]); ?></span>
-                    <div>
-                        <strong style="font-size: 16px;">Overall Status: <?php echo esc_html(ucfirst($results['overall_status'])); ?></strong>
-                        <p style="margin: 5px 0 0 0;">
-                            Score: <?php echo esc_html($results['score']); ?>% 
-                            (<?php echo esc_html($results['passed_checks']); ?>/<?php echo esc_html($results['total_checks']); ?> checks passed)
-                        </p>
-                    </div>
-                </div>
+            <div class="cta-seo-status-banner cta-seo-status-banner--<?php echo esc_attr($results['overall_status']); ?>">
+                <p class="cta-seo-status-banner__title"><?php echo esc_html($status_icons[$results['overall_status']); ?> Overall: <?php echo esc_html(ucfirst($results['overall_status'])); ?></p>
+                <p class="cta-seo-status-banner__detail">Score: <?php echo esc_html($results['score']); ?>% (<?php echo esc_html($results['passed_checks']); ?>/<?php echo esc_html($results['total_checks']); ?> checks passed)</p>
             </div>
             
-            <!-- Individual Checks -->
-            <table class="widefat">
+            <table class="cta-seo-table widefat">
                 <thead>
                     <tr>
                         <th>Check</th>
@@ -718,15 +710,15 @@ function cta_seo_verification_page() {
                     <tr>
                         <td><strong><?php echo esc_html($check['name']); ?></strong></td>
                         <td>
-                            <span style="color: <?php echo esc_attr($status_colors[$check['status']]); ?>; font-weight: 600;">
+                            <span class="cta-seo-status cta-seo-status--<?php echo esc_attr($check['status']); ?>">
                                 <?php echo esc_html($status_icons[$check['status']]); ?> <?php echo esc_html(ucfirst($check['status'])); ?>
                             </span>
                         </td>
                         <td>
                             <?php if (!empty($check['issues'])) : ?>
-                            <ul style="margin: 5px 0;">
+                            <ul>
                                 <?php foreach ($check['issues'] as $issue) : ?>
-                                <li style="color: <?php echo esc_attr($status_colors[$check['status']]); ?>;"><?php echo esc_html($issue); ?></li>
+                                <li><?php echo esc_html($issue); ?></li>
                                 <?php endforeach; ?>
                             </ul>
                             <?php endif; ?>
@@ -734,7 +726,7 @@ function cta_seo_verification_page() {
                             <?php if (!empty($check['recommendations'])) : ?>
                             <ul style="margin: 5px 0; font-size: 12px;">
                                 <?php foreach ($check['recommendations'] as $rec) : ?>
-                                <li style="color: #646970;"><?php echo esc_html($rec); ?></li>
+                                <li><?php echo esc_html($rec); ?></li>
                                 <?php endforeach; ?>
                             </ul>
                             <?php endif; ?>
@@ -819,7 +811,7 @@ function cta_seo_verification_page() {
                                 </a>
                                 <?php endif; ?>
                             <?php else : ?>
-                            <span style="color: #00a32a; font-size: 12px;">✓ OK</span>
+                            <span class="cta-seo-status cta-seo-status--pass">✓ OK</span>
                             <?php endif; ?>
                         </td>
                     </tr>
@@ -829,7 +821,7 @@ function cta_seo_verification_page() {
         </div>
         
         <!-- Trustpilot Quick Config Form (hidden by default) -->
-        <div id="trustpilot-form" class="card" style="max-width: 1200px; margin-top: 20px; display: none;">
+        <div id="trustpilot-form" class="cta-seo-section" style="display: none;">
             <h2><span class="dashicons dashicons-star-filled" style="color: #00b67a;"></span> Configure Trustpilot</h2>
             <p>Enter your Trustpilot rating and review count to display trust signals on your site.</p>
             <form method="post">
@@ -861,8 +853,9 @@ function cta_seo_verification_page() {
         </div>
         
         <!-- SEO Configuration Tools -->
-        <div class="card" style="max-width: 1200px; margin-top: 20px;">
-            <h2><span class="dashicons dashicons-admin-settings" style="color: #2271b1;"></span> SEO Configuration</h2>
+        <div class="cta-seo-section">
+            <h2 class="cta-seo-section__title">SEO Configuration</h2>
+            <div class="cta-seo-section__body">
             <p>Configure advanced SEO settings for your site.</p>
             
             <?php
@@ -873,7 +866,7 @@ function cta_seo_verification_page() {
             $og_image = get_option('cta_default_og_image', '');
             ?>
             
-            <table class="widefat" style="margin-top: 15px;">
+            <table class="cta-seo-table widefat">
                 <thead>
                     <tr>
                         <th>Feature</th>
@@ -959,11 +952,12 @@ function cta_seo_verification_page() {
                     </tr>
                 </tbody>
             </table>
+            </div>
         </div>
         
-        <!-- Default Meta Tags Config Form (hidden) -->
-        <div id="meta-config-form" class="card" style="max-width: 1200px; margin-top: 20px; display: none;">
-            <h2><span class="dashicons dashicons-tag" style="color: #2271b1;"></span> Configure Default Meta Tags</h2>
+        <div id="meta-config-form" class="cta-seo-section" style="display: none;">
+            <h2 class="cta-seo-section__title">Configure Default Meta Tags</h2>
+            <div class="cta-seo-section__body">
             <p>These will be used as fallbacks when pages don't have custom meta tags.</p>
             <form method="post">
                 <?php wp_nonce_field('cta_seo_fix_action'); ?>
@@ -990,11 +984,12 @@ function cta_seo_verification_page() {
                 <button type="submit" class="button button-primary">Save Default Meta Tags</button>
                 <button type="button" class="button" onclick="document.getElementById('meta-config-form').style.display='none';">Cancel</button>
             </form>
+            </div>
         </div>
         
-        <!-- Social Media Config Form (hidden) -->
-        <div id="social-config-form" class="card" style="max-width: 1200px; margin-top: 20px; display: none;">
-            <h2><span class="dashicons dashicons-share" style="color: #2271b1;"></span> Configure Social Media Tags</h2>
+        <div id="social-config-form" class="cta-seo-section" style="display: none;">
+            <h2 class="cta-seo-section__title">Configure Social Media Tags</h2>
+            <div class="cta-seo-section__body">
             <p>Default share image for Facebook, LinkedIn. Your site links to Trustpilot, Facebook, LinkedIn and Instagram from the theme.</p>
             <form method="post">
                 <?php wp_nonce_field('cta_seo_fix_action'); ?>
@@ -1022,12 +1017,13 @@ function cta_seo_verification_page() {
                 <button type="submit" class="button button-primary">Save Social Media Settings</button>
                 <button type="button" class="button" onclick="document.getElementById('social-config-form').style.display='none';">Cancel</button>
             </form>
+            </div>
         </div>
         
-        <!-- Quick Actions -->
-        <div class="card" style="max-width: 1200px; margin-top: 20px;">
-            <h2>Quick Links</h2>
-            <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-top: 15px;">
+        <div class="cta-seo-section">
+            <h2 class="cta-seo-section__title">Quick Links</h2>
+            <div class="cta-seo-section__body">
+            <div class="cta-seo-actions">
                 <a href="<?php echo admin_url('admin.php?page=cta-seo-sitemap-diagnostic'); ?>" class="button">
                     <span class="dashicons dashicons-admin-site" style="vertical-align: middle;"></span>
                     Sitemap Diagnostic
@@ -1045,11 +1041,12 @@ function cta_seo_verification_page() {
                     Search Console
                 </a>
             </div>
+            </div>
         </div>
         
-        <!-- Export Report -->
-        <div class="card" style="max-width: 1200px; margin-top: 20px;">
-            <h2>Export Verification Report</h2>
+        <div class="cta-seo-section">
+            <h2 class="cta-seo-section__title">Export Verification Report</h2>
+            <div class="cta-seo-section__body">
             <p>Download a detailed verification report for your records.</p>
             <form method="post" action="<?php echo admin_url('admin-post.php'); ?>">
                 <?php wp_nonce_field('cta_export_verification'); ?>
@@ -1059,6 +1056,7 @@ function cta_seo_verification_page() {
                     Export as JSON
                 </button>
             </form>
+            </div>
         </div>
     </div>
     <?php
