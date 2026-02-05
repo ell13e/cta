@@ -64,8 +64,8 @@ add_action('after_setup_theme', 'cta_add_image_sizes');
  * Disable Gutenberg for specific post types (keep admin simple)
  */
 function cta_disable_gutenberg($use_block_editor, $post_type) {
-    // Use classic editor for posts, courses and events (ACF handles the content)
-    if (in_array($post_type, ['post', 'course', 'course_event'])) {
+    // Use classic editor for posts, courses, events, and FAQs
+    if (in_array($post_type, ['post', 'course', 'course_event', 'faq'])) {
         return false;
     }
     return $use_block_editor;
@@ -162,13 +162,90 @@ function cta_add_editor_help_text($post) {
         ?>
         <div class="cta-editor-help" style="background: #f0f6fc; border-left: 4px solid #2271b1; padding: 12px 16px; margin: 10px 0 15px 0; border-radius: 4px;">
             <p style="margin: 0; font-size: 13px; color: #1d2327; line-height: 1.6;">
-                <strong>💡 FAQ:</strong> The <strong>title</strong> above is the question. The <strong>content block below</strong> is the answer—edit it here in the main editor. Use blocks to add lists, links, or emphasis. Keep answers concise and focused.
+                <strong>💡 FAQ:</strong> The <strong>title</strong> above is the question. Use the <strong>editor below</strong> (Visual or Text) for the answer. Keep answers concise; use the toolbar for lists, links, or emphasis.
             </p>
         </div>
         <?php
     }
 }
 add_action('edit_form_after_title', 'cta_add_editor_help_text');
+
+/**
+ * Build the About page content from ACF so the main editor can show "the page" in one place.
+ * Used to pre-fill the main editor when editing the About Us page (only when editor is empty).
+ */
+function cta_build_about_page_editor_content($post_id) {
+    if (!function_exists('get_field')) {
+        return '';
+    }
+    $hero_title   = get_field('hero_title', $post_id) ?: 'About Our Care Training in Kent';
+    $hero_subtitle = get_field('hero_subtitle', $post_id) ?: 'CQC-compliant, CPD-accredited care sector training in Kent since 2020';
+    $mission_title = get_field('mission_title', $post_id) ?: 'Our Care Training Approach';
+    $mission_text  = get_field('mission_text', $post_id);
+    $values_title  = get_field('values_title', $post_id) ?: 'Core Care Training Values';
+    $values_subtitle = get_field('values_subtitle', $post_id) ?: 'These principles guide everything we do and shape the experience we provide to our learners.';
+    $values        = get_field('values', $post_id);
+    $team_title    = get_field('team_title', $post_id) ?: 'Expert Care Training Team';
+    $team_subtitle = get_field('team_subtitle', $post_id) ?: 'Experienced professionals dedicated to your development.';
+    $cta_title     = get_field('cta_title', $post_id) ?: 'Start Your Care Training Today';
+    $cta_text      = get_field('cta_text', $post_id) ?: 'Join hundreds of care professionals who trust us for their training needs. Get expert CQC compliance training with CPD-accredited certificates.';
+
+    $out = '<h1>' . esc_html($hero_title) . "</h1>\n\n";
+    $out .= '<p>' . esc_html($hero_subtitle) . "</p>\n\n";
+    $out .= '<h2>' . esc_html($mission_title) . "</h2>\n\n";
+    if (is_array($mission_text)) {
+        foreach ($mission_text as $p) {
+            $p = stripslashes($p);
+            $out .= '<p>' . wp_kses_post($p) . "</p>\n\n";
+        }
+    } elseif ($mission_text) {
+        $out .= '<p>' . wp_kses_post(stripslashes($mission_text)) . "</p>\n\n";
+    }
+    $out .= '<h2>' . esc_html($values_title) . "</h2>\n\n";
+    $out .= '<p>' . esc_html($values_subtitle) . "</p>\n\n";
+    if (is_array($values)) {
+        foreach ($values as $v) {
+            $title = isset($v['title']) ? $v['title'] : '';
+            $desc  = isset($v['description']) ? $v['description'] : '';
+            if ($title || $desc) {
+                if ($title) {
+                    $out .= '<h3>' . esc_html($title) . "</h3>\n\n";
+                }
+                if ($desc) {
+                    $out .= '<p>' . esc_html($desc) . "</p>\n\n";
+                }
+            }
+        }
+    }
+    $out .= '<h2>' . esc_html($team_title) . "</h2>\n\n";
+    $out .= '<p>' . esc_html($team_subtitle) . "</p>\n\n";
+    $out .= '<h2>' . esc_html($cta_title) . "</h2>\n\n";
+    $out .= '<p>' . esc_html($cta_text) . '</p>';
+    return $out;
+}
+
+/**
+ * Pre-fill the main editor for the About page with content from ACF (hero, mission, values, team, CTA)
+ * so the big text box shows the page content in one place. Only when the editor is currently empty.
+ */
+function cta_prefill_about_page_editor() {
+    global $post;
+    if (!$post || $post->post_type !== 'page') {
+        return;
+    }
+    if (get_page_template_slug($post->ID) !== 'page-templates/page-about.php') {
+        return;
+    }
+    $current = trim((string) $post->post_content);
+    if ($current !== '') {
+        return;
+    }
+    $content = cta_build_about_page_editor_content($post->ID);
+    if ($content !== '') {
+        $post->post_content = $content;
+    }
+}
+add_action('edit_form_after_title', 'cta_prefill_about_page_editor', 1);
 
 /**
  * Remove unnecessary meta boxes to reduce clutter

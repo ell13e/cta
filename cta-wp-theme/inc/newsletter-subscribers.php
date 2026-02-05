@@ -538,10 +538,15 @@ function cta_add_newsletter_subscriber($email, $ip = '', $first_name = '', $last
     if (defined('WP_DEBUG') && WP_DEBUG) {
         error_log('CTA Newsletter: Subscriber added with ID ' . $subscriber_id);
     }
-    
-    // Send welcome email to new subscriber
-    cta_send_welcome_email($subscriber_id, $email, $first_name);
-    
+
+    // If an active automation flow with trigger "subscribes" exists, it will send the welcome (or first step).
+    $welcome_handled_by_automation = function_exists('cta_automation_has_active_subscribes_flow') && cta_automation_has_active_subscribes_flow();
+    if (!$welcome_handled_by_automation) {
+        cta_send_welcome_email($subscriber_id, $email, $first_name);
+    }
+
+    do_action('cta_newsletter_subscriber_added', $subscriber_id, $email, $first_name);
+
     return 'added';
 }
 
