@@ -286,8 +286,8 @@ $trustpilot_stars = cta_get_trustpilot_stars($trustpilot_rating);
           
               <div class="category-card-header-new">
             <div class="category-header-left">
+              <span class="category-badge-new course-card-badge <?php echo esc_attr($category['badge_class']); ?>"><?php echo esc_html($category['badge']); ?></span>
               <div class="category-icon-title-row">
-                <span class="category-badge-new course-card-badge <?php echo esc_attr($category['badge_class']); ?>"><?php echo esc_html($category['badge']); ?></span>
                 <div class="category-icon-wrapper">
                   <i class="fas <?php echo esc_attr($category['icon']); ?> category-icon-svg" aria-hidden="true"></i>
                 </div>

@@ -41110,6 +41110,8 @@ fieldset.booking-modal-field legend.booking-modal-label {
   min-width: 0;
   overflow-wrap: break-word;
   word-wrap: break-word;
+  position: relative; /* Ensure proper stacking context */
+  z-index: 0; /* Below sidebar when sticky */
 }
 
 .course-detail-section-heading {
@@ -41551,17 +41553,22 @@ fieldset.booking-modal-field legend.booking-modal-label {
   width: 100%;
   max-width: 100%;
   min-width: 0; /* Prevent flex/grid item overflow */
+  z-index: 1; /* Ensure sidebar stays above main content when sticky */
 }
 
 /* Mobile: full width, static positioning (no sticky) */
 @media (max-width: 639px) {
   .course-detail-grid {
+    display: grid;
+    grid-template-columns: 1fr; /* Single column on mobile - prevent overlap */
     gap: var(--spacing-lg); /* 24px - reduced gap on mobile */
     padding: 0;
     padding-top: 0; /* Remove top padding on mobile */
     margin-top: 0; /* Remove top margin on mobile */
     margin-bottom: 0; /* Remove bottom margin on mobile */
     box-sizing: border-box;
+    width: 100%;
+    max-width: 100%;
   }
   
   .course-detail-grid:first-child {
@@ -41578,6 +41585,7 @@ fieldset.booking-modal-field legend.booking-modal-label {
     margin-bottom: var(--spacing-lg); /* 24px spacing */
     padding-top: 0; /* Remove any top padding on mobile */
     box-sizing: border-box;
+    z-index: auto; /* Reset z-index on mobile */
   }
   
   .course-detail-sidebar:first-child {
@@ -41592,6 +41600,8 @@ fieldset.booking-modal-field legend.booking-modal-label {
     width: 100%;
     max-width: 100%;
     box-sizing: border-box;
+    z-index: auto; /* Reset z-index on mobile */
+    order: 1; /* Show main content after sidebar on mobile */
   }
   
   .course-detail-section-heading {
@@ -42040,6 +42050,8 @@ fieldset.booking-modal-field legend.booking-modal-label {
   list-style: none;
   margin: 0 0 1rem 0;
   padding: 0;
+  width: 100%; /* Match button width */
+  box-sizing: border-box;
 }
 
 .course-detail-meta-item {
@@ -42051,6 +42063,8 @@ fieldset.booking-modal-field legend.booking-modal-label {
   font-size: clamp(0.875rem, 1.5vw, 0.95rem);
   line-height: 1.5;
   gap: 1rem; /* Add gap between label and value */
+  width: 100%; /* Ensure full width to match button */
+  box-sizing: border-box;
 }
 
 .course-detail-meta-item:last-child {
@@ -42069,10 +42083,10 @@ fieldset.booking-modal-field legend.booking-modal-label {
   white-space: nowrap; /* Keep on one line by default */
   word-break: normal;
   overflow-wrap: normal;
-  flex: 0 1 auto; /* Allow shrinking but don't force growth */
+  flex: 0 0 auto; /* Don't shrink or grow - maintain natural width */
   min-width: 0;
-  max-width: 65%; /* Prevent it from taking too much space */
   line-height: 1.5; /* Match parent line-height for alignment */
+  /* Align with button's right edge - button is full width, so values align naturally */
 }
 
 /* Category value - allow wrapping at ampersand */
