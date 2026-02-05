@@ -4658,6 +4658,26 @@ input[type="search"]::-ms-clear,
   overflow: visible; /* Allow badge to extend if needed */
 }
 
+/* Ensure badge aligns perfectly with top of card - no space above */
+.category-icon-title-row .category-badge-new {
+  top: 0;
+  margin-top: calc(var(--spacing-xl) * -1); /* Pull badge up to top of card, accounting for card-link padding */
+  padding-top: 0;
+}
+
+/* On larger screens, account for larger padding */
+@media (min-width: 768px) {
+  .category-icon-title-row .category-badge-new {
+    margin-top: calc(var(--spacing-2xl) * -1); /* Pull badge up to top of card on larger screens */
+  }
+}
+
+/* Remove any top spacing from category-icon-title-row when it contains a badge */
+.category-icon-title-row:has(.category-badge-new) {
+  margin-top: 0;
+  padding-top: 0;
+}
+
 .category-name-wrapper {
   display: flex;
   flex-direction: column;
@@ -4787,6 +4807,7 @@ input[type="search"]::-ms-clear,
   z-index: 10; /* Ensure badge appears above other content */
   margin-left: auto; /* Push to right if flex context affects it */
   margin-right: 0; /* Ensure no right margin */
+  margin-top: 0; /* Remove any top margin */
 }
 
 /* Ensure course-badge-* colors override category-badge-* colors when both classes are present */
@@ -7614,21 +7635,34 @@ textarea:focus-visible,
 .breadcrumb-item:last-child {
   flex: 1; /* Allow last item to shrink if needed */
   min-width: 0; /* Allow text truncation */
+  white-space: normal; /* Allow wrapping on mobile for long text */
+  word-break: normal; /* Break at word boundaries, not in the middle of words */
+  overflow-wrap: break-word; /* Wrap long words if necessary */
 }
 
 .breadcrumb-current {
   color: var(--brown-dark); /* text-[#2B1B0E] */
   font-weight: 600; /* font-semibold */
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  overflow: visible; /* Allow text to wrap instead of truncate */
+  text-overflow: clip; /* Remove ellipsis since we're wrapping */
+  white-space: normal; /* Allow wrapping on mobile */
   max-width: 100%;
   min-width: 0; /* Allow text truncation */
+  word-break: normal; /* Break at word boundaries, not in the middle of words */
+  overflow-wrap: break-word; /* Wrap long words if necessary */
+  line-height: 1.4; /* Better line spacing when wrapped */
 }
 
 @media (min-width: 640px) {
   .breadcrumb-current {
     max-width: none; /* Allow full width on larger screens */
+    white-space: nowrap; /* Prevent wrapping on larger screens */
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  
+  .breadcrumb-item:last-child {
+    white-space: nowrap; /* Prevent wrapping on larger screens */
   }
 }
 
@@ -38625,6 +38659,13 @@ fieldset.booking-modal-field legend.booking-modal-label {
   background: #fefcf9;
 }
 
+/* Remove top padding on mobile and tablet for event pages */
+@media (max-width: 967px) {
+  .event-detail-content {
+    padding-top: 0;
+  }
+}
+
 @media (min-width: 1120px) {
   .event-detail-content {
     padding: 0 0 80px 0;
@@ -38635,6 +38676,25 @@ fieldset.booking-modal-field legend.booking-modal-label {
   display: grid;
   grid-template-columns: 1fr;
   gap: 32px;
+}
+
+/* Mobile and tablet responsive styles for event grid */
+@media (max-width: 639px) {
+  .event-detail-grid {
+    gap: var(--spacing-lg); /* 24px - reduced gap on mobile */
+    padding: 0;
+    padding-top: 0;
+    margin-top: 0;
+    margin-bottom: 0;
+  }
+}
+
+@media (min-width: 640px) and (max-width: 967px) {
+  .event-detail-grid {
+    gap: var(--spacing-xl); /* 32px */
+    padding-top: 0;
+    margin-top: 0;
+  }
 }
 
 @media (min-width: 1120px) {
@@ -38653,9 +38713,31 @@ fieldset.booking-modal-field legend.booking-modal-label {
   align-items: stretch;
 }
 
+/* Mobile responsive styles for event main */
+@media (max-width: 639px) {
+  .event-detail-main {
+    margin-top: 0;
+    padding: 0;
+    padding-top: 0;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+  }
+}
+
 @media (min-width: 640px) {
   .event-detail-main {
     gap: var(--spacing-xl); /* 32px */
+  }
+}
+
+/* Tablet responsive styles for event main */
+@media (min-width: 640px) and (max-width: 967px) {
+  .event-detail-main {
+    width: 100%;
+    max-width: 100%;
+    padding-top: 0;
+    box-sizing: border-box;
   }
 }
 
@@ -38887,6 +38969,44 @@ fieldset.booking-modal-field legend.booking-modal-label {
   padding-top: 0;
 }
 
+/* Mobile responsive styles for event sidebar */
+@media (max-width: 639px) {
+  .event-detail-sidebar {
+    position: static; /* Remove sticky on mobile */
+    order: -1; /* Show sidebar first on mobile */
+    width: 100%;
+    max-width: 100%;
+    margin-top: 0;
+    margin-bottom: var(--spacing-lg); /* 24px spacing */
+    padding-top: 0;
+    box-sizing: border-box;
+  }
+  
+  .event-detail-sidebar:first-child {
+    margin-top: 0;
+    padding-top: 0;
+  }
+}
+
+/* Tablet responsive styles for event sidebar */
+@media (min-width: 640px) and (max-width: 967px) {
+  .event-detail-sidebar {
+    position: static; /* Static on tablet for better scrolling */
+    order: -1; /* Show sidebar first */
+    width: 100%;
+    max-width: 100%;
+    margin-top: 0;
+    margin-bottom: var(--spacing-xl); /* 32px spacing */
+    padding-top: 0;
+    box-sizing: border-box;
+  }
+  
+  .event-detail-sidebar:first-child {
+    margin-top: 0;
+    padding-top: 0;
+  }
+}
+
 @media (min-width: 1120px) {
   .event-detail-sidebar {
     gap: var(--spacing-xl);
@@ -38913,6 +39033,28 @@ fieldset.booking-modal-field legend.booking-modal-label {
 @supports not (backdrop-filter: blur(10px)) {
   .event-detail-booking-card {
     background: #ffffff;
+  }
+}
+
+/* Mobile responsive styles for event booking card */
+@media (max-width: 639px) {
+  .event-detail-booking-card {
+    padding: var(--spacing-base); /* 16px - reduced padding on mobile */
+    padding-top: var(--spacing-base); /* Ensure consistent top padding */
+    margin-top: 0; /* Remove any top margin on mobile */
+    border-radius: 8px; /* Smaller radius on mobile */
+  }
+  
+  .event-detail-booking-card:first-child {
+    margin-top: 0; /* Ensure no top margin on first child */
+    padding-top: var(--spacing-base); /* Keep consistent padding */
+  }
+}
+
+/* Tablet responsive styles for event booking card */
+@media (min-width: 640px) and (max-width: 967px) {
+  .event-detail-booking-card {
+    padding: var(--spacing-lg); /* 24px */
   }
 }
 
@@ -40906,6 +41048,8 @@ fieldset.booking-modal-field legend.booking-modal-label {
 @media (min-width: 640px) and (max-width: 967px) {
   .course-detail-grid {
     gap: var(--spacing-xl); /* 32px - standard tablet gap */
+    padding-top: 0; /* Remove top padding on tablet */
+    margin-top: 0; /* Remove top margin on tablet */
   }
   
   /* Add proper spacing between main and sidebar on tablet */
@@ -41093,6 +41237,7 @@ fieldset.booking-modal-field legend.booking-modal-label {
 .course-detail-learn-grid {
   display: flex;
   flex-direction: column;
+  align-items: flex-start;
   gap: 0.5rem;
   margin-top: 0;
   max-width: 100%;
@@ -41382,7 +41527,13 @@ fieldset.booking-modal-field legend.booking-modal-label {
     padding: 0;
     padding-top: 0; /* Remove top padding on mobile */
     margin-top: 0; /* Remove top margin on mobile */
+    margin-bottom: 0; /* Remove bottom margin on mobile */
     box-sizing: border-box;
+  }
+  
+  .course-detail-grid:first-child {
+    margin-top: 0; /* Ensure no top margin on first child */
+    padding-top: 0; /* Ensure no top padding on first child */
   }
   
   .course-detail-sidebar {
@@ -41394,6 +41545,11 @@ fieldset.booking-modal-field legend.booking-modal-label {
     margin-bottom: var(--spacing-lg); /* 24px spacing */
     padding-top: 0; /* Remove any top padding on mobile */
     box-sizing: border-box;
+  }
+  
+  .course-detail-sidebar:first-child {
+    margin-top: 0; /* Ensure no top margin on first child */
+    padding-top: 0; /* Ensure no top padding on first child */
   }
   
   .course-detail-main {
@@ -41426,6 +41582,11 @@ fieldset.booking-modal-field legend.booking-modal-label {
     padding-top: var(--spacing-base); /* Ensure consistent top padding */
     margin-top: 0; /* Remove any top margin on mobile */
     border-radius: 8px; /* Smaller radius on mobile */
+  }
+  
+  .course-detail-booking-card:first-child {
+    margin-top: 0; /* Ensure no top margin on first child */
+    padding-top: var(--spacing-base); /* Keep consistent padding */
   }
   
   /* Better spacing for content sections on mobile */
@@ -41549,8 +41710,15 @@ fieldset.booking-modal-field legend.booking-modal-label {
     order: -1; /* Show sidebar first */
     width: 100%;
     max-width: 100%;
+    margin-top: 0; /* Remove any top margin on tablet */
     margin-bottom: var(--spacing-xl); /* 32px spacing */
+    padding-top: 0; /* Remove any top padding on tablet */
     box-sizing: border-box;
+  }
+  
+  .course-detail-sidebar:first-child {
+    margin-top: 0; /* Ensure no top margin on first child */
+    padding-top: 0; /* Ensure no top padding on first child */
   }
   
   .course-detail-main {
@@ -41887,6 +42055,7 @@ fieldset.booking-modal-field legend.booking-modal-label {
   align-items: center;
   flex-wrap: wrap;
   gap: 0.5rem;
+  text-align: center;
 }
 
 .course-detail-phone-link {
@@ -41913,6 +42082,26 @@ fieldset.booking-modal-field legend.booking-modal-label {
   line-height: 1.5;
   font-weight: 400;
   text-align: right;
+}
+
+/* Center phone section on mobile and tablet */
+@media (max-width: 967px) {
+  .course-detail-phone {
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+  }
+  
+  .course-detail-phone-link {
+    justify-content: center;
+    width: auto;
+  }
+  
+  .course-detail-phone-hours {
+    text-align: center;
+    width: 100%;
+  }
 }
 
 .course-detail-phone-link svg {
@@ -51604,6 +51793,10 @@ a.article-cta-btn:focus-visible {
   border: 1px solid rgba(0, 0, 0, 0.08);
   text-align: center;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
 }
 
 .course-next-dates h4 {
@@ -51615,8 +51808,9 @@ a.article-cta-btn:focus-visible {
 }
 
 .course-next-dates .btn {
-  display: block;
+  display: inline-flex;
   margin: 1.5rem auto 0;
+  align-self: center;
 }
 
 .course-dates-list {
