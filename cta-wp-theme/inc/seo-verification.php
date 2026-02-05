@@ -691,8 +691,12 @@ function cta_seo_verification_page() {
                 </form>
             </div>
             
-            <div class="cta-seo-status-banner cta-seo-status-banner--<?php echo esc_attr($results['overall_status']); ?>">
-                <p class="cta-seo-status-banner__title"><?php echo esc_html($status_icons[$results['overall_status']); ?> Overall: <?php echo esc_html(ucfirst($results['overall_status'])); ?></p>
+            <?php
+            $overall = $results['overall_status'];
+            $overall_icon = isset($status_icons[$overall]) ? $status_icons[$overall] : '';
+            ?>
+            <div class="cta-seo-status-banner cta-seo-status-banner--<?php echo esc_attr($overall); ?>">
+                <p class="cta-seo-status-banner__title"><?php echo esc_html($overall_icon); ?> Overall: <?php echo esc_html(ucfirst($overall)); ?></p>
                 <p class="cta-seo-status-banner__detail">Score: <?php echo esc_html($results['score']); ?>% (<?php echo esc_html($results['passed_checks']); ?>/<?php echo esc_html($results['total_checks']); ?> checks passed)</p>
             </div>
             
