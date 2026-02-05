@@ -4642,6 +4642,14 @@ input[type="search"]::-ms-clear,
   flex-direction: column;
   gap: 0;
   width: 100%;
+  padding-top: var(--spacing-xl); /* Match footer spacing from card edge */
+}
+
+/* On larger screens, account for larger padding */
+@media (min-width: 768px) {
+  .category-header-left {
+    padding-top: var(--spacing-2xl); /* Match spacing on larger screens */
+  }
 }
 
 .category-icon-title-row {
@@ -4659,55 +4667,30 @@ input[type="search"]::-ms-clear,
   overflow: visible;
 }
 
-/* Ensure badge aligns perfectly with top of card - no space above */
-.category-icon-title-row .category-badge-new {
+/* Badge when in category-header-left (outside category-icon-title-row) */
+.category-header-left .category-badge-new {
   position: relative;
   top: 0;
-  right: auto;
+  right: 0;
   left: auto;
-  margin-top: calc(var(--spacing-xl) * -1); /* Pull badge up to top of card, accounting for card-link padding */
-  padding-top: 10px; /* Restore padding for proper vertical centering */
-  padding-bottom: 10px; /* Ensure equal padding */
-  order: 2; /* Badge appears after icon */
-  margin-left: auto; /* Push badge to right */
-  align-items: center; /* Ensure vertical centering */
-  justify-content: center; /* Ensure horizontal centering */
+  align-self: flex-end; /* Position badge to the right */
+  margin-bottom: 0;
+  margin-left: auto;
 }
 
-/* On larger screens, account for larger padding */
-@media (min-width: 768px) {
-  .category-icon-title-row .category-badge-new {
-    margin-top: calc(var(--spacing-2xl) * -1); /* Pull badge up to top of card on larger screens */
-  }
-}
-
-/* Icon wrapper - top aligned with badge */
+/* Icon wrapper */
 .category-icon-title-row .category-icon-wrapper {
-  order: 1; /* Icon appears before badge */
-  margin-top: calc(var(--spacing-xl) * -1); /* Pull icon up to match badge */
   align-self: flex-start;
   flex-shrink: 0;
 }
 
-@media (min-width: 768px) {
-  .category-icon-title-row .category-icon-wrapper {
-    margin-top: calc(var(--spacing-2xl) * -1); /* Match badge positioning on larger screens */
-  }
-}
-
-/* Category name wrapper - full width below badge and icon */
+/* Category name wrapper */
 .category-icon-title-row .category-name-wrapper {
-  order: 3;
   flex-basis: 100%;
   width: 100%;
   margin-top: 0;
 }
 
-/* Remove any top spacing from category-icon-title-row when it contains a badge */
-.category-icon-title-row:has(.category-badge-new) {
-  margin-top: 0;
-  padding-top: 0;
-}
 
 .category-name-wrapper {
   display: flex;
@@ -7626,9 +7609,9 @@ textarea:focus-visible,
 .breadcrumb-list {
   display: flex;
   flex-wrap: wrap;
-  align-items: center;
+  align-items: flex-start; /* Align to top when wrapping */
   justify-content: center;
-  gap: 6px;
+  gap: 0 0.25rem; /* Horizontal gap between items, vertical gap for wrapped lines */
   font-size: 14px;
   list-style: none;
   margin: 0;
@@ -7637,11 +7620,13 @@ textarea:focus-visible,
   width: 100%;
   min-width: 0;
   overflow: hidden;
+  line-height: 1.5; /* Better line height for wrapped content */
 }
 
 @media (min-width: 640px) {
   .breadcrumb-list {
-    gap: 8px;
+    align-items: center; /* Center align on larger screens */
+    gap: 0 0.5rem; /* Larger horizontal gap on bigger screens */
   }
 }
 
@@ -7660,42 +7645,42 @@ textarea:focus-visible,
 .breadcrumb-item {
   display: flex;
   align-items: center;
-  white-space: nowrap; /* Prevent wrapping individual elements (e.g., 'home' = one element) */
-  max-width: 100%; /* Prevent overflow */
-  overflow: hidden; /* Handle long text */
+  max-width: 100%;
+  min-width: 0;
+  white-space: nowrap; /* Keep items on one line */
+  flex-shrink: 0; /* Don't shrink items - let them wrap instead */
 }
 
+/* Last item can wrap to new line cleanly when space is limited */
 .breadcrumb-item:last-child {
-  flex: 1; /* Allow last item to shrink if needed */
-  min-width: 0; /* Allow text truncation */
-  white-space: normal; /* Allow wrapping on mobile for long text */
-  word-break: normal; /* Break at word boundaries, not in the middle of words */
-  overflow-wrap: break-word; /* Wrap long words if necessary */
+  flex-shrink: 1;
+  white-space: normal; /* Allow wrapping for last item */
+  min-width: 0;
+  flex-basis: auto; /* Allow natural sizing, but can wrap */
 }
 
 .breadcrumb-current {
   color: var(--brown-dark); /* text-[#2B1B0E] */
   font-weight: 600; /* font-semibold */
-  overflow: visible; /* Allow text to wrap instead of truncate */
-  text-overflow: clip; /* Remove ellipsis since we're wrapping */
-  white-space: normal; /* Allow wrapping on mobile */
+  white-space: normal; /* Allow wrapping */
   max-width: 100%;
-  min-width: 0; /* Allow text truncation */
-  word-break: normal; /* Break at word boundaries, not in the middle of words */
-  overflow-wrap: break-word; /* Wrap long words if necessary */
-  line-height: 1.4; /* Better line spacing when wrapped */
+  min-width: 0;
+  word-break: break-word; /* Break long words if necessary */
+  overflow-wrap: break-word; /* Wrap at word boundaries when possible */
+  line-height: 1.5;
+  display: inline-block;
 }
 
 @media (min-width: 640px) {
   .breadcrumb-current {
-    max-width: none; /* Allow full width on larger screens */
     white-space: nowrap; /* Prevent wrapping on larger screens */
     overflow: hidden;
     text-overflow: ellipsis;
+    max-width: 100%;
   }
   
   .breadcrumb-item:last-child {
-    white-space: nowrap; /* Prevent wrapping on larger screens */
+    white-space: nowrap; /* Keep last item on one line on larger screens */
   }
 }
 
@@ -7703,6 +7688,18 @@ textarea:focus-visible,
   color: var(--brown-dark); /* Use darker color for WCAG AA contrast (4.5:1) */
   text-decoration: none;
   transition: color 0.2s; /* transition-colors duration-200 */
+  white-space: normal; /* Allow wrapping for long link text on mobile */
+  word-break: break-word; /* Break long words if necessary */
+  overflow-wrap: break-word; /* Wrap at word boundaries when possible */
+  display: inline-block;
+  max-width: 100%;
+  line-height: 1.5;
+}
+
+@media (min-width: 640px) {
+  .breadcrumb-link {
+    white-space: nowrap; /* Prevent wrapping on larger screens */
+  }
 }
 
 .breadcrumb-link:hover {
@@ -7711,8 +7708,11 @@ textarea:focus-visible,
 
 .breadcrumb-separator {
   color: var(--brown-medium); /* Darker for better contrast - was #6B5A4A */
-  margin: 0 4px; /* Mobile: smaller spacing */
   flex-shrink: 0; /* Prevent separator from shrinking */
+  white-space: nowrap; /* Separators should never wrap */
+  display: inline-block; /* Keep separator inline */
+  align-self: center; /* Center align separator vertically */
+  margin: 0; /* Gap handles spacing now */
 }
 
 @media (min-width: 640px) {
@@ -42045,11 +42045,12 @@ fieldset.booking-modal-field legend.booking-modal-label {
 .course-detail-meta-item {
   display: flex;
   justify-content: space-between;
-  align-items: flex-start;
+  align-items: center; /* Center align label and value horizontally */
   padding: 0.75rem 0;
   border-bottom: 1px solid #f0f0f0;
   font-size: clamp(0.875rem, 1.5vw, 0.95rem);
   line-height: 1.5;
+  gap: 1rem; /* Add gap between label and value */
 }
 
 .course-detail-meta-item:last-child {
@@ -42065,6 +42066,23 @@ fieldset.booking-modal-field legend.booking-modal-label {
   font-weight: 600;
   color: var(--brown-dark, #2B1B0E);
   text-align: right;
+  white-space: nowrap; /* Keep on one line by default */
+  word-break: normal;
+  overflow-wrap: normal;
+  flex: 0 1 auto; /* Allow shrinking but don't force growth */
+  min-width: 0;
+  max-width: 65%; /* Prevent it from taking too much space */
+  line-height: 1.5; /* Match parent line-height for alignment */
+}
+
+/* Category value - allow wrapping at ampersand */
+.course-detail-category {
+  white-space: normal; /* Allow wrapping for category */
+  overflow-wrap: break-word; /* Allow breaking at word boundaries */
+  word-break: normal; /* Break at normal word boundaries */
+  display: block; /* Change to block for wrapping */
+  text-align: right; /* Right align wrapped text */
+  /* The space after & will naturally allow wrapping */
 }
 
 /* Badge for Level */
@@ -51820,16 +51838,13 @@ a.article-cta-btn:focus-visible {
 
 .course-next-dates {
   margin: 1.5rem 0;
-  padding: 2rem 1.5rem;
+  padding: 1.5rem;
   background: var(--cream-light, #F5EFE0);
   border-radius: 12px;
   border: 1px solid rgba(0, 0, 0, 0.08);
-  text-align: center;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
   display: flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: center;
 }
 
 .course-next-dates h4 {
@@ -51838,6 +51853,7 @@ a.article-cta-btn:focus-visible {
   font-weight: 700;
   color: var(--brown-dark, #2B1B0E);
   line-height: 1.3;
+  text-align: left;
 }
 
 .course-next-dates .btn {
@@ -51849,12 +51865,13 @@ a.article-cta-btn:focus-visible {
 .course-dates-list {
   list-style: none;
   padding: 0;
-  margin: 0 0 16px 0;
+  margin: 0 0 1rem 0;
+  width: 100%;
 }
 
 .course-date-item {
   list-style: none;
-  border-bottom: 1px solid #e5e7eb;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
 }
 
 .course-date-item:last-child {
@@ -51866,12 +51883,13 @@ a.article-cta-btn:focus-visible {
   justify-content: space-between;
   align-items: center;
   width: 100%;
-  padding: 12px 0;
+  padding: 1rem 0;
   background: none;
   border: none;
   cursor: pointer;
   text-align: left;
   transition: background 0.2s;
+  gap: 1rem;
 }
 
 .course-date-item-button:hover {
@@ -51885,44 +51903,49 @@ a.article-cta-btn:focus-visible {
 
 .course-date-info {
   flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
 }
 
 .course-date-date {
   font-weight: 600;
-  color: #1e293b;
-  font-size: 14px;
+  color: var(--brown-dark, #2B1B0E);
+  font-size: 0.9375rem;
+  line-height: 1.4;
 }
 
 .course-date-location {
-  font-size: 12px;
+  font-size: 0.8125rem;
   color: #6b7280;
-  margin-top: 2px;
+  line-height: 1.4;
 }
 
 .course-date-spaces {
-  font-size: 12px;
+  font-size: 0.8125rem;
   color: #d63638;
   font-weight: 600;
-  margin-top: 2px;
+  line-height: 1.4;
 }
 
 .course-date-book {
-  padding: 8px 16px;
-  background: linear-gradient(90deg, var(--gold-primary) 0%, #C5A566 50%, var(--gold-primary) 100%);
-  background-size: 200% 100%;
-  background-position: 0% 0%;
+  padding: 0.5rem 1rem;
+  background: linear-gradient(135deg, var(--gold-primary) 0%, #C5A566 100%);
   color: #fff;
   text-decoration: none;
   border-radius: 8px;
-  font-size: 14px;
+  font-size: 0.875rem;
   font-weight: 700;
   transition: all 0.2s ease;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  border: 2px solid transparent;
+  border: none;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-height: 36px;
+  min-width: 80px;
+  flex-shrink: 0;
+  white-space: nowrap;
 }
 
 .course-date-book:hover {
@@ -51937,19 +51960,32 @@ a.article-cta-btn:focus-visible {
 }
 
 .course-dates-fallback {
-  margin: 1.5rem 0 1.5rem 0;
-  font-size: clamp(0.9375rem, 1.25vw, 1rem);
+  margin: 1rem 0 0 0;
+  font-size: 0.9375rem;
   color: var(--brown-medium, #4A3A2A);
   line-height: 1.6;
   font-weight: 400;
+  text-align: left;
+}
+
+.course-dates-fallback a {
+  font-weight: 600;
+  text-decoration: underline;
+  color: var(--brown-dark, #2B1B0E);
+  transition: color 0.2s;
+}
+
+.course-dates-fallback a:hover {
+  color: var(--gold-primary);
 }
 
 .course-dates-no-dates {
   margin: 0 0 1.5rem 0;
-  font-size: clamp(0.9375rem, 1.25vw, 1rem);
+  font-size: 0.9375rem;
   color: var(--brown-medium, #4A3A2A);
   line-height: 1.6;
   font-weight: 400;
+  text-align: left;
 }
 
 /* Remove custom button styles - use standard btn-secondary */

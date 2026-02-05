@@ -524,7 +524,7 @@ while (have_posts()) : the_post();
               <?php if ($category_name) : ?>
               <li class="course-detail-meta-item">
                 <span class="course-detail-meta-label">Category</span>
-                <span class="course-detail-meta-value"><?php echo esc_html($category_name); ?></span>
+                <span class="course-detail-meta-value course-detail-category"><?php echo esc_html($category_name); ?></span>
               </li>
               <?php endif; ?>
             </ul>
@@ -590,7 +590,7 @@ while (have_posts()) : the_post();
                 <?php endwhile; ?>
               </ul>
               <p class="course-dates-fallback">
-                Can't see a date that works for you? <a href="<?php echo esc_url(get_permalink(get_page_by_path('contact'))); ?>" style="font-weight: 600; text-decoration: underline;">Get in touch</a> to discuss alternative dates.
+                Can't see a date that works for you? <a href="<?php echo esc_url(get_permalink(get_page_by_path('contact'))); ?>">Get in touch</a> to discuss alternative dates.
               </p>
             </div>
             <?php 
