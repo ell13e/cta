@@ -714,8 +714,9 @@ function cta_seo_verification_page() {
                     <tr>
                         <td><strong><?php echo esc_html($check['name']); ?></strong></td>
                         <td>
-                            <span class="cta-seo-status cta-seo-status--<?php echo esc_attr($check['status']); ?>">
-                                <?php echo esc_html($status_icons[$check['status']]); ?> <?php echo esc_html(ucfirst($check['status'])); ?>
+                            <?php $check_status = $check['status']; $check_icon = isset($status_icons[$check_status]) ? $status_icons[$check_status] : ''; ?>
+                            <span class="cta-seo-status cta-seo-status--<?php echo esc_attr($check_status); ?>">
+                                <?php echo esc_html($check_icon); ?> <?php echo esc_html(ucfirst($check_status)); ?>
                             </span>
                         </td>
                         <td>
