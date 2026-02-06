@@ -169,19 +169,23 @@ function cta_process_redirects() {
     ));
     
     if ($redirect) {
-        // Increment hit count
-        $wpdb->query($wpdb->prepare(
-            "UPDATE $table_name SET hit_count = hit_count + 1 WHERE source_url = %s",
-            $request_uri
-        ));
-        
         // Build full target URL
         $target_url = $redirect->target_url;
         if (strpos($target_url, 'http') !== 0) {
             $target_url = home_url($target_url);
         }
-        
-        // Perform redirect
+        // Avoid redirect loop: if target is the same as current request (normalized), do not redirect
+        $current_full = home_url($request_uri);
+        $target_normalized = rtrim($target_url, '/');
+        $current_normalized = rtrim($current_full, '/');
+        if ($target_normalized === $current_normalized) {
+            return;
+        }
+        // Increment hit count
+        $wpdb->query($wpdb->prepare(
+            "UPDATE $table_name SET hit_count = hit_count + 1 WHERE source_url = %s",
+            $request_uri
+        ));
         wp_redirect($target_url, $redirect->redirect_type);
         exit;
     }
@@ -215,6 +219,79 @@ function cta_strip_category_base($rules) {
     return $rules;
 }
 add_filter('category_rewrite_rules', 'cta_strip_category_base');
+
+/**
+ * Give pages and CPT singles precedence over category when category base is stripped.
+ *
+ * Stripping the category base makes category rules match first (e.g. single-segment
+ * /about/ or two-segment /courses/foo/). WordPress then runs a category query;
+ * if no category exists, it 404s and never tries the page or CPT. This filter runs
+ * after parse_request: if the request was parsed as a category, we try page first,
+ * then single course, then single course_event, and override the query when we find a match.
+ */
+function cta_page_precedence_over_stripped_category($query_vars) {
+    $category_base = get_option('category_base');
+    if ($category_base && $category_base !== 'category') {
+        return $query_vars;
+    }
+
+    $category_name = isset($query_vars['category_name']) ? $query_vars['category_name'] : '';
+    if ($category_name === '') {
+        return $query_vars;
+    }
+
+    $path = trim($category_name, '/');
+    $segments = array_values(array_filter(explode('/', $path)));
+
+    // 1) Try page (single segment or hierarchical)
+    $page = get_page_by_path($path, OBJECT, 'page');
+    if ($page && $page->post_status === 'publish') {
+        $query_vars['pagename'] = $path;
+        unset($query_vars['category_name'], $query_vars['category']);
+        return $query_vars;
+    }
+
+    // 2) Two-segment URL: try course (courses/slug) or course_event (upcoming-courses/slug)
+    if (count($segments) === 2) {
+        $prefix = $segments[0];
+        $slug   = $segments[1];
+
+        if ($prefix === 'courses') {
+            $course = get_posts([
+                'name'           => $slug,
+                'post_type'      => 'course',
+                'post_status'    => 'publish',
+                'posts_per_page' => 1,
+                'fields'         => 'ids',
+                'no_found_rows'  => true,
+            ]);
+            if (!empty($course)) {
+                $query_vars['course'] = $slug;
+                unset($query_vars['category_name'], $query_vars['category']);
+                return $query_vars;
+            }
+        }
+
+        if ($prefix === 'upcoming-courses') {
+            $event = get_posts([
+                'name'           => $slug,
+                'post_type'      => 'course_event',
+                'post_status'    => 'publish',
+                'posts_per_page' => 1,
+                'fields'         => 'ids',
+                'no_found_rows'  => true,
+            ]);
+            if (!empty($event)) {
+                $query_vars['course_event'] = $slug;
+                unset($query_vars['category_name'], $query_vars['category']);
+                return $query_vars;
+            }
+        }
+    }
+
+    return $query_vars;
+}
+add_filter('request', 'cta_page_precedence_over_stripped_category', 10, 1);
 
 /**
  * Fix category links to not include /category/
