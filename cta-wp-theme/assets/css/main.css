@@ -51883,6 +51883,17 @@ a.article-cta-btn:focus-visible {
   text-align: left;
 }
 
+@media (min-width: 768px) {
+  .course-next-dates {
+    align-items: center;
+  }
+  .course-next-dates h4,
+  .course-next-dates .course-dates-no-dates,
+  .course-next-dates .course-dates-fallback {
+    text-align: center;
+  }
+}
+
 .course-next-dates .btn {
   display: inline-flex;
   margin: 1.5rem auto 0;

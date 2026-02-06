@@ -148,6 +148,11 @@ function cta_process_redirects() {
     global $wpdb;
     $table_name = $wpdb->prefix . 'cta_redirects';
     
+    // Skip if table doesn't exist (e.g. fresh local, theme not switched after install)
+    if ($wpdb->get_var($wpdb->prepare('SHOW TABLES LIKE %s', $table_name)) !== $table_name) {
+        return;
+    }
+    
     // Get current request URI
     $request_uri = $_SERVER['REQUEST_URI'] ?? '';
     $request_uri = parse_url($request_uri, PHP_URL_PATH);
