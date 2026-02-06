@@ -857,6 +857,24 @@ function cta_import_news_articles() {
 }
 
 /**
+ * Check if a page with the given slug exists in any status (including trash).
+ * Prevents creating duplicates when a page was trashed.
+ */
+function cta_page_exists_by_slug_any_status($slug) {
+    if (!$slug) {
+        return null;
+    }
+    $posts = get_posts([
+        'name' => $slug,
+        'post_type' => 'page',
+        'post_status' => ['publish', 'draft', 'private', 'trash'],
+        'posts_per_page' => 1,
+        'no_found_rows' => true,
+    ]);
+    return !empty($posts) ? $posts[0] : null;
+}
+
+/**
  * Create static pages with their respective templates
  */
 function cta_create_static_pages() {
@@ -954,13 +972,16 @@ function cta_create_static_pages() {
     $parent_pages = []; // Track parent page IDs for hierarchical pages
     
     foreach ($pages as $page_data) {
-        // SAFETY: Check if page already exists by slug - NEVER delete existing pages
+        // SAFETY: Check if page already exists by slug (any status including trash) - NEVER create duplicates
         $existing = get_page_by_path($page_data['slug']);
-        
+        if (!$existing) {
+            $existing = cta_page_exists_by_slug_any_status($page_data['slug']);
+        }
+
         // Special case: Check for accessibility page with old slug and update it
-        if ($page_data['slug'] === 'accessibility-statement') {
+        if ($page_data['slug'] === 'accessibility-statement' && !$existing) {
             $old_slug_page = get_page_by_path('accessibility');
-            if ($old_slug_page && !$existing) {
+            if ($old_slug_page) {
                 // SAFETY: Only update slug, never delete - preserve all page content
                 wp_update_post([
                     'ID' => $old_slug_page->ID,
@@ -969,10 +990,10 @@ function cta_create_static_pages() {
                 $existing = get_page_by_path('accessibility-statement');
             }
         }
-        
+
         if ($existing) {
-            // SAFETY: Only update template if needed, never delete or overwrite content
-            if (!empty($page_data['template'])) {
+            // SAFETY: Only update template if needed (and page is not trashed), never delete or overwrite content
+            if ($existing->post_status !== 'trash' && !empty($page_data['template'])) {
                 $current_template = get_post_meta($existing->ID, '_wp_page_template', true);
                 if ($current_template !== $page_data['template']) {
                     update_post_meta($existing->ID, '_wp_page_template', $page_data['template']);
@@ -980,16 +1001,16 @@ function cta_create_static_pages() {
             }
             
             // Track existing pages as potential parents for other pages
-            $parent_pages[$page_data['slug']] = $existing->ID;
-            
-            // Track existing pages for settings
-            if ($page_data['slug'] === 'home') {
-                $front_page_id = $existing->ID;
+            if ($existing->post_status !== 'trash') {
+                $parent_pages[$page_data['slug']] = $existing->ID;
+                if ($page_data['slug'] === 'home') {
+                    $front_page_id = $existing->ID;
+                }
+                if ($page_data['slug'] === 'news') {
+                    $news_page_id = $existing->ID;
+                }
             }
-            if ($page_data['slug'] === 'news') {
-                $news_page_id = $existing->ID;
-            }
-            // SAFETY: Skip creating duplicate - preserve existing page
+            // SAFETY: Skip creating duplicate - page exists (or is trashed)
             continue;
         }
         
@@ -1064,6 +1085,7 @@ function cta_create_static_pages() {
 
 /**
  * One-time: ensure newer static pages exist on already-initialised sites.
+ * Option is set first so we only run create once even if it fails or times out.
  */
 function cta_maybe_seed_missing_static_pages() {
     if (!is_admin() || !is_user_logged_in()) {
@@ -1075,10 +1097,11 @@ function cta_maybe_seed_missing_static_pages() {
     if (get_option('cta_static_pages_seed_v3') === '1') {
         return;
     }
+    // Mark as run immediately so we don't run again on every admin page load
+    update_option('cta_static_pages_seed_v3', '1', false);
     if (function_exists('cta_create_static_pages')) {
         cta_create_static_pages();
     }
-    update_option('cta_static_pages_seed_v3', '1', false);
 }
 add_action('admin_init', 'cta_maybe_seed_missing_static_pages', 20);
 
