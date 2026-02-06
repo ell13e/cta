@@ -936,14 +936,14 @@ function cta_create_static_pages() {
         ],
         [
             'title' => 'Courses',
-            'slug' => 'courses',
-            'template' => '', // Uses archive-course.php automatically
+            'slug' => 'courses-landing',
+            'template' => '',
             'content' => '',
         ],
         [
             'title' => 'Upcoming Courses',
-            'slug' => 'upcoming-courses',
-            'template' => '', // Uses archive-course_event.php automatically
+            'slug' => 'upcoming-courses-landing',
+            'template' => '',
             'content' => '',
         ],
     ];
@@ -1081,6 +1081,46 @@ function cta_maybe_seed_missing_static_pages() {
     update_option('cta_static_pages_seed_v3', '1', false);
 }
 add_action('admin_init', 'cta_maybe_seed_missing_static_pages', 20);
+
+/**
+ * On 404 for a known static page slug, create missing static pages and redirect once.
+ * Fixes /about/, /group-training/, etc. when those pages were never created.
+ */
+function cta_create_missing_static_page_on_404() {
+    if (!is_404()) {
+        return;
+    }
+    $req_path = trim((string) parse_url($_SERVER['REQUEST_URI'] ?? '', PHP_URL_PATH), '/');
+    $home_path = trim((string) parse_url(home_url(), PHP_URL_PATH), '/');
+    $path = $home_path !== '' && strpos($req_path, $home_path) === 0
+        ? trim(substr($req_path, strlen($home_path)), '/')
+        : $req_path;
+    // Strip index.php so /index.php/about/ yields slug "about"
+    $path = preg_replace('#^index\.php/?#', '', $path);
+    $segments = array_values(array_filter(explode('/', $path), function ($s) {
+        return $s !== '' && $s !== 'index.php';
+    }));
+    $slug = (string) ($segments[0] ?? '');
+    $allowed_slugs = [
+        'home', 'about', 'contact', 'group-training', 'news', 'cqc-compliance-hub',
+        'downloadable-resources', 'faqs', 'privacy-policy', 'terms-conditions',
+        'cookie-policy', 'accessibility-statement', 'courses', 'upcoming-courses',
+    ];
+    if (!in_array($slug, $allowed_slugs, true)) {
+        return;
+    }
+    if (get_page_by_path($slug, OBJECT, 'page')) {
+        return;
+    }
+    if (!function_exists('cta_create_static_pages')) {
+        return;
+    }
+    cta_create_static_pages();
+    $redirect_url = ($slug === 'home') ? home_url('/') : home_url('/' . $slug . '/');
+    wp_safe_redirect($redirect_url, 302, 'CTA Create Missing Page');
+    exit;
+}
+add_action('template_redirect', 'cta_create_missing_static_page_on_404', 0);
 
 /**
  * Get courses data from embedded JSON
@@ -1420,8 +1460,8 @@ function cta_import_admin_page_content() {
             <li><strong>Privacy Policy</strong> - GDPR privacy policy</li>
             <li><strong>Terms & Conditions</strong> - Legal terms</li>
             <li><strong>Cookie Policy</strong> - Cookie information</li>
-            <li><strong>Courses</strong> - Course archive</li>
-            <li><strong>Upcoming Courses</strong> - Scheduled events archive</li>
+            <li><strong>Courses</strong> – List at <code>/courses/</code>, single courses at <code>/courses/course-slug/</code> (no Page at /courses/ so these work)</li>
+            <li><strong>Upcoming Courses</strong> – List at <code>/upcoming-courses/</code> (same for events)</li>
         </ul>
             </div>
         </div>
