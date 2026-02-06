@@ -1212,28 +1212,24 @@ function cta_import_admin_page_content() {
     $news_count = get_option('cta_news_imported_count', 0);
     $pages_count = get_option('cta_pages_created_count', 0);
 
+    // Fix-actions results (shown in-page, no redirect)
+    $create_pages_result = null;
+    $fix_urls_result = null;
+    $cleanup_categories_result = null;
+
     // Create missing static pages only
     if (isset($_POST['cta_create_missing_pages']) && check_admin_referer('cta_create_missing_pages_nonce')) {
-        $pages_created = cta_create_static_pages();
-        set_transient('cta_create_missing_pages_result', $pages_created, 45);
-        wp_redirect(admin_url('tools.php?page=cta-import-data&cta_pages_done=1'));
-        exit;
+        $create_pages_result = cta_create_static_pages();
     }
 
     // Fix single course/event URLs (rename shadow pages)
     if (isset($_POST['cta_fix_single_urls']) && check_admin_referer('cta_fix_single_urls_nonce')) {
-        $result = cta_fix_cpt_page_slug_conflict_manual();
-        set_transient('cta_fix_single_urls_result', $result, 45);
-        wp_redirect(admin_url('tools.php?page=cta-import-data&cta_urls_done=1'));
-        exit;
+        $fix_urls_result = cta_fix_cpt_page_slug_conflict_manual();
     }
 
     // Clean up course categories (enforce 2 max)
     if (isset($_POST['cta_cleanup_categories']) && check_admin_referer('cta_cleanup_categories_nonce')) {
-        $cleaned = function_exists('cta_cleanup_course_categories') ? cta_cleanup_course_categories() : 0;
-        set_transient('cta_cleanup_categories_result', $cleaned, 45);
-        wp_redirect(admin_url('tools.php?page=cta-import-data&cta_categories_done=1'));
-        exit;
+        $cleanup_categories_result = function_exists('cta_cleanup_course_categories') ? cta_cleanup_course_categories() : 0;
     }
     
     // Handle manual import
@@ -1315,10 +1311,6 @@ function cta_import_admin_page_content() {
         $session_titles_result = cta_bulk_update_session_titles();
     }
     
-    // Show result notices after redirects from fix actions
-    $create_pages_result = get_transient('cta_create_missing_pages_result');
-    $fix_urls_result = get_transient('cta_fix_single_urls_result');
-    $cleanup_cats_result = get_transient('cta_cleanup_categories_result');
     ?>
     <div class="wrap">
         <h1 class="wp-heading-inline">
@@ -1328,18 +1320,15 @@ function cta_import_admin_page_content() {
         <hr class="wp-header-end">
 
         <?php
-        if (isset($_GET['cta_pages_done']) && $create_pages_result !== false) {
-            delete_transient('cta_create_missing_pages_result');
+        if ($create_pages_result !== null) {
             $n = (int) $create_pages_result;
             echo '<div class="notice notice-success is-dismissible"><p><strong>' . ($n > 0 ? sprintf('Created %d missing page(s).', $n) : 'No missing pages. All static pages already exist.') . '</strong></p></div>';
         }
-        if (isset($_GET['cta_urls_done']) && $fix_urls_result !== false && is_array($fix_urls_result)) {
-            delete_transient('cta_fix_single_urls_result');
+        if ($fix_urls_result !== null && is_array($fix_urls_result)) {
             echo '<div class="notice notice-success is-dismissible"><p><strong>' . esc_html($fix_urls_result['message']) . '</strong></p></div>';
         }
-        if (isset($_GET['cta_categories_done']) && $cleanup_cats_result !== false) {
-            delete_transient('cta_cleanup_categories_result');
-            $n = (int) $cleanup_cats_result;
+        if ($cleanup_categories_result !== null) {
+            $n = (int) $cleanup_categories_result;
             echo '<div class="notice notice-success is-dismissible"><p><strong>' . ($n > 0 ? sprintf('Cleaned %d course(s) to a maximum of 2 categories each.', $n) : 'No courses had more than 2 categories.') . '</strong></p></div>';
         }
         ?>
