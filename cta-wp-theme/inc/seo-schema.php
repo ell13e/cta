@@ -219,6 +219,7 @@ function cta_get_course_schema($post_id = null) {
 
 /**
  * Output Course schema on single course pages (graph: Course + Organization + Breadcrumb).
+ * Breadcrumb matches single-course.php: Home / Courses / [Category if any] / Course title.
  */
 function cta_output_course_schema() {
     if (!is_singular('course')) {
@@ -227,14 +228,24 @@ function cta_output_course_schema() {
     $site_url = home_url();
     $page_url = get_permalink();
     $page_title = get_the_title();
+    $courses_url = get_post_type_archive_link('course');
+    $breadcrumb_items = [
+        ['name' => 'Home', 'url' => $site_url . '/'],
+        ['name' => 'Courses', 'url' => $courses_url],
+    ];
+    $terms = get_the_terms(get_the_ID(), 'course_category');
+    if ($terms && !is_wp_error($terms)) {
+        $term = $terms[0];
+        $breadcrumb_items[] = [
+            'name' => $term->name,
+            'url' => add_query_arg('category', $term->slug, $courses_url),
+        ];
+    }
+    $breadcrumb_items[] = ['name' => $page_title, 'url' => $page_url];
     $graph = array_merge(
         cta_get_course_schema(),
         [cta_get_organization_schema()],
-        [cta_get_breadcrumb_schema([
-            ['name' => 'Home', 'url' => $site_url . '/'],
-            ['name' => 'Courses', 'url' => get_post_type_archive_link('course')],
-            ['name' => $page_title, 'url' => $page_url],
-        ])]
+        [cta_get_breadcrumb_schema($breadcrumb_items)]
     );
     cta_output_schema_json($graph);
 }

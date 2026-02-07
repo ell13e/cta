@@ -37,10 +37,6 @@ $news_query = new WP_Query($args);
           </li>
           <li class="breadcrumb-separator" aria-hidden="true">/</li>
           <li class="breadcrumb-item">
-            <a href="<?php echo esc_url(home_url('/')); ?>#resources" class="breadcrumb-link">Resources</a>
-          </li>
-          <li class="breadcrumb-separator" aria-hidden="true">/</li>
-          <li class="breadcrumb-item">
             <span class="breadcrumb-current" aria-current="page">News & Articles</span>
           </li>
         </ol>

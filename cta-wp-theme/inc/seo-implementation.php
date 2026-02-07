@@ -302,43 +302,6 @@ function cta_display_related_events($post_id = null, $limit = 3) {
 }
 
 // ============================================================================
-// BREADCRUMB SCHEMA: OUTPUT ON ARCHIVES
-// ============================================================================
-
-/**
- * Output breadcrumb schema on event archive page
- */
-function cta_hook_output_archive_breadcrumb_schema() {
-    if (!is_post_type_archive('course_event')) {
-        return;
-    }
-
-    $breadcrumb_items = [
-        ['name' => 'Home', 'url' => home_url('/'), 'position' => 1],
-        ['name' => 'Upcoming Events', 'url' => get_post_type_archive_link('course_event'), 'position' => 2],
-    ];
-
-    $breadcrumb_items = apply_filters('cta_event_breadcrumb_items', $breadcrumb_items);
-
-    // Use existing function if available, otherwise output basic breadcrumb
-    if (function_exists('cta_get_breadcrumb_schema')) {
-        $schema = cta_get_breadcrumb_schema($breadcrumb_items);
-    } else {
-        // Fallback breadcrumb schema structure
-        $schema = [
-            '@context' => 'https://schema.org',
-            '@type' => 'BreadcrumbList',
-            'itemListElement' => $breadcrumb_items,
-        ];
-    }
-    
-    echo '<script type="application/ld+json">';
-    echo wp_json_encode($schema, JSON_UNESCAPED_SLASHES);
-    echo '</script>';
-}
-add_action('wp_head', 'cta_hook_output_archive_breadcrumb_schema', 15);
-
-// ============================================================================
 // ADMIN: SEO CHECKLIST REMINDER
 // ============================================================================
 

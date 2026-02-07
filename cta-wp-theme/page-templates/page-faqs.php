@@ -408,8 +408,6 @@ foreach ($faqs as $faq) {
         <ol class="breadcrumb-list">
           <li class="breadcrumb-item"><a href="<?php echo esc_url(home_url('/')); ?>" class="breadcrumb-link">Home</a></li>
           <li class="breadcrumb-separator" aria-hidden="true">/</li>
-          <li class="breadcrumb-item"><a href="<?php echo esc_url(home_url('/')); ?>#resources" class="breadcrumb-link">Resources</a></li>
-          <li class="breadcrumb-separator" aria-hidden="true">/</li>
           <li class="breadcrumb-item"><span class="breadcrumb-current" aria-current="page">FAQs</span></li>
         </ol>
       </nav>

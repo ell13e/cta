@@ -182,6 +182,8 @@ function cta_is_permanent_page($post_id = null) {
         'faqs',
         'downloadable-resources',
         'news',
+        'search',
+        'unsubscribe',
     ];
     
     $page_slug = $post->post_name;
@@ -1296,8 +1298,8 @@ function cta_schema_markup() {
         echo '<script type="application/ld+json">' . json_encode($webpage_schema, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT) . '</script>' . "\n";
     }
     
-    // Breadcrumb schema
-    if (!is_front_page()) {
+    // Breadcrumb schema (skip on single course; output in course graph in seo-schema.php)
+    if (!is_front_page() && !is_singular('course')) {
         $breadcrumbs = cta_get_breadcrumb_items();
         if (!empty($breadcrumbs)) {
             $breadcrumb_schema = [

@@ -953,6 +953,18 @@ function cta_create_static_pages() {
             'content' => '',
         ],
         [
+            'title' => 'Search',
+            'slug' => 'search',
+            'template' => 'page-templates/page-search.php',
+            'content' => '',
+        ],
+        [
+            'title' => 'Unsubscribe',
+            'slug' => 'unsubscribe',
+            'template' => 'page-templates/page-unsubscribe.php',
+            'content' => '',
+        ],
+        [
             'title' => 'Courses',
             'slug' => 'courses-landing',
             'template' => '',
@@ -1127,7 +1139,8 @@ function cta_create_missing_static_page_on_404() {
     $allowed_slugs = [
         'home', 'about', 'contact', 'group-training', 'news', 'cqc-compliance-hub',
         'downloadable-resources', 'faqs', 'privacy-policy', 'terms-conditions',
-        'cookie-policy', 'accessibility-statement', 'courses', 'upcoming-courses',
+        'cookie-policy', 'accessibility-statement', 'search', 'unsubscribe',
+        'courses', 'upcoming-courses',
     ];
     if (!in_array($slug, $allowed_slugs, true)) {
         return;

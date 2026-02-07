@@ -7628,7 +7628,7 @@ textarea:focus-visible,
   align-items: flex-start; /* Align to top when wrapping */
   justify-content: center;
   gap: 0 0.25rem; /* Horizontal gap between items, vertical gap for wrapped lines */
-  font-size: 14px;
+  font-size: 12px; /* Smaller on mobile */
   list-style: none;
   margin: 0;
   padding: 0;
@@ -7641,8 +7641,15 @@ textarea:focus-visible,
 
 @media (min-width: 640px) {
   .breadcrumb-list {
+    font-size: 13px; /* Tablet */
     align-items: center; /* Center align on larger screens */
     gap: 0 0.5rem; /* Larger horizontal gap on bigger screens */
+  }
+}
+
+@media (min-width: 768px) {
+  .breadcrumb-list {
+    font-size: 14px; /* Desktop */
   }
 }
 
@@ -7759,7 +7766,7 @@ textarea:focus-visible,
 
 .breadcrumb-hero .breadcrumb-list {
   justify-content: center;
-  font-size: 14px;
+  font-size: 12px; /* Smaller on mobile */
   font-weight: 600;
   opacity: 1;
   padding-left: 0;
@@ -7772,7 +7779,7 @@ textarea:focus-visible,
 
 @media (min-width: 640px) {
   .breadcrumb-hero .breadcrumb-list {
-    font-size: 15px;
+    font-size: 13px; /* Tablet */
     justify-content: center;
   }
   
@@ -7783,7 +7790,7 @@ textarea:focus-visible,
 
 @media (min-width: 768px) {
   .breadcrumb-hero .breadcrumb-list {
-    font-size: 16px;
+    font-size: 15px; /* Desktop */
     justify-content: center;
   }
   
