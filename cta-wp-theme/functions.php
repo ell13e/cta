@@ -54,14 +54,20 @@ add_action('init', 'cta_require_login_for_admin_area', 0);
 add_filter('wp_sitemaps_stylesheet_url', '__return_false');
 
 /**
- * Exclude empty sitemap entries (skip posts with no URL).
+ * Ensure sitemap entries have a valid loc; exclude only when no URL can be set.
  */
-add_filter('wp_sitemaps_posts_entry', function ($entry, $post) {
-    if (empty($entry['loc'])) {
+add_filter('wp_sitemaps_posts_entry', function ($entry, $post, $post_type) {
+    $loc = isset($entry['loc']) ? trim((string) $entry['loc']) : '';
+    if ($loc === '' && $post instanceof WP_Post) {
+        $permalink = get_permalink($post);
+        $loc = is_string($permalink) ? trim($permalink) : '';
+    }
+    if ($loc === '') {
         return false;
     }
+    $entry['loc'] = $loc;
     return $entry;
-}, 10, 2);
+}, 10, 3);
 
 /**
  * Theme Constants

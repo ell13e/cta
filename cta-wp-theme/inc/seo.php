@@ -1503,6 +1503,23 @@ function cta_sitemap_taxonomies($taxonomies) {
 add_filter('wp_sitemaps_taxonomies', 'cta_sitemap_taxonomies');
 
 /**
+ * Ensure taxonomy sitemap entries have a valid loc; fix from term link if missing.
+ */
+function cta_filter_sitemap_taxonomies_entry($entry, $term_id, $taxonomy, $term) {
+    $loc = isset($entry['loc']) ? trim((string) $entry['loc']) : '';
+    if ($loc === '' && $term instanceof WP_Term) {
+        $link = get_term_link($term);
+        $loc = (!is_wp_error($link) && is_string($link)) ? trim($link) : '';
+    }
+    if ($loc === '') {
+        return false;
+    }
+    $entry['loc'] = $loc;
+    return $entry;
+}
+add_filter('wp_sitemaps_taxonomies_entry', 'cta_filter_sitemap_taxonomies_entry', 10, 4);
+
+/**
  * Exclude author archives from sitemap (noindexed per SEO docs)
  */
 function cta_sitemap_exclude_users($args, $user) {
@@ -1527,6 +1544,17 @@ add_filter('wp_sitemaps_add_provider', 'cta_sitemap_remove_users', 10, 2);
  * This runs after the query, so we can check each post individually
  */
 function cta_filter_sitemap_entry($entry, $post, $post_type) {
+    // Ensure loc is set (required by sitemap spec); fix from permalink if missing.
+    $loc = isset($entry['loc']) ? trim((string) $entry['loc']) : '';
+    if ($loc === '' && $post instanceof WP_Post) {
+        $permalink = get_permalink($post);
+        $loc = is_string($permalink) ? trim($permalink) : '';
+    }
+    if ($loc === '') {
+        return false;
+    }
+    $entry['loc'] = $loc;
+
     // Exclude posts explicitly marked as noindex
     $noindex = get_post_meta($post->ID, '_cta_noindex', true);
     if ($noindex === '1' || $noindex === 1) {
@@ -1689,9 +1717,9 @@ function cta_sitemap_entry($entry, $post, $post_type) {
         }
     }
     
-    // Set lastmod to post modified date for better crawling
+    // Set lastmod to post modified date (ISO 8601 for Google).
     if (isset($post->post_modified_gmt)) {
-        $entry['lastmod'] = $post->post_modified_gmt;
+        $entry['lastmod'] = gmdate('Y-m-d\TH:i:s+00:00', strtotime($post->post_modified_gmt));
     }
     
     return $entry;
