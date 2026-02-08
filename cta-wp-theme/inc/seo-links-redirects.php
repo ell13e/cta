@@ -23,7 +23,7 @@ defined('ABSPATH') || exit;
  * Can be disabled in SEO → Redirects.
  */
 function cta_redirect_attachments() {
-    if (!get_option('cta_redirect_attachments_enabled', true)) {
+    if (!(bool) get_option('cta_redirect_attachments_enabled', 1)) {
         return;
     }
     if (!is_attachment()) {
@@ -61,7 +61,7 @@ add_action('template_redirect', 'cta_redirect_attachments', 1);
  * Returning '.' makes WordPress generate rules so category archives live at /slug/.
  */
 function cta_strip_category_base_option($value) {
-    if (!get_option('cta_strip_category_base_enabled', true)) {
+    if (!(bool) get_option('cta_strip_category_base_enabled', 1)) {
         return $value;
     }
     return '.';
@@ -72,7 +72,7 @@ add_filter('pre_option_category_base', 'cta_strip_category_base_option');
  * Give pages precedence over category archives when both use the same slug.
  */
 function cta_page_precedence_over_stripped_category() {
-    if (!get_option('cta_strip_category_base_enabled', true)) {
+    if (!(bool) get_option('cta_strip_category_base_enabled', 1)) {
         return;
     }
     $GLOBALS['wp_rewrite']->use_verbose_page_rules = true;
@@ -83,7 +83,7 @@ add_action('init', 'cta_page_precedence_over_stripped_category', 1);
  * Collect page rewrite rules so we can prepend them in rewrite_rules_array.
  */
 function cta_collect_page_rules_for_precedence($page_rewrite_rules) {
-    if (!get_option('cta_strip_category_base_enabled', true)) {
+    if (!(bool) get_option('cta_strip_category_base_enabled', 1)) {
         return $page_rewrite_rules;
     }
     $GLOBALS['cta_page_rewrite_rules'] = $page_rewrite_rules;
@@ -95,7 +95,7 @@ add_filter('page_rewrite_rules', 'cta_collect_page_rules_for_precedence');
  * Prepend page rules so they are matched before category rules.
  */
 function cta_prepend_page_rewrite_rules($rewrite_rules) {
-    if (!get_option('cta_strip_category_base_enabled', true)) {
+    if (!(bool) get_option('cta_strip_category_base_enabled', 1)) {
         return $rewrite_rules;
     }
     if (empty($GLOBALS['cta_page_rewrite_rules'])) {
@@ -113,7 +113,7 @@ function cta_fix_category_link($url, $term, $taxonomy) {
     if ($taxonomy !== 'category') {
         return $url;
     }
-    if (!get_option('cta_strip_category_base_enabled', true)) {
+    if (!(bool) get_option('cta_strip_category_base_enabled', 1)) {
         return $url;
     }
     $slugs = [];

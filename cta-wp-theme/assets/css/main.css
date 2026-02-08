@@ -51905,6 +51905,8 @@ a.article-cta-btn:focus-visible {
   display: inline-flex;
   margin: 1.5rem auto 0;
   align-self: center;
+  width: fit-content; /* Button sizes to label, not full card width */
+  max-width: 100%;
 }
 
 /* Desktop: centre button and its text inside the booking card */
