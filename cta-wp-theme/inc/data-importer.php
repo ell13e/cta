@@ -1335,6 +1335,63 @@ function cta_fix_cpt_page_slug_conflict_manual() {
 }
 
 /**
+ * When a URL is parsed as a page (pagename) that looks like upcoming-courses/slug or
+ * courses/slug, prefer the CPT single if that post exists. Fixes the case where a page
+ * with slug "upcoming-courses" exists and WordPress matches the page rule first, so
+ * /upcoming-courses/care-planning-17-feb-2026/ would show that page instead of the single event.
+ */
+function cta_cpt_precedence_over_pagename($query_vars) {
+    $pagename = isset($query_vars['pagename']) ? $query_vars['pagename'] : '';
+    if ($pagename === '') {
+        return $query_vars;
+    }
+
+    $path = trim($pagename, '/');
+    $segments = array_values(array_filter(explode('/', $path)));
+    if (count($segments) !== 2) {
+        return $query_vars;
+    }
+
+    $prefix = $segments[0];
+    $slug   = $segments[1];
+
+    if ($prefix === 'courses') {
+        $course = get_posts([
+            'name'           => $slug,
+            'post_type'      => 'course',
+            'post_status'    => 'publish',
+            'posts_per_page' => 1,
+            'fields'         => 'ids',
+            'no_found_rows'  => true,
+        ]);
+        if (!empty($course)) {
+            unset($query_vars['pagename']);
+            $query_vars['course'] = $slug;
+            return $query_vars;
+        }
+    }
+
+    if ($prefix === 'upcoming-courses') {
+        $event = get_posts([
+            'name'           => $slug,
+            'post_type'      => 'course_event',
+            'post_status'    => 'publish',
+            'posts_per_page' => 1,
+            'fields'         => 'ids',
+            'no_found_rows'  => true,
+        ]);
+        if (!empty($event)) {
+            unset($query_vars['pagename']);
+            $query_vars['course_event'] = $slug;
+            return $query_vars;
+        }
+    }
+
+    return $query_vars;
+}
+add_filter('request', 'cta_cpt_precedence_over_pagename', 5, 1);
+
+/**
  * Import admin page content
  */
 function cta_import_admin_page_content() {
