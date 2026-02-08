@@ -49,6 +49,21 @@ function cta_require_login_for_admin_area() {
 add_action('init', 'cta_require_login_for_admin_area', 0);
 
 /**
+ * Remove XSLT stylesheet from sitemaps (avoids external reference in XML output).
+ */
+add_filter('wp_sitemaps_stylesheet_url', '__return_false');
+
+/**
+ * Exclude empty sitemap entries (skip posts with no URL).
+ */
+add_filter('wp_sitemaps_posts_entry', function ($entry, $post) {
+    if (empty($entry['loc'])) {
+        return false;
+    }
+    return $entry;
+}, 10, 2);
+
+/**
  * Theme Constants
  */
 define('CTA_THEME_VERSION', '1.0.0');
