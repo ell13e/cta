@@ -51905,21 +51905,26 @@ a.article-cta-btn:focus-visible {
   display: inline-flex;
   margin: 1.5rem auto 0;
   align-self: center;
-  width: fit-content; /* Button sizes to label, not full card width */
+  width: fit-content;
   max-width: 100%;
 }
 
-/* Desktop: centre button and its text inside the booking card */
-@media (min-width: 768px) {
-  .course-detail-booking-card .course-next-dates {
-    align-items: center;
-  }
-  .course-detail-booking-card .course-next-dates .btn {
-    text-align: center;
-    justify-content: center;
-    margin-left: auto;
-    margin-right: auto;
-  }
+/* Enquire About This Course: centre button and text, scoped sizing */
+.course-detail-booking-card .course-next-dates {
+  align-items: center;
+}
+.course-detail-booking-card .course-next-dates .btn {
+  text-align: center;
+  justify-content: center;
+  margin-left: unset;
+  margin-right: unset;
+}
+.course-detail-booking-card .course-next-dates .btn.btn-secondary {
+  width: auto;
+  min-width: 250px;
+  padding: 12px 12px;
+  font-size: 16px;
+  min-height: 0;
 }
 
 .course-dates-list {
