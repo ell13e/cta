@@ -118,6 +118,11 @@ function cta_api_keys_settings_page() {
         }
         
         update_option('cta_facebook_lead_ads_form_type', sanitize_text_field($_POST['cta_facebook_lead_ads_form_type'] ?? 'facebook-lead'));
+        $app_secret = isset($_POST['cta_facebook_app_secret']) ? trim((string) $_POST['cta_facebook_app_secret']) : '';
+        if ($app_secret !== '') {
+            update_option('cta_facebook_app_secret', sanitize_text_field($app_secret));
+        }
+        update_option('cta_fb_webhook_trusted_proxies', sanitize_text_field($_POST['cta_fb_webhook_trusted_proxies'] ?? ''));
         update_option('cta_google_maps_api_key', sanitize_text_field($_POST['cta_google_maps_api_key'] ?? ''));
         
         update_option('cta_eventbrite_oauth_token', sanitize_text_field($_POST['cta_eventbrite_oauth_token'] ?? ''));

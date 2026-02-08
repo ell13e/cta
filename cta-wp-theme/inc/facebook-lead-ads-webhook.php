@@ -37,8 +37,77 @@ function cta_facebook_lead_ads_register_settings() {
         'sanitize_callback' => 'sanitize_text_field',
         'default' => 'meta-lead',
     ]);
+    register_setting('cta_api_keys_settings', 'cta_facebook_app_secret', [
+        'sanitize_callback' => 'sanitize_text_field',
+        'default' => '',
+    ]);
+    register_setting('cta_api_keys_settings', 'cta_fb_webhook_trusted_proxies', [
+        'sanitize_callback' => 'sanitize_text_field',
+        'default' => '',
+    ]);
 }
 add_action('admin_init', 'cta_facebook_lead_ads_register_settings');
+
+/**
+ * Admin notice when webhook debug/HTTP bypass constants are defined (dev only, not for production).
+ */
+function cta_facebook_webhook_admin_notice_dev_constants() {
+    if (!defined('CTA_FB_WEBHOOK_DEBUG') && !defined('CTA_FB_WEBHOOK_ALLOW_HTTP')) {
+        return;
+    }
+    if (!current_user_can('manage_options')) {
+        return;
+    }
+    echo '<div class="notice notice-warning"><p><strong>Development mode active:</strong> Facebook Lead Ads webhook security bypasses are enabled (<code>CTA_FB_WEBHOOK_DEBUG</code> and/or <code>CTA_FB_WEBHOOK_ALLOW_HTTP</code>). Do not use in production.</p></div>';
+}
+add_action('admin_notices', 'cta_facebook_webhook_admin_notice_dev_constants');
+
+/**
+ * Schedule daily cleanup of old processed lead IDs (30-day retention).
+ */
+function cta_facebook_webhook_schedule_cleanup() {
+    if (!wp_next_scheduled('cta_cleanup_old_fb_processed_leads')) {
+        wp_schedule_event(time(), 'daily', 'cta_cleanup_old_fb_processed_leads');
+    }
+}
+add_action('init', 'cta_facebook_webhook_schedule_cleanup');
+
+/**
+ * Daily cron: remove processed lead entries older than 30 days.
+ */
+function cta_cleanup_old_fb_processed_leads() {
+    $processed = get_option('cta_fb_processed_leads', []);
+    if (!is_array($processed)) {
+        return;
+    }
+    $processed = cta_facebook_webhook_normalize_processed_leads($processed);
+    $cutoff = time() - (30 * DAY_IN_SECONDS);
+    $processed = array_filter($processed, function ($entry) use ($cutoff) {
+        return isset($entry['time']) && $entry['time'] >= $cutoff;
+    });
+    $processed = array_values(array_slice($processed, -1000, 1000));
+    update_option('cta_fb_processed_leads', $processed, false);
+}
+
+/**
+ * Normalize processed leads to [['id' => string, 'time' => int], ...]. Handles legacy format (plain ids).
+ *
+ * @param array $processed
+ * @return array
+ */
+function cta_facebook_webhook_normalize_processed_leads($processed) {
+    if (empty($processed)) {
+        return [];
+    }
+    $first = reset($processed);
+    if (is_string($first)) {
+        $now = time();
+        return array_map(function ($id) use ($now) {
+            return ['id' => $id, 'time' => $now];
+        }, $processed);
+    }
+    return $processed;
+}
 
 /**
  * Register REST API endpoint for Facebook Lead Ads webhook
@@ -54,128 +123,326 @@ add_action('rest_api_init', 'cta_register_facebook_lead_ads_webhook');
 
 /**
  * Handle Facebook Lead Ads webhook
- * 
- * GET: Webhook verification (Facebook sends challenge)
- * POST: Lead data from Facebook
- * 
+ *
+ * GET: Webhook verification (Facebook sends challenge). Only GET allowed for verification.
+ * POST: Lead data from Facebook. Signature verified, rate limited, payload validated.
+ * Other methods: 405.
+ *
  * @param WP_REST_Request $request REST request object
  * @return WP_REST_Response|WP_Error
  */
 function cta_handle_facebook_lead_ads_webhook($request) {
-    $enabled = get_option('cta_facebook_lead_ads_webhook_enabled', 0);
-    
-    if ($request->get_method() === 'GET') {
+    $method = $request->get_method();
+
+    if ($method === 'GET') {
         return cta_verify_facebook_webhook($request);
     }
-    
+
+    if ($method !== 'POST') {
+        return new WP_Error('invalid_method', 'Only POST allowed for webhook data', ['status' => 405]);
+    }
+
+    if (!is_ssl() && !defined('CTA_FB_WEBHOOK_ALLOW_HTTP')) {
+        return new WP_Error('https_required', 'Webhook must use HTTPS', ['status' => 403]);
+    }
+
+    $enabled = get_option('cta_facebook_lead_ads_webhook_enabled', 0);
     if (!$enabled) {
         return new WP_Error('webhook_disabled', 'Facebook Lead Ads webhook is disabled', ['status' => 503]);
     }
-    
+
+    $signature_error = cta_facebook_webhook_verify_signature($request);
+    if (is_wp_error($signature_error)) {
+        cta_facebook_webhook_log_request($request, false, 'signature_invalid');
+        return $signature_error;
+    }
+
+    $rate_limit_error = cta_facebook_webhook_check_rate_limit($request);
+    if (is_wp_error($rate_limit_error)) {
+        cta_facebook_webhook_log_request($request, false, 'rate_limited');
+        return $rate_limit_error;
+    }
+
     return cta_process_facebook_lead($request);
 }
 
 /**
  * Verify Facebook webhook (GET request)
- * Facebook sends a challenge to verify the webhook endpoint
- * 
+ * Facebook sends a challenge to verify the webhook endpoint.
+ * PHP may convert query param dots to underscores (e.g. hub_verify_token).
+ *
  * @param WP_REST_Request $request REST request object
- * @return WP_REST_Response
+ * @return WP_REST_Response|WP_Error
  */
 function cta_verify_facebook_webhook($request) {
-    $mode = $request->get_param('hub.mode');
-    $token = $request->get_param('hub.verify_token');
-    $challenge = $request->get_param('hub.challenge');
+    $mode = $request->get_param('hub.mode') ?: $request->get_param('hub_mode');
+    $token = $request->get_param('hub.verify_token') ?: $request->get_param('hub_verify_token');
+    $challenge = $request->get_param('hub.challenge') ?: $request->get_param('hub_challenge');
     $expected_token = get_option('cta_facebook_lead_ads_verify_token', '');
-    
-    if ($mode === 'subscribe' && $token === $expected_token) {
-        return new WP_REST_Response($challenge, 200);
+
+    if ($mode === 'subscribe' && $token !== '' && $expected_token !== '' && hash_equals((string) $expected_token, (string) $token)) {
+        return new WP_REST_Response($challenge !== null && $challenge !== '' ? $challenge : 'ok', 200);
     }
-    
+
     return new WP_Error('verification_failed', 'Webhook verification failed', ['status' => 403]);
 }
 
 /**
+ * Verify X-Hub-Signature-256 on POST requests (proves request is from Facebook).
+ * Uses raw request body and App Secret. Timing-safe comparison.
+ *
+ * @param WP_REST_Request $request REST request object
+ * @return true|WP_Error True if valid or app secret not set (skip verify); WP_Error on invalid signature
+ */
+function cta_facebook_webhook_verify_signature($request) {
+    $app_secret = get_option('cta_facebook_app_secret', '');
+    if ($app_secret === '') {
+        if (defined('CTA_FB_WEBHOOK_DEBUG')) {
+            if (defined('WP_DEBUG') && WP_DEBUG) {
+                error_log('CTA FB Webhook: App Secret not set; CTA_FB_WEBHOOK_DEBUG allows bypass (dev only).');
+            }
+            return true;
+        }
+        error_log('CTA FB Webhook: App Secret not configured - BLOCKING request');
+        return new WP_Error(
+            'no_app_secret',
+            'Webhook requires App Secret to be configured',
+            ['status' => 503]
+        );
+    }
+
+    $signature = $request->get_header('X-Hub-Signature-256');
+    if ($signature === null || $signature === '') {
+        return new WP_Error('missing_signature', 'X-Hub-Signature-256 header required', ['status' => 401]);
+    }
+
+    $raw_body = $request->get_body();
+    if (!is_string($raw_body)) {
+        return new WP_Error('invalid_body', 'Could not read request body', ['status' => 400]);
+    }
+
+    $expected = 'sha256=' . hash_hmac('sha256', $raw_body, $app_secret);
+    if (!hash_equals($expected, $signature)) {
+        return new WP_Error('invalid_signature', 'Signature verification failed', ['status' => 403]);
+    }
+
+    return true;
+}
+
+/**
+ * Rate limit webhook POSTs by IP to reduce abuse.
+ * Limit: 60 requests per IP per minute.
+ *
+ * @param WP_REST_Request $request REST request object
+ * @return true|WP_Error
+ */
+function cta_facebook_webhook_check_rate_limit($request) {
+    $ip = cta_facebook_webhook_client_ip();
+    $key = 'cta_fb_webhook_rl_' . md5($ip);
+    $window = 60; // seconds
+    $max_per_window = 60;
+
+    $data = get_transient($key);
+    if ($data === false) {
+        $data = ['count' => 0, 'start' => time()];
+    }
+    if (time() - $data['start'] > $window) {
+        $data = ['count' => 0, 'start' => time()];
+    }
+    $data['count']++;
+    set_transient($key, $data, $window + 10);
+
+    if ($data['count'] > $max_per_window) {
+        return new WP_Error('rate_limited', 'Too many requests', ['status' => 429]);
+    }
+
+    return true;
+}
+
+/**
+ * Get client IP for rate limiting and logging.
+ * Only trusts X-Forwarded-For when REMOTE_ADDR is in the trusted proxies list (prevents spoofing).
+ *
+ * @return string
+ */
+function cta_facebook_webhook_client_ip() {
+    $remote_addr = isset($_SERVER['REMOTE_ADDR']) ? $_SERVER['REMOTE_ADDR'] : '';
+    $trusted = get_option('cta_fb_webhook_trusted_proxies', '');
+    $trusted_ips = array_filter(array_map('trim', explode(',', $trusted)));
+    if (!empty($trusted_ips) && in_array($remote_addr, $trusted_ips, true) && !empty($_SERVER['HTTP_X_FORWARDED_FOR'])) {
+        $list = array_map('trim', explode(',', $_SERVER['HTTP_X_FORWARDED_FOR']));
+        return $list[0];
+    }
+    return $remote_addr !== '' ? $remote_addr : '0.0.0.0';
+}
+
+/**
+ * Log webhook request for monitoring and abuse detection.
+ * Keeps last 100 entries to limit option size. For long-term logging, use a custom DB table.
+ *
+ * @param WP_REST_Request $request REST request object
+ * @param bool            $success Whether the request was processed successfully
+ * @param string          $note    Optional note (e.g. 'signature_invalid', 'rate_limited')
+ */
+function cta_facebook_webhook_log_request($request, $success, $note = '') {
+    $log = get_option('cta_fb_webhook_request_log', []);
+    if (!is_array($log)) {
+        $log = [];
+    }
+    $entry = [
+        'ip' => cta_facebook_webhook_client_ip(),
+        'time' => time(),
+        'success' => (bool) $success,
+        'note' => $note,
+    ];
+    array_unshift($log, $entry);
+    $log = array_slice($log, 0, 100);
+    update_option('cta_fb_webhook_request_log', $log, false);
+}
+
+/**
+ * Validate and sanitize webhook payload structure. Required: entry (array); each entry
+ * must have changes (array); each change must have field (string) and value (array);
+ * leadgen changes must have value.leadgen_id (string).
+ *
+ * @param array $body Parsed JSON body
+ * @return array{entries: array, errors: string[]} Sanitized entries and any validation errors
+ */
+function cta_facebook_webhook_validate_payload($body) {
+    $errors = [];
+    $entries = [];
+
+    if (!is_array($body)) {
+        return ['entries' => [], 'errors' => ['Payload must be an object']];
+    }
+    if (empty($body['entry']) || !is_array($body['entry'])) {
+        return ['entries' => [], 'errors' => ['Missing or invalid entry array']];
+    }
+
+    foreach ($body['entry'] as $i => $entry) {
+        if (!is_array($entry)) {
+            $errors[] = "entry[{$i}] is not an array";
+            continue;
+        }
+        if (empty($entry['changes']) || !is_array($entry['changes'])) {
+            continue;
+        }
+        foreach ($entry['changes'] as $j => $change) {
+            if (!is_array($change)) {
+                $errors[] = "entry[{$i}].changes[{$j}] is not an array";
+                continue;
+            }
+            $field = isset($change['field']) ? sanitize_text_field((string) $change['field']) : '';
+            $value = isset($change['value']) && is_array($change['value']) ? $change['value'] : [];
+            if ($field !== 'leadgen') {
+                continue;
+            }
+            $leadgen_id = isset($value['leadgen_id']) ? sanitize_text_field((string) $value['leadgen_id']) : '';
+            if ($leadgen_id === '') {
+                $errors[] = "entry[{$i}].changes[{$j}]: missing or invalid leadgen_id";
+                continue;
+            }
+            $entries[] = [
+                'entry_index' => $i,
+                'change_index' => $j,
+                'lead_data' => array_merge($value, ['leadgen_id' => $leadgen_id]),
+            ];
+        }
+    }
+
+    return ['entries' => $entries, 'errors' => $errors];
+}
+
+/**
  * Process Facebook lead data (POST request)
- * 
+ * Payload is validated and sanitized before processing.
+ *
  * @param WP_REST_Request $request REST request object
  * @return WP_REST_Response|WP_Error
  */
 function cta_process_facebook_lead($request) {
     $body = $request->get_json_params();
-    
-    if (empty($body) || !isset($body['entry'])) {
-        return new WP_Error('invalid_payload', 'Invalid webhook payload', ['status' => 400]);
+    $validated = cta_facebook_webhook_validate_payload($body ?: []);
+
+    if (empty($validated['entries']) && !empty($validated['errors'])) {
+        cta_facebook_webhook_log_request($request, false, 'invalid_payload');
+        return new WP_Error('invalid_payload', 'Invalid webhook payload: ' . implode('; ', $validated['errors']), ['status' => 400]);
     }
-    
+
     $processed = 0;
-    $errors = [];
-    
-    foreach ($body['entry'] as $entry) {
-        if (empty($entry['changes'])) {
+    $errors = $validated['errors'];
+
+    $processed_leads = get_option('cta_fb_processed_leads', []);
+    if (!is_array($processed_leads)) {
+        $processed_leads = [];
+    }
+    $processed_leads = cta_facebook_webhook_normalize_processed_leads($processed_leads);
+    $processed_ids = array_column($processed_leads, 'id');
+    $retention_seconds = 30 * DAY_IN_SECONDS;
+    $max_entries = 1000;
+
+    foreach ($validated['entries'] as $item) {
+        $lead_data = $item['lead_data'];
+        $leadgen_id = $lead_data['leadgen_id'];
+
+        if (in_array($leadgen_id, $processed_ids, true)) {
+            if (defined('WP_DEBUG') && WP_DEBUG) {
+                error_log('Facebook Lead Ads: Skipped duplicate lead ' . $leadgen_id);
+            }
             continue;
         }
-        
-        foreach ($entry['changes'] as $change) {
-            if ($change['field'] !== 'leadgen') {
-                continue;
-            }
-            
-            $lead_data = $change['value'] ?? [];
-            
-            if (empty($lead_data['leadgen_id'])) {
-                $errors[] = 'Missing leadgen_id in webhook data';
-                continue;
-            }
-            
-            $lead_details = cta_fetch_facebook_lead_details($lead_data['leadgen_id']);
-            
-            if (is_wp_error($lead_details)) {
-                $errors[] = 'Failed to fetch lead details: ' . $lead_details->get_error_message();
-                continue;
-            }
-            
-            $adset_info = cta_fetch_facebook_adset_from_lead($lead_data, $lead_details);
-            
-            if (is_wp_error($adset_info)) {
-                $errors[] = 'Failed to fetch ad set info: ' . $adset_info->get_error_message();
-                continue;
-            }
-            
-            $adset_name = $adset_info['name'] ?? '';
-            if (stripos($adset_name, 'cta') === false) {
-                if (defined('WP_DEBUG') && WP_DEBUG) {
-                    error_log('Facebook Lead Ads: Skipped lead - ad set name does not contain "cta": ' . $adset_name);
-                }
-                continue;
-            }
-            
-            $parsed_data = cta_parse_adset_name($adset_name);
-            
-            $submission_id = cta_create_submission_from_facebook_lead($lead_data, $lead_details, $parsed_data);
-            
-            if (is_wp_error($submission_id)) {
-                $errors[] = 'Failed to create submission: ' . $submission_id->get_error_message();
-                continue;
-            }
-            
-            $processed++;
+
+        $lead_details = cta_fetch_facebook_lead_details($leadgen_id);
+        if (is_wp_error($lead_details)) {
+            $errors[] = 'Failed to fetch lead details: ' . $lead_details->get_error_message();
+            continue;
         }
+
+        $adset_info = cta_fetch_facebook_adset_from_lead($lead_data, $lead_details);
+        if (is_wp_error($adset_info)) {
+            $errors[] = 'Failed to fetch ad set info: ' . $adset_info->get_error_message();
+            continue;
+        }
+
+        $adset_name = $adset_info['name'] ?? '';
+        if (stripos($adset_name, 'cta') === false) {
+            if (defined('WP_DEBUG') && WP_DEBUG) {
+                error_log('Facebook Lead Ads: Skipped lead - ad set name does not contain "cta": ' . $adset_name);
+            }
+            continue;
+        }
+
+        $parsed_data = cta_parse_adset_name($adset_name);
+        $submission_id = cta_create_submission_from_facebook_lead($lead_data, $lead_details, $parsed_data);
+        if (is_wp_error($submission_id)) {
+            $errors[] = 'Failed to create submission: ' . $submission_id->get_error_message();
+            continue;
+        }
+
+        $processed_leads[] = ['id' => $leadgen_id, 'time' => time()];
+        $cutoff = time() - $retention_seconds;
+        $processed_leads = array_filter($processed_leads, function ($e) use ($cutoff) {
+            return isset($e['time']) && $e['time'] >= $cutoff;
+        });
+        $processed_leads = array_values(array_slice($processed_leads, -$max_entries, $max_entries));
+        update_option('cta_fb_processed_leads', $processed_leads, false);
+        $processed_ids = array_column($processed_leads, 'id');
+        $processed++;
     }
-    
+
+    cta_facebook_webhook_log_request($request, true, $processed > 0 ? 'processed_' . $processed : 'no_leads');
+
     $response_data = [
         'success' => true,
         'processed' => $processed,
     ];
-    
     if (!empty($errors)) {
         $response_data['errors'] = $errors;
-        
         if (defined('WP_DEBUG') && WP_DEBUG) {
             error_log('Facebook Lead Ads Webhook Errors: ' . print_r($errors, true));
         }
     }
-    
+
     return new WP_REST_Response($response_data, 200);
 }
 
@@ -919,6 +1186,38 @@ function cta_facebook_lead_ads_webhook_settings_fields() {
                     </label>
                     <p class="description">
                         When enabled, leads from Facebook Lead Ads will be automatically imported as form submissions.
+                    </p>
+                </td>
+            </tr>
+            <tr>
+                <th scope="row">
+                    <label for="cta_facebook_app_secret">App Secret</label>
+                </th>
+                <td>
+                    <input type="password" 
+                           id="cta_facebook_app_secret" 
+                           name="cta_facebook_app_secret" 
+                           value="" 
+                           class="regular-text"
+                           autocomplete="off">
+                    <p class="description">
+                        Required in production: verifies POST requests via X-Hub-Signature-256. Find it in Meta for Developers → Your App → Settings → Basic → App Secret. Leave blank to keep current. If not set, webhook POSTs are blocked (use <code>CTA_FB_WEBHOOK_DEBUG</code> in wp-config.php only for local dev to bypass).
+                    </p>
+                </td>
+            </tr>
+            <tr>
+                <th scope="row">
+                    <label for="cta_fb_webhook_trusted_proxies">Trusted proxy IPs</label>
+                </th>
+                <td>
+                    <input type="text" 
+                           id="cta_fb_webhook_trusted_proxies" 
+                           name="cta_fb_webhook_trusted_proxies" 
+                           value="<?php echo esc_attr(get_option('cta_fb_webhook_trusted_proxies', '')); ?>" 
+                           class="large-text"
+                           placeholder="e.g. 10.0.0.1, 172.16.0.1">
+                    <p class="description">
+                        Comma-separated IPs of reverse proxies (e.g. Cloudflare, nginx). Only then is X-Forwarded-For used for rate limiting and logging; otherwise REMOTE_ADDR is used (prevents spoofing).
                     </p>
                 </td>
             </tr>
