@@ -477,12 +477,12 @@ function cta_seo_bulk_page() {
                 $description = cta_get_meta_description($post);
                 $field = cta_seo_bulk_meta_field($post->post_type);
                 if (!empty($description)) {
-                    cta_safe_update_field($field, $post_id, $description);
+                    cta_safe_update_field($field, $description, $post_id);
                 }
             } elseif ($action === 'apply_schema') {
                 $schema_type = cta_get_schema_template($post->post_type);
                 if ($schema_type && $schema_type !== 'None') {
-                    cta_safe_update_field('page_schema_type', $post_id, $schema_type);
+                    cta_safe_update_field('page_schema_type', $schema_type, $post_id);
                 }
             }
             $redirect = add_query_arg([
@@ -520,7 +520,7 @@ function cta_seo_bulk_page() {
                     case 'generate_descriptions':
                         $description = cta_get_meta_description($post);
                         if (!empty($description)) {
-                            cta_safe_update_field($meta_field, $post_id, $description);
+                            cta_safe_update_field($meta_field, $description, $post_id);
                             $updated++;
                         } else {
                             $skipped++;
@@ -530,7 +530,7 @@ function cta_seo_bulk_page() {
                     case 'apply_schema':
                         $schema_type = cta_get_schema_template($post->post_type);
                         if ($schema_type && $schema_type !== 'None') {
-                            cta_safe_update_field('page_schema_type', $post_id, $schema_type);
+                            cta_safe_update_field('page_schema_type', $schema_type, $post_id);
                             $updated++;
                         }
                         break;

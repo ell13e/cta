@@ -77,7 +77,13 @@ function cta_page_seo_meta_box_callback($post) {
     
     // Get auto-generated meta description preview
     $auto_description = cta_get_meta_description($post);
-    
+
+    // For About template, pass ACF-derived content so "Generate from content" uses tab content
+    $page_content_for_js = '';
+    if (get_page_template_slug($post->ID) === 'page-templates/page-about.php') {
+        $page_content_for_js = strip_tags(cta_get_about_page_content_for_seo($post->ID));
+    }
+
     ?>
     <div class="cta-seo-meta-box">
         <!-- Simplified SEO Score -->
@@ -331,6 +337,7 @@ function cta_page_seo_meta_box_callback($post) {
     </div>
     
     <script>
+    var ctaPageContentForDesc = <?php echo json_encode($page_content_for_js); ?>;
     jQuery(document).ready(function($) {
         // Toggle SEO details
         $('#cta-toggle-seo-details').on('click', function() {
@@ -380,23 +387,43 @@ function cta_page_seo_meta_box_callback($post) {
         // Update on input
         $('#cta_meta_title, #cta_meta_description, #cta_primary_keyword, #cta_secondary_keywords').on('input', updateCounters);
         
-        // Generate meta description button
+        // Generate meta description button (uses SEO intentions: primary + secondary keywords; for About page uses ACF tab content)
         $('#cta-generate-meta-desc').on('click', function() {
-            var content = $('#content').val() || '';
+            var content = (typeof ctaPageContentForDesc !== 'undefined' && ctaPageContentForDesc) ? ctaPageContentForDesc : ($('#content').val() || '');
             var title = '<?php echo esc_js(get_the_title($post->ID)); ?>';
-            var primaryKeyword = $('#cta_primary_keyword').val();
-            
-            // Simple extraction: first 150 chars of content, or title + default
-            var generated = content.substring(0, 150).trim();
+            var primaryKeyword = ($('#cta_primary_keyword').val() || '').trim();
+            var secondaryRaw = ($('#cta_secondary_keywords').val() || '').split(',').map(function(k) { return k.trim(); }).filter(function(k) { return k.length > 0; });
+            var secondaryKeyword = secondaryRaw.length > 0 ? secondaryRaw[0] : '';
+
+            var generated = '';
+            var contentTrim = content.replace(/\s+/g, ' ').trim();
+            if (contentTrim.length >= 80) {
+                // Prefer a snippet that includes the primary keyword for SEO
+                if (primaryKeyword && contentTrim.toLowerCase().indexOf(primaryKeyword.toLowerCase()) !== -1) {
+                    var idx = contentTrim.toLowerCase().indexOf(primaryKeyword.toLowerCase());
+                    var start = Math.max(0, idx - 60);
+                    var end = Math.min(contentTrim.length, start + 160);
+                    generated = contentTrim.substring(start, end).trim();
+                    if (start > 0 && generated.charAt(0) !== '.') { generated = '... ' + generated; }
+                    if (end < contentTrim.length && generated.slice(-1) !== '.') { generated = generated + ' ...'; }
+                } else {
+                    generated = contentTrim.substring(0, 160).trim();
+                }
+            }
             if (generated.length < 50) {
+                // Build description from SEO intentions: title + primary (+ secondary if space)
                 if (primaryKeyword) {
-                    generated = title + '. ' + primaryKeyword + ' training in Maidstone, Kent. CQC-compliant, CPD-accredited courses.';
+                    generated = title + '. ' + primaryKeyword + ' training in Maidstone, Kent.';
+                    if (secondaryKeyword && generated.length + secondaryKeyword.length + 25 <= 160) {
+                        generated += ' ' + secondaryKeyword + ', CQC-compliant, CPD-accredited courses.';
+                    } else {
+                        generated += ' CQC-compliant, CPD-accredited courses.';
+                    }
                 } else {
                     generated = title + '. Professional care sector training in Maidstone, Kent. CQC-compliant, CPD-accredited courses.';
                 }
             }
             generated = generated.substring(0, 160);
-            
             $('#cta_meta_description').val(generated);
             updateCounters();
         });
@@ -742,13 +769,97 @@ function cta_page_seo_meta_box_callback($post) {
 }
 
 /**
+ * Build About page body HTML from ACF for SEO score (so tab content is included).
+ * Returns HTML string with H1/H2/H3 and paragraphs. Used when page template is About Us.
+ */
+function cta_get_about_page_content_for_seo($post_id) {
+    if (!function_exists('get_field')) {
+        return '';
+    }
+    $hero_title   = get_field('hero_title', $post_id) ?: '';
+    $hero_subtitle = get_field('hero_subtitle', $post_id) ?: '';
+    $mission_title = get_field('mission_title', $post_id) ?: '';
+    $mission_raw   = get_field('mission_text', $post_id);
+    $values_title  = get_field('values_title', $post_id) ?: '';
+    $values_subtitle = get_field('values_subtitle', $post_id) ?: '';
+    $values        = get_field('values', $post_id);
+    $team_title    = get_field('team_title', $post_id) ?: '';
+    $team_subtitle = get_field('team_subtitle', $post_id) ?: '';
+    $cta_title     = get_field('cta_title', $post_id) ?: '';
+    $cta_text      = get_field('cta_text', $post_id) ?: '';
+
+    $mission_paragraphs = [];
+    if (!empty($mission_raw) && is_array($mission_raw)) {
+        foreach ($mission_raw as $row) {
+            $mission_paragraphs[] = is_array($row) && isset($row['paragraph']) ? $row['paragraph'] : (is_string($row) ? $row : '');
+        }
+        $mission_paragraphs = array_filter($mission_paragraphs);
+    }
+
+    $out = '';
+    if ($hero_title) {
+        $out .= '<h1>' . esc_html($hero_title) . '</h1>';
+    }
+    if ($hero_subtitle) {
+        $out .= '<p>' . esc_html($hero_subtitle) . '</p>';
+    }
+    if ($mission_title) {
+        $out .= '<h2>' . esc_html($mission_title) . '</h2>';
+    }
+    foreach ($mission_paragraphs as $p) {
+        $p = stripslashes((string) $p);
+        if ($p !== '') {
+            $out .= (strpos($p, '<') !== false ? wp_kses_post($p) : '<p>' . esc_html($p) . '</p>');
+        }
+    }
+    if ($values_title) {
+        $out .= '<h2>' . esc_html($values_title) . '</h2>';
+    }
+    if ($values_subtitle) {
+        $out .= '<p>' . esc_html($values_subtitle) . '</p>';
+    }
+    if (!empty($values) && is_array($values)) {
+        foreach ($values as $v) {
+            if (!empty($v['title'])) {
+                $out .= '<h3>' . esc_html($v['title']) . '</h3>';
+            }
+            if (!empty($v['description'])) {
+                $out .= '<p>' . esc_html($v['description']) . '</p>';
+            }
+        }
+    }
+    if ($team_title) {
+        $out .= '<h2>' . esc_html($team_title) . '</h2>';
+    }
+    if ($team_subtitle) {
+        $out .= '<p>' . esc_html($team_subtitle) . '</p>';
+    }
+    if ($cta_title) {
+        $out .= '<h2>' . esc_html($cta_title) . '</h2>';
+    }
+    if ($cta_text) {
+        $out .= '<p>' . esc_html($cta_text) . '</p>';
+    }
+    return $out;
+}
+
+/**
  * Calculate SEO score for a page (2026 Enhanced Methodology)
  * Based on Rank Math, Yoast, and SEOPress best practices
  */
 function cta_calculate_page_seo_score($post) {
     $score = 0;
     $checks = [];
-    
+
+    // Content source: for About Us template use ACF tab content so score reflects tab edits
+    $content_html = $post->post_content;
+    if (get_page_template_slug($post->ID) === 'page-templates/page-about.php') {
+        $acf_content = cta_get_about_page_content_for_seo($post->ID);
+        if ($acf_content !== '') {
+            $content_html = $acf_content;
+        }
+    }
+
     // Get values
     $meta_title = cta_safe_get_field('page_seo_meta_title', $post->ID, '');
     $title = $meta_title ?: get_the_title($post->ID);
@@ -757,7 +868,7 @@ function cta_calculate_page_seo_score($post) {
     $description = $meta_description ?: $auto_description;
     $primary_keyword = strtolower(trim(cta_safe_get_field('page_seo_primary_keyword', $post->ID, '')));
     $has_image = has_post_thumbnail($post->ID);
-    $content = strip_tags($post->post_content);
+    $content = strip_tags($content_html);
     $content_length = strlen($content);
     $word_count = str_word_count($content);
     $schema_type = cta_safe_get_field('page_schema_type', $post->ID, 'WebPage');
@@ -919,8 +1030,8 @@ function cta_calculate_page_seo_score($post) {
     }
     
     // 8. Subheading Structure (5 points)
-    $h2_count = preg_match_all('/<h2[^>]*>/i', $post->post_content, $matches);
-    $h3_count = preg_match_all('/<h3[^>]*>/i', $post->post_content, $matches);
+    $h2_count = preg_match_all('/<h2[^>]*>/i', $content_html, $matches);
+    $h3_count = preg_match_all('/<h3[^>]*>/i', $content_html, $matches);
     if ($h2_count >= 2 || ($h2_count >= 1 && $h3_count >= 2)) {
         $score += 5;
         $checks[] = ['label' => 'Good subheading structure (H2/H3)', 'passed' => true, 'score' => 5];
@@ -933,7 +1044,7 @@ function cta_calculate_page_seo_score($post) {
     
     // Primary keyword in subheadings (5 points)
     if (!empty($primary_keyword) && $h2_count > 0) {
-        preg_match_all('/<h2[^>]*>([^<]+)<\/h2>/i', $post->post_content, $h2_matches);
+        preg_match_all('/<h2[^>]*>([^<]+)<\/h2>/i', $content_html, $h2_matches);
         $keyword_in_h2 = false;
         if (!empty($h2_matches[1])) {
             foreach ($h2_matches[1] as $h2_text) {
@@ -959,7 +1070,7 @@ function cta_calculate_page_seo_score($post) {
     if (!empty($secondary_keywords_array)) {
         $secondary_score = 0;
         $content_lower = strtolower($content);
-        preg_match_all('/<h[2-3][^>]*>([^<]+)<\/h[2-3]>/i', $post->post_content, $all_headings);
+        preg_match_all('/<h[2-3][^>]*>([^<]+)<\/h[2-3]>/i', $content_html, $all_headings);
         $headings_text = implode(' ', $all_headings[1] ?? []);
         $headings_lower = strtolower($headings_text);
         
@@ -1026,27 +1137,27 @@ function cta_save_seo_meta_box($post_id) {
         return;
     }
     
-    // Save meta title
+    // Save meta title (cta_safe_update_field order: $field, $value, $post_id)
     if (isset($_POST['page_seo_meta_title'])) {
-        cta_safe_update_field('page_seo_meta_title', $post_id, sanitize_text_field($_POST['page_seo_meta_title']));
+        cta_safe_update_field('page_seo_meta_title', sanitize_text_field($_POST['page_seo_meta_title']), $post_id);
     }
     
     // Save meta description
     if (isset($_POST['page_seo_meta_description'])) {
-        cta_safe_update_field('page_seo_meta_description', $post_id, sanitize_textarea_field($_POST['page_seo_meta_description']));
+        cta_safe_update_field('page_seo_meta_description', sanitize_textarea_field($_POST['page_seo_meta_description']), $post_id);
     }
     
     // Save schema type
     if (isset($_POST['page_schema_type'])) {
-        cta_safe_update_field('page_schema_type', $post_id, sanitize_text_field($_POST['page_schema_type']));
+        cta_safe_update_field('page_schema_type', sanitize_text_field($_POST['page_schema_type']), $post_id);
     }
     
     // Save keywords
     if (isset($_POST['page_seo_primary_keyword'])) {
-        cta_safe_update_field('page_seo_primary_keyword', $post_id, sanitize_text_field($_POST['page_seo_primary_keyword']));
+        cta_safe_update_field('page_seo_primary_keyword', sanitize_text_field($_POST['page_seo_primary_keyword']), $post_id);
     }
     if (isset($_POST['page_seo_secondary_keywords'])) {
-        cta_safe_update_field('page_seo_secondary_keywords', $post_id, sanitize_text_field($_POST['page_seo_secondary_keywords']));
+        cta_safe_update_field('page_seo_secondary_keywords', sanitize_text_field($_POST['page_seo_secondary_keywords']), $post_id);
     }
     
     // Save noindex/nofollow

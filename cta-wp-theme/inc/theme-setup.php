@@ -179,7 +179,7 @@ function cta_build_about_page_editor_content($post_id) {
     $hero_title   = get_field('hero_title', $post_id) ?: 'About Our Care Training in Kent';
     $hero_subtitle = get_field('hero_subtitle', $post_id) ?: 'CQC-compliant, CPD-accredited care sector training in Kent since 2020';
     $mission_title = get_field('mission_title', $post_id) ?: 'Our Care Training Approach';
-    $mission_text  = get_field('mission_text', $post_id);
+    $mission_text_raw = get_field('mission_text', $post_id);
     $values_title  = get_field('values_title', $post_id) ?: 'Core Care Training Values';
     $values_subtitle = get_field('values_subtitle', $post_id) ?: 'These principles guide everything we do and shape the experience we provide to our learners.';
     $values        = get_field('values', $post_id);
@@ -188,16 +188,27 @@ function cta_build_about_page_editor_content($post_id) {
     $cta_title     = get_field('cta_title', $post_id) ?: 'Start Your Care Training Today';
     $cta_text      = get_field('cta_text', $post_id) ?: 'Join hundreds of care professionals who trust us for their training needs. Get expert CQC compliance training with CPD-accredited certificates.';
 
+    // Normalise mission_text: ACF repeater returns rows with 'paragraph' key; support that and legacy array-of-strings
+    $mission_paragraphs = [];
+    if (!empty($mission_text_raw) && is_array($mission_text_raw)) {
+        foreach ($mission_text_raw as $row) {
+            $mission_paragraphs[] = is_array($row) && isset($row['paragraph']) ? $row['paragraph'] : (is_string($row) ? $row : '');
+        }
+        $mission_paragraphs = array_filter($mission_paragraphs);
+    }
+
     $out = '<h1>' . esc_html($hero_title) . "</h1>\n\n";
     $out .= '<p>' . esc_html($hero_subtitle) . "</p>\n\n";
     $out .= '<h2>' . esc_html($mission_title) . "</h2>\n\n";
-    if (is_array($mission_text)) {
-        foreach ($mission_text as $p) {
-            $p = stripslashes($p);
-            $out .= '<p>' . wp_kses_post($p) . "</p>\n\n";
+    if (!empty($mission_paragraphs)) {
+        foreach ($mission_paragraphs as $p) {
+            $p = stripslashes((string) $p);
+            if ($p !== '') {
+                $out .= (strpos($p, '<') !== false ? wp_kses_post($p) : '<p>' . esc_html($p) . '</p>') . "\n\n";
+            }
         }
-    } elseif ($mission_text) {
-        $out .= '<p>' . wp_kses_post(stripslashes($mission_text)) . "</p>\n\n";
+    } elseif ($mission_text_raw && is_string($mission_text_raw)) {
+        $out .= '<p>' . wp_kses_post(stripslashes($mission_text_raw)) . "</p>\n\n";
     }
     $out .= '<h2>' . esc_html($values_title) . "</h2>\n\n";
     $out .= '<p>' . esc_html($values_subtitle) . "</p>\n\n";

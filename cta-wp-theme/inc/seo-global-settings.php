@@ -305,7 +305,7 @@ function cta_apply_schema_template($post_id) {
     // Apply template
     $template = cta_get_schema_template($post_type);
     if ($template !== 'None') {
-        cta_safe_update_field('page_schema_type', $post_id, $template);
+        cta_safe_update_field('page_schema_type', $template, $post_id);
     }
 }
 add_action('save_post', 'cta_apply_schema_template', 10, 1);

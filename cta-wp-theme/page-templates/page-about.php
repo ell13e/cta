@@ -26,11 +26,22 @@ $hero_title = get_field('hero_title') ?: 'About Our Care Training in Kent';
 $hero_subtitle = get_field('hero_subtitle') ?: 'CQC-compliant, CPD-accredited care sector training in Kent since 2020';
 
 $mission_title = get_field('mission_title') ?: 'Our Care Training Approach';
-$mission_text = get_field('mission_text') ?: [
+$mission_text_raw = get_field('mission_text');
+$mission_text_default = [
   "Continuity Training Academy's ethos reflects our goal: to urge businesses to invest in their staff, and individuals to invest in themselves.",
   "We position ourselves as <strong>'the external training room'</strong> that becomes part of your organisation. We don't just deliver courses, we partner with you.",
   "When working with new care providers, we take time to understand your policies and procedures, ensuring our training complements how your organisation operates. We tailor our training to align perfectly with your needs, creating a seamless integration with your existing processes and standards."
 ];
+// ACF repeater returns array of rows with 'paragraph' key; support that and legacy array-of-strings
+if (empty($mission_text_raw) || !is_array($mission_text_raw)) {
+  $mission_text = $mission_text_default;
+} else {
+  $mission_text = [];
+  foreach ($mission_text_raw as $row) {
+    $mission_text[] = is_array($row) && isset($row['paragraph']) ? $row['paragraph'] : (is_string($row) ? $row : '');
+  }
+  $mission_text = array_filter($mission_text) ? $mission_text : $mission_text_default;
+}
 $mission_image = get_field('mission_image');
 if (empty($mission_image)) {
   $possible_images = [
@@ -86,15 +97,18 @@ $cta_text = get_field('cta_text') ?: 'Join hundreds of care professionals who tr
       <div class="about-mission-grid-new">
         <div class="about-mission-text-new">
           <h2><?php echo esc_html($mission_title); ?></h2>
-          <?php 
+          <?php
           if (is_array($mission_text)) {
             foreach ($mission_text as $paragraph) {
-              $paragraph = stripslashes($paragraph);
-              echo '<p>' . wp_kses_post($paragraph) . '</p>';
+              $paragraph = stripslashes((string) $paragraph);
+              if ($paragraph === '') {
+                continue;
+              }
+              // Plain text: wrap in <p>; already HTML (e.g. from WYSIWYG): output as-is
+              echo wp_kses_post(strpos($paragraph, '<') !== false ? $paragraph : '<p>' . $paragraph . '</p>');
             }
           } else {
-            $mission_text = stripslashes($mission_text);
-            echo wp_kses_post($mission_text);
+            echo wp_kses_post(stripslashes((string) $mission_text));
           }
           ?>
         </div>
