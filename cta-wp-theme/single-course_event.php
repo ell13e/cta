@@ -439,9 +439,11 @@ while (have_posts()) : the_post();
                   </div>
                 </div>
               <?php else : ?>
-                <div class="course-detail-price-container">
-                  <span class="course-detail-price">From £<?php echo esc_html(number_format($price, 0)); ?></span>
-                  <span class="course-detail-price-unit">per person</span>
+                <div class="course-detail-price-line">
+                  <div class="course-detail-price-container">
+                    <span class="course-detail-price">From £<?php echo esc_html(number_format($price, 0)); ?></span>
+                    <span class="course-detail-price-unit">per person</span>
+                  </div>
                 </div>
               <?php endif; ?>
               <div class="course-detail-price-includes">
