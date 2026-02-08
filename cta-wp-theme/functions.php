@@ -70,6 +70,25 @@ add_filter('wp_sitemaps_posts_entry', function ($entry, $post, $post_type) {
 }, 10, 3);
 
 /**
+ * Final pass: never output an entry without a valid loc (runs after all other filters).
+ */
+add_filter('wp_sitemaps_posts_entry', function ($entry, $post, $post_type) {
+    if ($entry === false || !is_array($entry)) {
+        return $entry;
+    }
+    $loc = isset($entry['loc']) ? trim((string) $entry['loc']) : '';
+    if ($loc === '' && $post instanceof WP_Post) {
+        $permalink = get_permalink($post);
+        $loc = is_string($permalink) ? trim($permalink) : '';
+    }
+    if ($loc === '') {
+        return false;
+    }
+    $entry['loc'] = $loc;
+    return $entry;
+}, 999, 3);
+
+/**
  * Theme Constants
  */
 define('CTA_THEME_VERSION', '1.0.0');

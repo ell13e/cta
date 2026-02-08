@@ -40,14 +40,14 @@ function cta_add_image_sitemap_provider($provider, $name) {
 /**
  * Add images to course sitemap entries
  */
-function cta_add_course_images_to_sitemap($url, $post_type, $post) {
+function cta_add_course_images_to_sitemap($url, $post, $post_type) {
     // Only for courses
     if ($post_type !== 'course') {
         return $url;
     }
     
     // Get featured image
-    $image_id = get_post_thumbnail_id($post->ID);
+    $image_id = $post instanceof WP_Post ? get_post_thumbnail_id($post->ID) : 0;
     if (!$image_id) {
         return $url;
     }
@@ -97,9 +97,13 @@ add_filter('wp_sitemaps_posts_entry', 'cta_add_course_images_to_sitemap', 10, 3)
 /**
  * Add images to course event sitemap entries
  */
-function cta_add_event_images_to_sitemap($url, $post_type, $post) {
+function cta_add_event_images_to_sitemap($url, $post, $post_type) {
     // Only for course events
     if ($post_type !== 'course_event') {
+        return $url;
+    }
+    
+    if (!($post instanceof WP_Post)) {
         return $url;
     }
     

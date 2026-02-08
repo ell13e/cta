@@ -1717,11 +1717,18 @@ function cta_sitemap_entry($entry, $post, $post_type) {
         }
     }
     
-    // Set lastmod to post modified date (ISO 8601 for Google).
-    if (isset($post->post_modified_gmt)) {
-        $entry['lastmod'] = gmdate('Y-m-d\TH:i:s+00:00', strtotime($post->post_modified_gmt));
+    // lastmod: only output when valid (ISO 8601). Unset when invalid so we don't emit bad dates.
+    if (!empty($post->post_modified_gmt) && $post->post_modified_gmt !== '0000-00-00 00:00:00') {
+        $ts = strtotime($post->post_modified_gmt);
+        if ($ts !== false && $ts >= strtotime('2000-01-01')) {
+            $entry['lastmod'] = gmdate('Y-m-d\TH:i:s+00:00', $ts);
+        } else {
+            unset($entry['lastmod']);
+        }
+    } else {
+        unset($entry['lastmod']);
     }
-    
+
     return $entry;
 }
 add_filter('wp_sitemaps_posts_entry', 'cta_sitemap_entry', 10, 3);
