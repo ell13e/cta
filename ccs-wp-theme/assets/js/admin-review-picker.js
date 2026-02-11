@@ -20,7 +20,7 @@
         }
 
         // Get all reviews from localized data or fetch via AJAX
-        const reviews = window.ctaAllReviews || {};
+        const reviews = window.ccsAllReviews || {};
         if (Object.keys(reviews).length === 0) {
             return;
         }

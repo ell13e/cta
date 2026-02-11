@@ -1286,7 +1286,7 @@ function ccs_enqueue_review_picker($hook) {
     $all_reviews = get_option('ccs_all_reviews', []);
     wp_localize_script(
         'cta-admin-review-picker',
-        'ctaAllReviews',
+        'ccsAllReviews',
         $all_reviews
     );
 }

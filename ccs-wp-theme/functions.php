@@ -398,7 +398,7 @@ function ccs_enqueue_page_scripts() {
         // Pass theme URL to JavaScript
         wp_localize_script(
             'ccs-course-data-manager',
-            'ctaThemeData',
+            'ccsThemeData',
             [
                 'themeUri' => CCS_THEME_URI,
             ]
@@ -441,7 +441,7 @@ function ccs_enqueue_page_scripts() {
         // Pass theme URL to JavaScript
         wp_localize_script(
             'ccs-course-data-manager',
-            'ctaThemeData',
+            'ccsThemeData',
             [
                 'themeUri' => CCS_THEME_URI,
             ]
@@ -584,9 +584,9 @@ function ccs_get_contact_info() {
     }
     
     return [
-        'phone' => '01622 587343',
-        'phone_link' => 'tel:01622587343',
-        'email' => 'enquiries@continuitytrainingacademy.co.uk',
+        'phone' => '01622 809881',
+        'phone_link' => 'tel:01622809881',
+        'email' => 'office@continuitycareservices.co.uk',
         'address' => [
             'line1' => 'Continuity of Care Services',
             'line2' => 'The Maidstone Studios, New Cut Road',
@@ -594,11 +594,42 @@ function ccs_get_contact_info() {
             'postcode' => 'ME14 5NZ',
         ],
         'social' => [
-            'facebook' => 'https://facebook.com/continuitytraining',
-            'instagram' => 'https://instagram.com/continuitytrainingacademy',
-            'linkedin' => 'https://www.linkedin.com/company/continuitytrainingacademy/',
+            'facebook' => '',
+            'instagram' => '',
+            'linkedin' => 'https://uk.linkedin.com/company/continuitycareservices',
         ],
     ];
+}
+
+/**
+ * Get office hours for display (e.g. on Contact page).
+ * Uses theme mod opening hours if set, otherwise verified default.
+ *
+ * @return string Human-readable office hours.
+ */
+function ccs_get_opening_hours_display() {
+    if (function_exists('ccs_get_opening_hours_schema')) {
+        $specs = ccs_get_opening_hours_schema();
+        if (!empty($specs)) {
+            $parts = [];
+            foreach ($specs as $spec) {
+                $opens = $spec['opens'] ?? '';
+                $closes = $spec['closes'] ?? '';
+                if ($opens !== '' && $closes !== '') {
+                    $opens_display = date('g:i A', strtotime($opens));
+                    $closes_display = date('g:i A', strtotime($closes));
+                    $days = $spec['dayOfWeek'] ?? [];
+                    $weekdays = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
+                    $day_label = (count($days) === 5 && empty(array_diff($days, $weekdays)) && empty(array_diff($weekdays, $days))) ? 'Mon–Fri' : implode(', ', $days);
+                    $parts[] = $day_label . ' ' . $opens_display . ' – ' . $closes_display;
+                }
+            }
+            if (!empty($parts)) {
+                return implode('; ', $parts);
+            }
+        }
+    }
+    return 'Mon–Fri 9:00 AM – 5:00 PM';
 }
 
 /**

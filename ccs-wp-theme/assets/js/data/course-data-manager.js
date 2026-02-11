@@ -174,8 +174,8 @@
    */
   function getThemeDataUrl(filename) {
     // Check if theme URL was passed via wp_localize_script
-    if (window.ctaThemeData && window.ctaThemeData.themeUri) {
-      return window.ctaThemeData.themeUri + '/assets/data/' + filename;
+    if (window.ccsThemeData && window.ccsThemeData.themeUri) {
+      return window.ccsThemeData.themeUri + '/assets/data/' + filename;
     }
     
     // Fallback: construct from script location

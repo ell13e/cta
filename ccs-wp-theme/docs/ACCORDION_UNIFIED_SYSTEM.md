@@ -164,15 +164,15 @@ The accordion system is automatically initialized, but you can also use it progr
 
 ```javascript
 // Re-initialize (useful for dynamically added content)
-CTAAccordion.init();
+CCSAccordion.init();
 
 // Manually open an accordion
 const trigger = document.querySelector('.accordion-trigger');
 const content = document.getElementById('content-1');
-CTAAccordion.open(trigger, content, 'height');
+CCSAccordion.open(trigger, content, 'height');
 
 // Manually close an accordion
-CTAAccordion.close(trigger, content, 'height');
+CCSAccordion.close(trigger, content, 'height');
 ```
 
 ## Benefits
