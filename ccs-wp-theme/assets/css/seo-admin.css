@@ -1,0 +1,395 @@
+/**
+ * SEO Admin UI
+ * Shared styles for SEO Settings, Bulk, Redirects, Sitemap, Schema, Image SEO, Verification.
+ * Dashboard is left unchanged.
+ *
+ * @package ccs-theme
+ */
+
+/* -------------------------------------------------------------------------
+   Design tokens
+   ------------------------------------------------------------------------- */
+.ccs-seo-page {
+    --cta-seo-space-xs: 6px;
+    --cta-seo-space-sm: 12px;
+    --cta-seo-space-md: 20px;
+    --cta-seo-space-lg: 24px;
+    --cta-seo-space-xl: 32px;
+    --cta-seo-radius: 4px;
+    --cta-seo-border: 1px solid #c3c4c7;
+    --cta-seo-bg: #fff;
+    --cta-seo-bg-subtle: #f6f7f7;
+    --cta-seo-text: #1d2327;
+    --cta-seo-text-muted: #646970;
+    --cta-seo-pass: #00a32a;
+    --cta-seo-warning: #dba617;
+    --cta-seo-error: #d63638;
+    --cta-seo-pass-bg: #edfaef;
+    --cta-seo-warning-bg: #fcf9e8;
+    --cta-seo-error-bg: #fcf0f1;
+    --cta-seo-primary: #2271b1;
+    --cta-seo-primary-hover: #135e96;
+}
+
+/* -------------------------------------------------------------------------
+   Page wrapper and header
+   ------------------------------------------------------------------------- */
+.ccs-seo-page .wrap {
+    max-width: 1200px;
+}
+
+.ccs-seo-page .ccs-seo-header {
+    margin-bottom: var(--cta-seo-space-lg);
+}
+
+.ccs-seo-page .ccs-seo-header h1 {
+    margin: 0 0 var(--cta-seo-space-xs) 0;
+    font-size: 23px;
+    font-weight: 400;
+    line-height: 1.3;
+}
+
+.ccs-seo-page .ccs-seo-header .ccs-seo-header-desc {
+    margin: 0;
+    color: var(--cta-seo-text-muted);
+    font-size: 13px;
+}
+
+/* -------------------------------------------------------------------------
+   Sections (replaces raw .card with consistent spacing)
+   ------------------------------------------------------------------------- */
+.ccs-seo-page .ccs-seo-section {
+    background: var(--cta-seo-bg);
+    border: var(--cta-seo-border);
+    border-radius: var(--cta-seo-radius);
+    box-shadow: 0 1px 1px rgba(0, 0, 0, 0.04);
+    padding: var(--cta-seo-space-lg);
+    margin-bottom: var(--cta-seo-space-md);
+}
+
+.ccs-seo-page .ccs-seo-section:last-child {
+    margin-bottom: 0;
+}
+
+.ccs-seo-page .ccs-seo-section__title {
+    margin: 0 0 var(--cta-seo-space-sm) 0;
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--cta-seo-text);
+}
+
+.ccs-seo-page .ccs-seo-section__body {
+    margin: 0;
+    font-size: 13px;
+    line-height: 1.5;
+    color: var(--cta-seo-text);
+}
+
+.ccs-seo-page .ccs-seo-section__body p {
+    margin: 0 0 0.75em 0;
+}
+
+.ccs-seo-page .ccs-seo-section__body p:last-child {
+    margin-bottom: 0;
+}
+
+.ccs-seo-page .ccs-seo-section__body ul {
+    margin: 0.5em 0 0 1.5em;
+}
+
+.ccs-seo-page .ccs-seo-section__body .description {
+    margin-top: 4px;
+    color: var(--cta-seo-text-muted);
+    font-size: 12px;
+}
+
+.ccs-seo-page .ccs-seo-section__count {
+    font-weight: 400;
+    color: var(--cta-seo-text-muted);
+}
+
+/* -------------------------------------------------------------------------
+   Form layout (cleaner than form-table in sections)
+   ------------------------------------------------------------------------- */
+.ccs-seo-page .ccs-seo-form-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    gap: var(--cta-seo-space-sm);
+    margin-bottom: var(--cta-seo-space-md);
+}
+
+.ccs-seo-page .ccs-seo-form-row:last-child {
+    margin-bottom: 0;
+}
+
+.ccs-seo-page .ccs-seo-form-row label {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 4px;
+    min-width: 140px;
+}
+
+.ccs-seo-page .ccs-seo-form-row .ccs-seo-form-field {
+    flex: 1;
+    min-width: 200px;
+}
+
+.ccs-seo-page .ccs-seo-form-row input[type="text"],
+.ccs-seo-page .ccs-seo-form-row input[type="url"],
+.ccs-seo-page .ccs-seo-form-row input[type="number"],
+.ccs-seo-page .ccs-seo-form-row select,
+.ccs-seo-page .ccs-seo-form-row textarea {
+    width: 100%;
+    max-width: 400px;
+}
+
+.ccs-seo-page .ccs-seo-form-row fieldset {
+    margin: 0;
+    padding: 0;
+    border: none;
+}
+
+.ccs-seo-page .ccs-seo-form-row fieldset label {
+    font-weight: 400;
+    min-width: 0;
+    margin-left: 4px;
+}
+
+.ccs-seo-page .ccs-seo-form-actions {
+    margin-top: var(--cta-seo-space-lg);
+    padding-top: var(--cta-seo-space-md);
+    border-top: var(--cta-seo-border);
+}
+
+/* -------------------------------------------------------------------------
+   Tables
+   ------------------------------------------------------------------------- */
+.ccs-seo-page .ccs-seo-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+}
+
+.ccs-seo-page .ccs-seo-table th,
+.ccs-seo-page .ccs-seo-table td {
+    padding: 10px 12px;
+    text-align: left;
+    border-bottom: var(--cta-seo-border);
+    vertical-align: top;
+}
+
+.ccs-seo-page .ccs-seo-table thead th {
+    background: var(--cta-seo-bg-subtle);
+    font-weight: 600;
+    color: var(--cta-seo-text);
+}
+
+.ccs-seo-page .ccs-seo-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.ccs-seo-page .ccs-seo-table tbody tr:nth-child(even) {
+    background: var(--cta-seo-bg-subtle);
+}
+
+.ccs-seo-page .ccs-seo-table-total,
+.ccs-seo-page tr.ccs-seo-table-total {
+    background: var(--cta-seo-bg-subtle);
+    font-weight: 600;
+}
+
+.ccs-seo-page .ccs-seo-table code {
+    font-size: 12px;
+    background: var(--cta-seo-bg-subtle);
+    padding: 2px 6px;
+    border-radius: 3px;
+}
+
+/* -------------------------------------------------------------------------
+   Status badges
+   ------------------------------------------------------------------------- */
+.ccs-seo-page .ccs-seo-status {
+    font-weight: 600;
+    font-size: 13px;
+}
+
+.ccs-seo-page .ccs-seo-status--pass {
+    color: var(--cta-seo-pass);
+}
+
+.ccs-seo-page .ccs-seo-status--warning {
+    color: var(--cta-seo-warning);
+}
+
+.ccs-seo-page .ccs-seo-status--error {
+    color: var(--cta-seo-error);
+}
+
+.ccs-seo-page .ccs-seo-status-banner {
+    padding: var(--cta-seo-space-md);
+    border-radius: var(--cta-seo-radius);
+    margin-bottom: var(--cta-seo-space-md);
+    border-left: 4px solid;
+}
+
+.ccs-seo-page .ccs-seo-status-banner--pass {
+    background: var(--cta-seo-pass-bg);
+    border-left-color: var(--cta-seo-pass);
+}
+
+.ccs-seo-page .ccs-seo-status-banner--warning {
+    background: var(--cta-seo-warning-bg);
+    border-left-color: var(--cta-seo-warning);
+}
+
+.ccs-seo-page .ccs-seo-status-banner--error {
+    background: var(--cta-seo-error-bg);
+    border-left-color: var(--cta-seo-error);
+}
+
+.ccs-seo-page .ccs-seo-status-banner__title {
+    margin: 0 0 4px 0;
+    font-size: 15px;
+    font-weight: 600;
+}
+
+.ccs-seo-page .ccs-seo-status-banner__detail {
+    margin: 0;
+    font-size: 13px;
+    color: var(--cta-seo-text-muted);
+}
+
+/* -------------------------------------------------------------------------
+   Button groups and actions
+   ------------------------------------------------------------------------- */
+.ccs-seo-page .ccs-seo-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--cta-seo-space-sm);
+    align-items: center;
+}
+
+.ccs-seo-page .ccs-seo-actions .button {
+    margin: 0;
+}
+
+/* -------------------------------------------------------------------------
+   Info / help box
+   ------------------------------------------------------------------------- */
+.ccs-seo-page .ccs-seo-info {
+    background: #f0f6fc;
+    border-left: 4px solid var(--cta-seo-primary);
+    padding: var(--cta-seo-space-md);
+    margin: var(--cta-seo-space-md) 0;
+    border-radius: 0 var(--cta-seo-radius) var(--cta-seo-radius) 0;
+}
+
+.ccs-seo-page .ccs-seo-info__title {
+    margin: 0 0 var(--cta-seo-space-xs) 0;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.ccs-seo-page .ccs-seo-info ul {
+    margin: 0.5em 0 0 1.5em;
+    padding: 0;
+}
+
+.ccs-seo-page .ccs-seo-info li {
+    margin-bottom: 4px;
+}
+
+/* -------------------------------------------------------------------------
+   Two-column layout (e.g. Redirects: form | list)
+   ------------------------------------------------------------------------- */
+.ccs-seo-page .ccs-seo-grid {
+    display: grid;
+    gap: var(--cta-seo-space-lg);
+    margin-bottom: var(--cta-seo-space-md);
+}
+
+@media (min-width: 782px) {
+    .ccs-seo-page .ccs-seo-grid--2 {
+        grid-template-columns: 1fr 1fr;
+    }
+}
+
+/* -------------------------------------------------------------------------
+   Toolbar (Bulk: filters + bulk action in one row)
+   ------------------------------------------------------------------------- */
+.ccs-seo-page .ccs-seo-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    gap: var(--cta-seo-space-md);
+    margin-bottom: var(--cta-seo-space-md);
+}
+
+.ccs-seo-page .ccs-seo-toolbar-group {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--cta-seo-space-sm);
+}
+
+.ccs-seo-page .ccs-seo-toolbar-group label {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--cta-seo-text-muted);
+}
+
+.ccs-seo-page .ccs-seo-toolbar-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--cta-seo-space-sm);
+}
+
+.ccs-seo-page .ccs-seo-toolbar-actions #selected-count {
+    font-size: 12px;
+    color: var(--cta-seo-text-muted);
+}
+
+.ccs-seo-page .ccs-seo-toolbar-actions select {
+    min-width: 180px;
+}
+
+/* -------------------------------------------------------------------------
+   Filters bar (Bulk: post type, status, search)
+   ------------------------------------------------------------------------- */
+.ccs-seo-page .ccs-seo-filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--cta-seo-space-sm);
+    align-items: flex-end;
+    margin-bottom: var(--cta-seo-space-md);
+}
+
+.ccs-seo-page .ccs-seo-filters label {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--cta-seo-text-muted);
+}
+
+.ccs-seo-page .ccs-seo-filters select,
+.ccs-seo-page .ccs-seo-filters input[type="text"] {
+    min-width: 160px;
+}
+
+/* -------------------------------------------------------------------------
+   Danger button (e.g. remove alt text)
+   ------------------------------------------------------------------------- */
+.ccs-seo-page .button.ccs-seo-btn-danger {
+    border-color: var(--cta-seo-error);
+    color: var(--cta-seo-error);
+}
+
+.ccs-seo-page .button.ccs-seo-btn-danger:hover {
+    background: var(--cta-seo-error-bg);
+    border-color: var(--cta-seo-error);
+    color: var(--cta-seo-error);
+}

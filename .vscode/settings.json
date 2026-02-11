@@ -42,8 +42,8 @@
     "*.phtml"
   ],
   "intelephense.environment.includePaths": [
-    "${workspaceFolder}/cta-wp-theme/.stubs",
-    "${workspaceFolder}/cta-wp-theme/vendor"
+    "${workspaceFolder}/ccs-wp-theme/.stubs",
+    "${workspaceFolder}/ccs-wp-theme/vendor"
   ],
   "intelephense.diagnostics.undefinedVariables": false
 }

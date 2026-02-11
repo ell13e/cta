@@ -1,0 +1,399 @@
+/**
+ * WordPress Editor Styles
+ * Makes the editor match the front-end styling
+ *
+ * @package ccs-theme
+ */
+
+/* Import Google Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@200;300;400;500;600;700;800&family=Lora:wght@400;500;600;700&display=swap');
+
+/* CSS Variables matching main.css */
+:root {
+    --font-stack: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    --font-serif: 'Lora', Georgia, serif;
+    
+    /* Colors */
+    --brown-dark: #2D2A26;
+    --brown-medium: #4A4541;
+    --gold-primary: #8B6F3F;
+    --gold-hover: #A68B5B;
+    --teal-primary: #5BA8A0;
+    --white: #FFFFFF;
+    --cream-light: #F5EFE0;
+    
+    /* Spacing */
+    --spacing-base: 1rem;
+    --spacing-lg: 1.5rem;
+    --spacing-xl: 2rem;
+    --spacing-2xl: 3rem;
+    --spacing-3xl: 4rem;
+    
+    /* Typography */
+    --font-size-body: clamp(1rem, 1.5vw, 1.125rem);
+    --font-size-h2: clamp(1.75rem, 4vw, 2.25rem);
+    --font-size-h3: clamp(1.375rem, 3vw, 1.75rem);
+    --line-height-relaxed: 1.8;
+    --line-height-normal: 1.6;
+    --line-height-tight: 1.2;
+    
+    /* Radius */
+    --radius-md: 8px;
+    --radius-lg: 12px;
+}
+
+/* ============================================
+   Editor Body Styles
+   ============================================ */
+
+body {
+    font-family: var(--font-stack);
+    font-size: var(--font-size-body);
+    line-height: var(--line-height-relaxed);
+    color: var(--brown-medium);
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+/* ============================================
+   Headings
+   ============================================ */
+
+h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-stack);
+    color: var(--brown-dark);
+    font-weight: 700;
+    line-height: var(--line-height-tight);
+    margin-top: var(--spacing-2xl);
+    margin-bottom: var(--spacing-lg);
+}
+
+h1 {
+    font-size: clamp(2rem, 5vw, 3rem);
+    margin-top: 0;
+}
+
+h2 {
+    font-size: var(--font-size-h2);
+    margin-top: var(--spacing-3xl);
+    padding-bottom: var(--spacing-base);
+    border-bottom: 2px solid var(--cream-light);
+}
+
+h3 {
+    font-size: var(--font-size-h3);
+    font-weight: 600;
+}
+
+h4 {
+    font-size: 1.25rem;
+    font-weight: 600;
+}
+
+/* ============================================
+   Paragraphs
+   ============================================ */
+
+p {
+    margin-bottom: var(--spacing-lg);
+    line-height: var(--line-height-relaxed);
+}
+
+/* Lead paragraph - first paragraph */
+.editor-styles-wrapper > p:first-of-type,
+.block-editor-block-list__layout > p:first-of-type {
+    font-size: 1.25rem;
+    font-weight: 500;
+    color: var(--brown-dark);
+    line-height: 1.7;
+}
+
+/* ============================================
+   Lists - User-Friendly Formatting
+   ============================================ */
+
+ul, ol {
+    margin: var(--spacing-lg) 0;
+    padding-left: var(--spacing-2xl);
+    line-height: var(--line-height-relaxed);
+}
+
+ul {
+    list-style-type: disc;
+}
+
+ol {
+    list-style-type: decimal;
+}
+
+li {
+    margin-bottom: var(--spacing-base);
+    padding-left: 0.5rem;
+}
+
+li::marker {
+    color: var(--gold-primary);
+    font-weight: 600;
+}
+
+/* Nested lists */
+ul ul, ol ol, ul ol, ol ul {
+    margin-top: var(--spacing-base);
+    margin-bottom: 0;
+}
+
+/* ============================================
+   Links
+   ============================================ */
+
+a {
+    color: var(--gold-primary);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+}
+
+a:hover {
+    color: var(--gold-hover);
+}
+
+/* ============================================
+   Blockquotes
+   ============================================ */
+
+blockquote {
+    margin: var(--spacing-2xl) 0;
+    padding: var(--spacing-xl) var(--spacing-2xl);
+    background: linear-gradient(135deg, var(--cream-light) 0%, var(--white) 100%);
+    border-left: 4px solid var(--gold-primary);
+    border-radius: 0 var(--radius-md) var(--radius-md) 0;
+    font-style: italic;
+    font-size: 1.125rem;
+    color: var(--brown-dark);
+}
+
+blockquote p {
+    margin-bottom: 0;
+}
+
+blockquote cite {
+    display: block;
+    margin-top: var(--spacing-base);
+    font-style: normal;
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: var(--gold-primary);
+}
+
+/* ============================================
+   Code & Preformatted
+   ============================================ */
+
+code {
+    background: var(--cream-light);
+    padding: 0.2em 0.4em;
+    border-radius: 4px;
+    font-family: 'IBM Plex Mono', Consolas, monospace;
+    font-size: 0.9em;
+    color: var(--brown-dark);
+}
+
+pre {
+    background: var(--brown-dark);
+    color: var(--cream-light);
+    padding: var(--spacing-xl);
+    border-radius: var(--radius-md);
+    overflow-x: auto;
+    font-family: 'IBM Plex Mono', Consolas, monospace;
+    font-size: 0.9rem;
+    line-height: 1.6;
+}
+
+pre code {
+    background: none;
+    padding: 0;
+    color: inherit;
+}
+
+/* ============================================
+   Images
+   ============================================ */
+
+img {
+    max-width: 100%;
+    height: auto;
+    border-radius: var(--radius-md);
+}
+
+figure {
+    margin: var(--spacing-2xl) 0;
+}
+
+figcaption {
+    margin-top: var(--spacing-base);
+    font-size: 0.9rem;
+    color: var(--brown-medium);
+    text-align: center;
+    font-style: italic;
+}
+
+/* ============================================
+   Tables
+   ============================================ */
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: var(--spacing-2xl) 0;
+    font-size: 0.95rem;
+}
+
+th, td {
+    padding: var(--spacing-base);
+    text-align: left;
+    border-bottom: 1px solid var(--cream-light);
+}
+
+th {
+    background: var(--cream-light);
+    font-weight: 600;
+    color: var(--brown-dark);
+}
+
+tr:hover td {
+    background: rgba(245, 239, 224, 0.3);
+}
+
+/* ============================================
+   Horizontal Rule
+   ============================================ */
+
+hr {
+    border: none;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--gold-primary), transparent);
+    margin: var(--spacing-3xl) 0;
+}
+
+/* ============================================
+   Buttons (for button blocks)
+   ============================================ */
+
+.wp-block-button__link {
+    background: linear-gradient(135deg, var(--gold-primary) 0%, var(--gold-hover) 100%);
+    color: var(--white);
+    padding: 0.875rem 2rem;
+    border-radius: var(--radius-md);
+    font-weight: 600;
+    text-decoration: none;
+    display: inline-block;
+    transition: all 0.3s ease;
+}
+
+.wp-block-button__link:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(139, 111, 63, 0.3);
+}
+
+/* ============================================
+   Gutenberg Block Specific Styles
+   ============================================ */
+
+/* Columns */
+.wp-block-columns {
+    gap: var(--spacing-xl);
+}
+
+/* Separator */
+.wp-block-separator {
+    border: none;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--gold-primary), transparent);
+}
+
+/* Quote */
+.wp-block-quote {
+    margin: var(--spacing-2xl) 0;
+    padding: var(--spacing-xl) var(--spacing-2xl);
+    background: linear-gradient(135deg, var(--cream-light) 0%, var(--white) 100%);
+    border-left: 4px solid var(--gold-primary);
+    border-radius: 0 var(--radius-md) var(--radius-md) 0;
+}
+
+/* Pullquote */
+.wp-block-pullquote {
+    border-top: 4px solid var(--gold-primary);
+    border-bottom: 4px solid var(--gold-primary);
+    padding: var(--spacing-2xl) 0;
+    text-align: center;
+}
+
+.wp-block-pullquote blockquote {
+    border-left: none;
+    background: none;
+    padding: 0;
+}
+
+.wp-block-pullquote p {
+    font-size: 1.5rem;
+    font-weight: 500;
+    color: var(--brown-dark);
+}
+
+/* Cover block */
+.wp-block-cover {
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+}
+
+/* Group block with background */
+.wp-block-group.has-background {
+    padding: var(--spacing-2xl);
+    border-radius: var(--radius-lg);
+}
+
+/* ============================================
+   Call-to-Action Box (Custom Pattern)
+   ============================================ */
+
+.article-cta-section,
+.wp-block-group.is-style-cta {
+    background: linear-gradient(135deg, rgba(245, 239, 224, 0.95) 0%, rgba(255, 255, 255, 1) 100%);
+    border: 2px solid var(--gold-primary);
+    border-radius: var(--radius-lg);
+    padding: var(--spacing-2xl);
+    margin: var(--spacing-3xl) 0;
+    box-shadow: 0 6px 20px rgba(139, 111, 63, 0.15);
+}
+
+.article-cta-section h3,
+.wp-block-group.is-style-cta h3 {
+    margin-top: 0;
+    color: var(--brown-dark);
+    font-size: 1.5rem;
+}
+
+/* ============================================
+   Editor-Specific Improvements
+   ============================================ */
+
+/* Make the editor feel more spacious */
+.editor-styles-wrapper {
+    padding: 40px 20px;
+}
+
+/* Style the title input */
+.editor-post-title__input {
+    font-family: var(--font-stack);
+    font-size: clamp(2rem, 5vw, 3rem);
+    font-weight: 700;
+    color: var(--brown-dark);
+    line-height: var(--line-height-tight);
+}
+
+/* Placeholder text styling */
+.block-editor-block-list__block::placeholder {
+    color: var(--brown-medium);
+    opacity: 0.5;
+}
+
